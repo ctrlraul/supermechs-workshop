@@ -12,6 +12,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
     "@tsconfig/svelte": "^2.0.1",
+    "@types/lodash": "^4.14.179",
     "@vitejs/plugin-legacy": "^1.7.1",
     "svelte": "^3.44.0",
     "svelte-check": "^2.2.7",
@@ -19,5 +20,12 @@
     "tslib": "^2.3.1",
     "typescript": "^4.5.4",
     "vite": "^2.8.0"
+  },
+  "dependencies": {
+    "@tweenjs/tween.js": "^18.6.4",
+    "lodash": "^4.17.21",
+    "potpack": "^1.0.2",
+    "socket.io-client": "^4.4.1",
+    "svelte-spa-router": "^3.2.0"
   }
 }

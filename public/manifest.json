@@ -1,0 +1,10 @@
+{
+  "name": "SuperMechs Workshop",
+  "short_name": "SuperMechs Workshop",
+  "start_url": "/",
+  "display": "fullscreen",
+  "theme_color": "#06222A",
+  "orientatio": "landscape",
+  "background_color": "#06222A",
+  "description": "SuperMechs Simulator"
+}

@@ -1,65 +1,187 @@
 <script lang="ts">
-  import logo from './assets/svelte.png'
-  import Counter from './lib/Counter.svelte'
+
+import Router, { replace } from 'svelte-spa-router'
+import wrap from 'svelte-spa-router/wrap'
+import { onMount } from 'svelte'
+import { importItemsPack } from './items/ItemsManager'
+import * as LocalStorageHandler from './managers/LocalStorageHandler'
+import { addPopup, popup } from './managers/PopupManager'
+import Popup from './components/Popup.svelte'
+import Tooltip from './components/Tooltip/Tooltip.svelte'
+import { battle, itemsPackData } from './stores'
+import { loadStatImages } from './stats/StatsManager'
+
+
+
+// Pages
+
+import ItemPacks from './pages/ItemPacks.svelte'
+import Workshop from './pages/Workshop/Workshop.svelte'
+import Mechs from './pages/Mechs.svelte'
+import Lobby from './pages/Lobby/Lobby.svelte'
+import Battle from './pages/Battle/Battle.svelte'
+
+
+
+// Types
+
+import type { RouteDefinition } from 'svelte-spa-router'
+
+
+
+// Data
+
+let didLoadStats = false
+
+
+LocalStorageHandler.loadLocalData();
+
+onMount(async () => {
+
+  // This doesn't really fail as of now
+  await loadStatImages()
+  didLoadStats = true
+
+})
+
+
+
+function needsItemsPack (): boolean {
+
+  if ($itemsPackData !== null) {
+    return true
+  }
+
+  const packURL = LocalStorageHandler.get('last-items-pack-url')
+
+  if (packURL) {
+
+    const popup = addPopup({
+      title: 'Loading last items pack...',
+      hideOnOffclick: false,
+      spinner: true
+    })
+
+    fetch(packURL)
+      .then(response => response.json())
+      .then(pack => {
+
+        importItemsPack(pack, () => {})
+          .then(popup.remove.bind(popup))
+          .catch(err => {
+
+            popup.replace({
+              title: 'Failed to load items pack!',
+              message: err.message,
+              mode: 'error',
+              options: {
+                Ok () { this.remove() }
+              }
+            })
+
+            replace('/')
+
+          })
+
+      })
+
+    return true
+
+  }
+
+  return false
+
+}
+
+
+const routes: RouteDefinition = {
+
+  '/': ItemPacks,
+
+  '/workshop': wrap({
+    component: Workshop,
+    conditions: needsItemsPack,
+  }),
+
+  '/mechs': wrap({
+    component: Mechs,
+    conditions: needsItemsPack,
+  }),
+
+  '/lobby': wrap({
+    component: Lobby,
+    conditions: needsItemsPack,
+  }),
+
+  '/battle': wrap({
+    component: Battle,
+    conditions: () => needsItemsPack() && $battle !== null,
+  }),
+
+  // Redirect 404 to workshop
+  '*': wrap({
+    component: Workshop,
+    conditions: needsItemsPack,
+  }),
+
+}
+
+
+function conditionsFailed () {
+  replace('/')
+}
+
 </script>
 
-<main>
-  <img src={logo} alt="Svelte Logo" />
-  <h1>Hello World!</h1>
 
-  <Counter />
 
-  <p>
-    Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
-    apps.
-  </p>
+{#if didLoadStats}
+  
+  <div class="pages {$popup ? 'blur' : ''}">
+    <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
+  </div>
+  
+  {#if $popup}
+    <Popup data={$popup} />
+  {/if}
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a> for
-    the officially supported framework, also powered by Vite!
-  </p>
-</main>
+  <Tooltip />
+
+{:else}
+  <div class="loading">
+    SuperMechs Workshop
+    <img src="/assets/logo.png" alt="logo" />
+  </div>
+{/if}
+
+
 
 <style>
-  :root {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
 
-  main {
-    text-align: center;
-    padding: 1em;
-    margin: 0 auto;
-  }
+.pages {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
 
-  img {
-    height: 16rem;
-    width: 16rem;
-  }
+.loading {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 7em;
+  align-items: center;
+  justify-content: space-between;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 2vw;
+}
 
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4rem;
-    font-weight: 100;
-    line-height: 1.1;
-    margin: 2rem auto;
-    max-width: 14rem;
-  }
+.loading > img {
+  width: 5em;
+  height: 5em;
+}
 
-  p {
-    max-width: 14rem;
-    margin: 1rem auto;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
-  }
 </style>
