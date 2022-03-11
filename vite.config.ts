@@ -9,5 +9,9 @@ export default defineConfig({
     legacy({
       targets: ['defaults', 'not IE 11']
     })
-  ]
+  ],
+  publicDir: 'static',
+  build: {
+    outDir: 'public',
+  },
 })
