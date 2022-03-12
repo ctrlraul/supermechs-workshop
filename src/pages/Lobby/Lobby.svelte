@@ -159,13 +159,14 @@ function onGoBack (): void {
 function onPickOpponentMech (opponentMech: Mech): void {
 
   const [pos1, pos2] = getRandomStartingPositions()
+  const playerID = 'player'
 
   Stores.battle.set(
 
     new Battle({
       online: false,
       p1: {
-        id: 'player',
+        id: playerID,
         name: mech!.name,
         position: pos1,
         setup: items2ids(mech!.setup)
@@ -177,8 +178,9 @@ function onPickOpponentMech (opponentMech: Mech): void {
         setup: items2ids(opponentMech.setup),
         ai: true
       },
-      starterID: 'player',
-      onUpdate: battle => Stores.battle.set(battle)
+      starterID: playerID,
+      onUpdate: battle => Stores.battle.set(battle),
+      povPlayerID: playerID,
     })
 
   )
@@ -234,7 +236,8 @@ onMount(() => {
         starterID: battleJSON.starterID,
         p1: battleJSON.p1,
         p2: battleJSON.p2,
-        onUpdate: battle => Stores.battle.set(battle)
+        onUpdate: battle => Stores.battle.set(battle),
+        povPlayerID: SocketManager.socket.id
       })
       console.log('battle:', battle)
       Stores.battle.set(battle)

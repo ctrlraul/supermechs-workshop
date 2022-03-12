@@ -1,14 +1,26 @@
-import type { Battle } from "./Battle";
+import { cloneDeep } from 'lodash'
+import * as BattleAnimations from './BattleAnimations'
 
 
 
-export function fireDrone (battle: Battle, damage: number): void {
+// Types
 
-  const { drone } = battle.attacker
+import type { Battle } from './Battle'
+import type { BattlePlayer } from './BattlePlayer'
+
+
+
+// Methods
+
+export function fireDrone (battle: Battle, attacker: BattlePlayer, damage: number): void {
+
+  const { drone } = attacker
 
   if (drone === null) {
-    throw new Error(`Failed to fire drone: ${battle.attacker.name} does not have a drone equipped`)
+    throw new Error(`Failed to fire drone: ${attacker.name} does not have a drone equipped`)
   }
+
+	const oldState = cloneDeep(battle)
 
 	battle.dealDamagesAndTakeBackfire(drone, damage)
 	battle.updatePositions(drone)
@@ -17,38 +29,36 @@ export function fireDrone (battle: Battle, damage: number): void {
 	if (drone.stats.uses && drone.timesUsed === drone.stats.uses) {
 		// Uses are refilled when the drone is
 		// toggled on, so no need to do it here
-		battle.attacker.droneActive = false
+		attacker.droneActive = false
 	}
 
-	battle.pushLog(`*${battle.attacker.name}*'s *${drone.name}* fired! (${damage} damage)`)
+	battle.pushLog(`*${attacker.name}*'s *${drone.name}* fired! (${damage} damage)`)
 
-	battle.onCallAnimation({
-		playerID: battle.attacker.id,
-		name: 'useWeapon',
-		weaponIndex: battle.attacker.items.indexOf(drone)
-	})
+	const newState = cloneDeep(battle)
+
+	BattleAnimations.useWeapon(oldState, newState, attacker, drone, damage)
 
 }
 
 
 /**
- * Force player to cooldown and returns whether they shutdown (double cooled down)
+ * Force player to cooldown or shutdown
+ * @returns whether it was a cooldown or shutdown
  */
-export function forceCooldown (battle: Battle): boolean {
+export function forceCooldown (battle: Battle, player: BattlePlayer): boolean {
 
-	const attacker = battle.attacker
-	const double = attacker.stats.heat - attacker.stats.heaCol! > attacker.stats.heaCap;
-	const amount = attacker.stats.heaCol! * (double ? 2 : 1)
-	const previousHeat = attacker.stats.heat
+	const double = player.stats.heat - player.stats.heaCol! > player.stats.heaCap;
+	const amount = player.stats.heaCol! * (double ? 2 : 1)
 
-	attacker.stats.heat = Math.max(0, attacker.stats.heat - amount)
+	const oldState = cloneDeep(battle)
 
-	battle.pushLog(`*${attacker.name}* was forced to *${double ? 'double' : ''} cooldown* (-${previousHeat - attacker.stats.heat} heat)`)
+	player.stats.heat = Math.max(0, player.stats.heat - amount)
 
-	battle.onCallAnimation({
-		playerID: battle.attacker.id,
-		name: 'cooldown',
-	})
+	const newState = cloneDeep(battle)
+
+	battle.pushLog(`*${player.name}* was forced to *${double ? 'double' : ''} cooldown* (-${amount} heat)`)
+
+	BattleAnimations.cooldown(oldState, newState, player, amount)
 
 	return double
 	

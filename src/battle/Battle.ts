@@ -1,11 +1,13 @@
 import { BattlePlayer, BattlePlayerArgs } from './BattlePlayer'
 import * as BattleActionsHandler from './BattleActionsHandler'
 import * as BattleEffectsHandler from './BattleEffectsHandler'
+import * as BattleAnimations from './BattleAnimations'
 import type { BattleItem } from '../items/ItemsManager'
-import { range } from 'lodash'
+import { clone, cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
 import Mech from '../mechs/Mech'
 import { sleep } from '../utils/sleep'
+import { CanvasBattleEngine } from '../BattleRenderer'
 
 
 
@@ -17,6 +19,7 @@ interface BattleArgs {
   p2: BattlePlayerArgs
   starterID: BattlePlayer['id']
   onUpdate: Battle['onUpdate']
+  povPlayerID: BattlePlayer['id']
 }
 
 export interface BattleAction {
@@ -55,7 +58,7 @@ export type BattleAnimation = {
   name: 'cooldown'
 } | {
   playerID: BattlePlayer['id'],
-  name: 'move'
+  name: 'jump',
 } | {
   playerID: BattlePlayer['id'],
   name: 'stomp'
@@ -91,6 +94,8 @@ export class Battle {
   attacker: BattlePlayer
   defender: BattlePlayer
 
+  povPlayerID: BattlePlayer['id']
+
   actionPoints: number = 1
   actionsStack: BattleAction[] = []
   idle: boolean = true
@@ -100,7 +105,7 @@ export class Battle {
   completion: BattleCompletion | null = null
   logs: BattleLog[] = []
   onUpdate: (battle: Battle) => void
-  onCallAnimation: (animation: BattleAnimation) => void = () => {}
+  renderer = new CanvasBattleEngine()
 
 
   constructor (args: BattleArgs) {
@@ -110,6 +115,8 @@ export class Battle {
 
     this.attacker = this.p1.id === args.starterID ? this.p1 : this.p2
     this.defender = this.p1.id === args.starterID ? this.p2 : this.p1
+
+    this.povPlayerID = args.povPlayerID
 
     this.online = args.online
 
@@ -579,7 +586,7 @@ export class Battle {
   
               const damage = this.getDamageForItemAtIndex(Mech.DRONE_INDEX, droneDamageScale)
 
-              BattleEffectsHandler.fireDrone(this, damage)
+              BattleEffectsHandler.fireDrone(this, this.attacker, damage)
 
               await sleep(500)
 
@@ -618,32 +625,39 @@ export class Battle {
 
   private executeAction (action: BattleAction) {
 
+    const damageScale = action.damageScale || Math.random()
+    const oldState = cloneDeep(this)
+    const attacker = this.getPlayerForID(action.actorID)
+
     // Handle action
     switch (action.name) {
 
       case 'cooldown': {
-        BattleActionsHandler.cooldown(this)
-        this.onCallAnimation({
-          name: 'cooldown',
-          playerID: action.actorID
-        })
+        
+        const amount = BattleActionsHandler.cooldown(this, attacker)
+        const newState = cloneDeep(this)
+
+        BattleAnimations.cooldown(oldState, newState, attacker, amount)
+
         break
+
       }
 
       
       case 'walk': {
 
-        if (typeof action.position !== 'number') {
+        if (typeof action.position !== 'number'
+         || action.position < 0
+         || action.position > Battle.MAX_POSITION_INDEX) {
           throw new Error(`Invalid "position" property: ${action.position}`)
         }
 
-        BattleActionsHandler.walk(this, action.position)
+        BattleActionsHandler.walk(this, attacker, action.position)
 
-        this.onCallAnimation({
-          name: 'move',
-          playerID: action.actorID
-        })
-        
+        const newState = cloneDeep(this)
+
+        BattleAnimations.jump(oldState, newState, attacker, this.povPlayerID)
+
         break
 
       }
@@ -656,10 +670,9 @@ export class Battle {
 
         BattleActionsHandler.stomp(this, damage)
 
-        this.onCallAnimation({
-          name: 'stomp',
-          playerID: action.actorID
-        })
+        const newState = cloneDeep(this)
+
+        BattleAnimations.stomp(oldState, newState, attacker, damage)
 
         break
 
@@ -672,16 +685,19 @@ export class Battle {
           throw new Error(`Invalid "itemIndex" property: ${action.itemIndex}`)
         }
 
-        const damageScale = action.damageScale || Math.random()
+        const weapon = attacker.items[action.itemIndex]
+
+        if (weapon === null) {
+          throw new Error(`${attacker.name} has no item at index ${action.itemIndex}`)
+        }
+
         const damage = this.getDamageForItemAtIndex(action.itemIndex, damageScale)
 
-        BattleActionsHandler.useWeapon(this, action.itemIndex, damage)
+        BattleActionsHandler.useWeapon(this, attacker, weapon, damage)
 
-        this.onCallAnimation({
-          playerID: action.actorID,
-          name: 'useWeapon',
-          weaponIndex: action.itemIndex
-        })
+        const newState = cloneDeep(this)
+
+        BattleAnimations.useWeapon(oldState, newState, attacker, weapon, damage)
 
         break
 
@@ -690,25 +706,20 @@ export class Battle {
 
       case 'toggleDrone': {
         BattleActionsHandler.toggleDrone(this)
-        this.onCallAnimation({
-          name: 'toggleDrone',
-          playerID: action.actorID
-        })
+        BattleAnimations.toggleDrone(attacker)
         break
       }
 
 
       case 'charge': {
 
-        const damageScale = action.damageScale || Math.random()
         const damage = this.getDamageForItemAtIndex(Mech.CHARGE_INDEX, damageScale)
 
-        BattleActionsHandler.charge(this, damage)
+        BattleActionsHandler.charge(this, attacker, damage)
 
-        this.onCallAnimation({
-          name: 'charge',
-          playerID: action.actorID
-        })
+        const newState = cloneDeep(this)
+
+        BattleAnimations.charge(oldState, newState, attacker, damage)
 
         break
 
@@ -726,10 +737,9 @@ export class Battle {
 
         BattleActionsHandler.teleport(this, damage, action.position)
 
-        this.onCallAnimation({
-          name: 'teleport',
-          playerID: action.actorID
-        })
+        const newState = cloneDeep(this)
+
+        BattleAnimations.teleport(oldState, newState, attacker, damage, this.povPlayerID)
 
         break
 
@@ -743,10 +753,9 @@ export class Battle {
 
         BattleActionsHandler.hook(this, damage)
 
-        this.onCallAnimation({
-          name: 'hook',
-          playerID: action.actorID
-        })
+        const newState = cloneDeep(this)
+
+        BattleAnimations.hook(oldState, newState, attacker, damage)
 
         break
 
@@ -777,6 +786,8 @@ export class Battle {
 
   private async passTurn () {
 
+    this.actionPoints = 0
+
     // Regen energy at end of turn
     BattleEffectsHandler.regenEnergy(this)
 
@@ -793,7 +804,7 @@ export class Battle {
     // Check if new attacker was forced to cooldown
     if (this.attacker.stats.heat > this.attacker.stats.heaCap) {
 
-      const double = BattleEffectsHandler.forceCooldown(this)
+      const double = BattleEffectsHandler.forceCooldown(this, this.attacker)
 
       await sleep(500)
 

@@ -1,47 +1,44 @@
+import type { BattleItem } from 'src/items/ItemsManager'
 import Mech from '../mechs/Mech'
 import type { Battle } from './Battle'
+import type { BattlePlayer } from './BattlePlayer'
 
 
 
-export function useWeapon (battle: Battle, weaponIndex: number, damage: number): void {
-
-	const weapon = battle.attacker.items[weaponIndex]
-
-  if (weapon === null) {
-    const message = `${battle.attacker.name} has no item at index ${weaponIndex}`
-    battle.pushLog(message, 'error')
-    throw new Error(message)
-  }
+export function useWeapon (battle: Battle, attacker: BattlePlayer, weapon: BattleItem, damage: number): void {
 
 	battle.dealDamagesAndTakeBackfire(weapon, damage)
 	battle.updatePositions(weapon)
 	battle.countItemUsage(weapon)
 
-	battle.pushLog(`*${battle.attacker.name}* used *${weapon.name}*! (${damage} damage)`, 'action')
+	battle.pushLog(`*${attacker.name}* used *${weapon.name}*! (${damage} damage)`, 'action')
 
 }
 
 
-export function cooldown (battle: Battle): void {
-
-	const { attacker } = battle
+/**
+ * @returns The amount of heat cooled
+*/
+export function cooldown (battle: Battle, attacker: BattlePlayer): number {
 
 	const previousHeat = attacker.stats.heat
 	
 	attacker.stats.heat = Math.max(0, attacker.stats.heat - attacker.stats.heaCol!)
 
-  battle.pushLog(`*${battle.attacker.name} cooled down* (${previousHeat - attacker.stats.heat} heat)`, 'action')
+  battle.pushLog(`*${attacker.name} cooled down* (${previousHeat - attacker.stats.heat} heat)`, 'action')
+
+	return previousHeat - attacker.stats.heat
 
 }
 
 
-export function walk (battle: Battle, position: number): void {
+export function walk (battle: Battle, attacker: BattlePlayer, position: number): void {
 
-	const previousPosition  = battle.attacker.position
+	const previousPosition  = attacker.position
 	
-	battle.attacker.position = position
+	attacker.position = position
 
-	battle.pushLog(`*${battle.attacker.name}*'s moved from position *${previousPosition}* to position *${battle.attacker.position}*`, 'action')
+	battle.pushLog(`*${attacker.name}*'s moved from position *${previousPosition}* to position *${attacker.position}*`, 'action')
 
 }
 
@@ -80,9 +77,7 @@ export function toggleDrone (battle: Battle): void {
 }
 
 
-export function charge (battle: Battle, damage: number): void {
-
-  const { attacker, defender } = battle
+export function charge (battle: Battle, attacker: BattlePlayer, damage: number): void {
 
 	const charge = attacker.items[Mech.CHARGE_INDEX]
 
@@ -92,23 +87,14 @@ export function charge (battle: Battle, damage: number): void {
     throw new Error(message)
   }
 
-	battle.dealDamagesAndTakeBackfire(charge, damage)
-	battle.countItemUsage(charge)
-
-
-	// We manually update the positions here
-
-	// One thing I could do is make all charge engines have
-	// knockback, then get rid of this custom code and just
-	// call battle.updatePositions,ore sense in case there
-	// is a charge with more or no knockback.
-
+	const defender = battle.getOpponentForPlayerID(attacker.id)
 	const dir = battle.getPositionalDirection(attacker.id)
 
 	attacker.position = defender.position - dir
-	defender.position = Math.max(0, Math.min(9, defender.position + dir))
 
-
+	battle.dealDamagesAndTakeBackfire(charge, damage)
+	battle.countItemUsage(charge)
+	battle.updatePositions(charge)
 
 	battle.pushLog(`*${attacker.name}* used *${charge.name}*! (${damage} damage)`, 'action')
 

@@ -4,6 +4,7 @@ import { ids2items, items2ids } from '../items/ItemsManager'
 import Mech from '../mechs/Mech'
 import { itemsPackData } from '../stores'
 import TWEEN from '@tweenjs/tween.js'
+import { CanvasFlyingText } from './CanvasFlyingText'
 
 
 
@@ -76,8 +77,8 @@ class CanvasMech extends CanvasObject {
 
 
   adjust (): void {
-    this.x = this.getVisualPositionX()
-    this.y = this.root.height - 10
+    this.x = getVisualX(this.player.position)
+    this.y = 0
     this.attachParts(this.parts)
   }
 
@@ -154,10 +155,6 @@ class CanvasMech extends CanvasObject {
   
   }
 
-  getVisualPositionX () {
-    return (5 + this.player.position / Battle.MAX_POSITION_INDEX * 90) / 100 * this.root.width
-  }
-
   getActiveDronePosition () {
 
     const torso = this.parts[0]!
@@ -209,28 +206,41 @@ class CanvasMechPart extends CanvasObject {
 }
 
 
-class CanvasBattleEngine extends CanvasEngine {
+export class CanvasBattleEngine extends CanvasEngine {
 
   pov!: any
   mech1!: CanvasMech
   mech2!: CanvasMech
+  mechsGfxContainer!: CanvasObject
   animationsStack: BattleAnimation[] = []
 
 
   override render (ctx: CanvasRenderingContext2D, time: number): void {
     TWEEN.update(time)
-    super.render(ctx, time)
+    this.mechsGfxContainer.renderChildren(ctx)
   }
 
 
   setBattle (battle: Battle, povPlayerID: BattlePlayer['id']): void {
+
+    // Reset arena
+    this.animationsStack = []
+    this.mechsGfxContainer = new CanvasObject()
+    this.mechsGfxContainer.y = this.root.height - 10
+    this.mechsGfxContainer.width = this.root.width
+    this.mechsGfxContainer.height = 0
+    this.root.clear()
+    this.root.addChild(this.mechsGfxContainer)
+
+
+    // The other stuff
 
     this.pov = povPlayerID
 
     this.mech1 = new CanvasMech(battle.p1)
     this.mech2 = new CanvasMech(battle.p2)
 
-    this.root.addChild(this.mech1, this.mech2)
+    this.mechsGfxContainer.addChild(this.mech1, this.mech2)
 
     this.mech1.init()
     this.mech2.init()
@@ -239,294 +249,6 @@ class CanvasBattleEngine extends CanvasEngine {
 
     this.mech1.scaleX = 0.2 * dir
     this.mech2.scaleX = this.mech1.scaleX * -1
-
-  }
-
-
-  private playAnimation (animation: BattleAnimation): void {
-
-    const mechJumpHeight = 70
-    const stompLegRaiseHeight = 20
-    const knockbackDuration = 200
-    const jumpDuration = 400
-
-    const attacker = animation.playerID === this.mech1.player.id ? this.mech1 : this.mech2
-    const defender = animation.playerID === this.mech1.player.id ? this.mech2 : this.mech1
-    const attackerVisualPositionX = attacker.getVisualPositionX()
-    const defenderVisualPositionX = defender.getVisualPositionX()
-
-
-    try {
-
-      switch (animation.name) {
-
-        case 'cooldown': {
-          this.nextAnimation()
-          break
-        }
-
-
-        case 'move': {
-  
-          const attackerVisualPositionX = attacker.getVisualPositionX()
-          const defenderVisualPositionX = defender.getVisualPositionX()
-  
-          // Move horizontally
-          new TWEEN.Tween(attacker)
-            .to({ x: attackerVisualPositionX }, jumpDuration * 2)
-            .start()
-            .onUpdate(() => {
-              const value = attacker.player.id === this.pov ? 1 : -1
-              const dir = (attacker.x > defenderVisualPositionX ? -value : value)
-              this.mech1.scaleX = 0.2 * dir
-              this.mech2.scaleX = this.mech1.scaleX * -1
-            })
-          
-          // Jump
-          new TWEEN.Tween(attacker)
-            .to({ y: attacker.y - mechJumpHeight }, jumpDuration)
-            .easing(TWEEN.Easing.Quadratic.Out)
-            .start()
-            .onComplete(() => {
-  
-              // Fall
-              new TWEEN.Tween(attacker)
-                .to({ y: attacker.y + mechJumpHeight }, jumpDuration)
-                .easing(TWEEN.Easing.Quadratic.In)
-                .start()
-                .onComplete(() => this.nextAnimation())
-  
-            })
-          
-          break
-        }
-
-
-        case 'stomp': {
-  
-          const leg = attacker.parts[2]!
-  
-          // Raise leg
-          new TWEEN.Tween(leg)
-            .to({ y: leg.y - stompLegRaiseHeight }, 500)
-            .start()
-            .onComplete(() => {
-  
-              // Lower leg
-              new TWEEN.Tween(leg)
-                .to({ y: leg.y + stompLegRaiseHeight }, 200)
-                .easing(TWEEN.Easing.Quintic.In)
-                .start()
-                .onComplete(() => {
-  
-                  // Push defender
-                  if (defender.x !== defenderVisualPositionX) {
-                    new TWEEN.Tween(defender)
-                      .to({ x: defenderVisualPositionX }, knockbackDuration)
-                      .easing(TWEEN.Easing.Quadratic.Out)
-                      .start()
-                      .onComplete(() => this.nextAnimation())
-                  }
-  
-                })
-              
-            })
-  
-          break
-  
-        }
-  
-  
-        case 'useWeapon': {
-  
-          const weapon = attacker.player.items[animation.weaponIndex!]!
-  
-          if ('advance' in weapon.stats || 'retreat' in weapon.stats) {
-
-            // Jump
-            new TWEEN.Tween(attacker)
-              .to({ y: attacker.y - mechJumpHeight }, jumpDuration)
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start()
-
-            // Move horizontaly
-            new TWEEN.Tween(attacker)
-              .to({ x: attackerVisualPositionX }, 1000)
-              .easing(TWEEN.Easing.Sinusoidal.Out)
-              .start()
-              .onComplete(() => {
-
-                new TWEEN.Tween(defender)
-                  .to({ x: defenderVisualPositionX }, knockbackDuration)
-                  .easing(TWEEN.Easing.Quadratic.Out)
-                  .start()
-    
-                new TWEEN.Tween(attacker)
-                  .to({ y: attacker.y + mechJumpHeight }, jumpDuration)
-                  .easing(TWEEN.Easing.Quadratic.In)
-                  .start()
-                  .onComplete(() => this.nextAnimation())
-
-              })
-  
-          } else {
-  
-            new TWEEN.Tween(attacker)
-              .to({ x: attackerVisualPositionX }, knockbackDuration)
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start()
-
-            new TWEEN.Tween(defender)
-              .to({ x: defenderVisualPositionX }, knockbackDuration)
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start()
-              .onComplete(() => this.nextAnimation())
-  
-          }
-          
-          break
-        }
-        
-  
-        case 'toggleDrone': {
-  
-          const drone = attacker.parts[9]!
-  
-          const droneActivePosition = attacker.getActiveDronePosition()
-          const droneInactivePosition = attacker.getInactiveDronePosition()
-  
-          const from = attacker.player.droneActive ? droneInactivePosition : droneActivePosition
-          const to = attacker.player.droneActive ? droneActivePosition : droneInactivePosition
-  
-          Object.assign(drone, from)
-  
-          drone.opacity = 1
-  
-          new TWEEN.Tween(drone)
-            .to(to, 300)
-            .easing(TWEEN.Easing.Quadratic.Out)
-            .start()
-            .onComplete(() => this.nextAnimation())
-  
-          break
-  
-        }
-  
-  
-        case 'charge': {
-  
-          const chargeHitInset = 50
-  
-          // Charge towards opponent
-          new TWEEN.Tween(attacker)
-            .to({ x: attackerVisualPositionX + chargeHitInset }, 1000)
-            .easing(TWEEN.Easing.Quadratic.In)
-            .start()
-            .onComplete(() => {
-  
-              // Bounce back
-              new TWEEN.Tween(attacker)
-                .to({ x: attackerVisualPositionX }, knockbackDuration)
-                .easing(TWEEN.Easing.Quadratic.Out)
-                .start()
-              
-              // Push defender
-              if (defender.x !== defenderVisualPositionX) {
-                new TWEEN.Tween(defender)
-                  .to({ x: defenderVisualPositionX }, knockbackDuration)
-                  .easing(TWEEN.Easing.Quadratic.Out)
-                  .start()
-                  .onComplete(() => this.nextAnimation())
-              }
-  
-            })
-  
-          break
-        }
-  
-  
-        case 'teleport': {
-  
-          // Disappear
-          new TWEEN.Tween(attacker)
-            .to({ opacity: 0 }, 200)
-            .easing(TWEEN.Easing.Quadratic.In)
-            .start()
-            .onComplete(() => {
-  
-              attacker.x = attackerVisualPositionX
-  
-              // Appear
-              new TWEEN.Tween(attacker)
-                .to({ opacity: 1 }, 200)
-                .easing(TWEEN.Easing.Quadratic.In)
-                .start()
-                .onComplete(() => this.nextAnimation())
-            
-            })
-  
-          break
-        }
-  
-  
-        case 'hook': {
-
-          const distance = Math.abs(this.mech1.player.position - this.mech2.player.position)
-          
-          new TWEEN.Tween(defender)
-            .to({ x: defenderVisualPositionX }, distance / Battle.MAX_POSITION_INDEX * 5000)
-            .start()
-            .onComplete(() => this.nextAnimation())
-          
-          break
-        }
-  
-        
-        default:
-          console.warn('Unhandled animation:', animation)
-          attacker.adjust()
-          defender.adjust()
-          this.nextAnimation()
-          break
-  
-      }
-
-    } catch (err: any) {
-
-      console.error('Failed to execute animation:', animation, err)
-
-    }
-
-  }
-
-
-  pushAnimation (animation: BattleAnimation): void {
-
-    this.animationsStack.push(animation)
-
-    if (this.animationsStack.length === 1) {
-      this.playAnimation(animation)
-    }
-
-  }
-
-
-  private nextAnimation (): void {
-
-    this.animationsStack.shift()
-
-    if (this.animationsStack.length) {
-
-      this.playAnimation(this.animationsStack[0])
-
-    } else {
-
-      // Take the moment to snap the mechs to their correct position just in case
-
-      this.mech1.adjust()
-      this.mech2.adjust()
-
-    }
 
   }
 
@@ -550,22 +272,60 @@ itemsPackData.subscribe(value => {
 // Functions
 
 export function setCanvas (canvas: HTMLCanvasElement) {
-
-  console.log("Setting canvas")
-
   engine.setCanvas(canvas)
   engine.root.width = canvas.width
   engine.root.height = canvas.height
   engine.start()
-
 }
 
 
 export function setBattle (battle: Battle, povPlayerID: BattlePlayer['id']) {
-  engine.root.clear()
-  engine.animationsStack = []
   engine.setBattle(battle, povPlayerID)
-  battle.onCallAnimation = action => {
-    engine.pushAnimation(action)
+}
+
+
+
+const animationsStack: (() => void)[] = []
+
+
+
+// Methods
+
+export function getPlayerGfx (playerID: BattlePlayer['id']) {
+  return engine.mech1.player.id === playerID ? engine.mech1 : engine.mech2
+}
+
+
+export function getVisualX (position: number): number {
+  return (5 + position / Battle.MAX_POSITION_INDEX * 90) / 100 * engine.root.width
+}
+
+
+export function pushAnimation (animation: () => void): void {
+
+  animationsStack.push(animation)
+
+  if (animationsStack.length === 1) {
+    animation()
   }
+
+}
+
+
+export function nextAnimation (): void {
+
+  animationsStack.shift()
+
+  if (animationsStack.length) {
+    animationsStack[0]()
+  }
+
+}
+
+
+export function showFlyingText (text: string, x: number, rgb: [number, number, number]): void {
+  const flyingText = new CanvasFlyingText(text, rgb)
+  flyingText.x = x
+  flyingText.y = -50
+  engine.mechsGfxContainer.addChild(flyingText)
 }
