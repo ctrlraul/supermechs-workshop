@@ -100,14 +100,19 @@ onMount(() => {
     },
 
     'disconnect': () => {
-      router.pop()
-      addPopup({
-        title: 'Lost connection!',
-        message: `Tip: Don't idle for too long`,
-        options: {
-          Ok () { this.remove() }
-        }
-      })
+      if ($battle!.online) {
+
+        router.pop()
+
+        addPopup({
+          title: 'Lost connection!',
+          message: `Tip: Don't idle for too long`,
+          options: {
+            Ok () { this.remove() }
+          }
+        })
+
+      }
     }
 
   })
