@@ -334,17 +334,20 @@ export function teleport (oldState: Battle, newState: Battle, attacker: BattlePl
       .easing(TWEEN.Easing.Quadratic.In)
       .chain(appear, hitOpponent)
       .onComplete(() => {
+
         const value = attacker.id === povPlayerID ? 1 : -1
         const dir = (newAttackerVisualX > newDefenderVisualX ? -value : value)
         attackerGfx.scaleX = 0.2 * dir
         defenderGfx.scaleX = attackerGfx.scaleX * -1
+
         attackerGfx.x = newAttackerVisualX
+
+        if (damage > 0) {
+          showFlyingDamage(damage, defenderGfx.x)
+        }
+
       })
       .start()
-    
-    if (damage > 0) {
-      disappear.onComplete(() => showFlyingDamage(damage, defenderGfx.x))
-    }
 
   })
 

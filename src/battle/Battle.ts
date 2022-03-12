@@ -3,10 +3,9 @@ import * as BattleActionsHandler from './BattleActionsHandler'
 import * as BattleEffectsHandler from './BattleEffectsHandler'
 import * as BattleAnimations from './BattleAnimations'
 import type { BattleItem } from '../items/ItemsManager'
-import { clone, cloneDeep, range } from 'lodash'
+import { cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
 import Mech from '../mechs/Mech'
-import { sleep } from '../utils/sleep'
 import { CanvasBattleEngine } from '../BattleRenderer'
 
 
@@ -544,7 +543,7 @@ export class Battle {
 
   // Functions
 
-  private async proccessAction (action: BattleAction) {
+  private proccessAction (action: BattleAction) {
 
     this.idle = false
 
@@ -558,8 +557,6 @@ export class Battle {
         this.actionPoints--
 
         this.onUpdate(this)
-
-        await sleep(500)
 
 
         // Handle battle completion
@@ -588,21 +585,19 @@ export class Battle {
 
               BattleEffectsHandler.fireDrone(this, this.attacker, damage)
 
-              await sleep(500)
-
               // Drone fired so we have to check if the battle is complete again
               if (this.hasDeadPlayer()) {
                 this.setCompletion(this.p1.stats.health < this.p2.stats.health ? this.p2.id : this.p1.id)
               } else {
-                await this.passTurn()
+                this.passTurn()
               }
 
             } else {
-              await this.passTurn()
+              this.passTurn()
             }
 
           } else {
-            await this.onIdle()
+            this.onIdle()
           }
 
         }
@@ -616,7 +611,7 @@ export class Battle {
     } catch (err: any) {
 
       this.pushLog(err.message, 'error')
-      await this.onIdle()
+      this.onIdle()
 
     }
 
@@ -784,14 +779,12 @@ export class Battle {
   }
 
 
-  private async passTurn () {
+  private passTurn () {
 
     this.actionPoints = 0
 
     // Regen energy at end of turn
     BattleEffectsHandler.regenEnergy(this)
-
-    await sleep(250)
 
     // Clear items used
     this.attacker.itemsAlreadyUsed = []
@@ -806,10 +799,8 @@ export class Battle {
 
       const double = BattleEffectsHandler.forceCooldown(this, this.attacker)
 
-      await sleep(500)
-
       if (double) {
-        await this.passTurn()
+        this.passTurn()
       } else {
         this.actionPoints = 1
       }
@@ -824,27 +815,25 @@ export class Battle {
     // Update UI or whatever depends on this changing
     this.onUpdate(this)
 
-    await sleep(500)
 
-
-    await this.onIdle()
+    this.onIdle()
 
   }
 
 
-  private async onIdle () {
+  private onIdle () {
 
     this.idle = true
 
     if (this.actionsStack.length) {
 
-      await this.proccessAction(this.actionsStack.shift() as BattleAction)
+      this.proccessAction(this.actionsStack.shift() as BattleAction)
 
     } else if (this.attacker.ai && this.actionPoints > 0) {
 
       const action = think(this, this.attacker.id)
 
-      await this.pushAction(action)
+      setTimeout(() => this.pushAction(action), 1000)
 
     }
 
