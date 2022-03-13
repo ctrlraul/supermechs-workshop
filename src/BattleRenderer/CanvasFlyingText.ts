@@ -24,7 +24,7 @@ export class CanvasFlyingText extends CanvasObject {
       this.isFirstRender = false
 
       new TWEEN.Tween(this)
-        .to({ y: this.y - 50 }, 1000)
+        .to({ y: this.y - 100 }, 1000)
         .easing(TWEEN.Easing.Quadratic.Out)
         .onComplete(() => this.remove())
         .start()
@@ -45,7 +45,7 @@ export class CanvasFlyingText extends CanvasObject {
     ctx.strokeStyle = this.strokeStyle
     ctx.lineWidth = 4
     ctx.textAlign = 'center'
-    ctx.font = '1.6em monospace'
+    ctx.font = '3.2em monospace'
     ctx.strokeText(this.text, 0, 0)
     ctx.fillText(this.text, 0, 0)
 
