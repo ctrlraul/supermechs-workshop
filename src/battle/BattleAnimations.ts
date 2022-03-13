@@ -1,12 +1,12 @@
 import TWEEN from '@tweenjs/tween.js'
 import * as BR from '../BattleRenderer'
+import { Battle } from './Battle'
 
 
 
 // Types
 
 import type { BattleItem } from '../items/ItemsManager'
-import { Battle } from './Battle'
 import type { BattlePlayer } from './BattlePlayer'
 
 
@@ -31,7 +31,7 @@ const HOOK_DURATION = 5000
 
 // Methods
 
-export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer, povPlayerID: BattlePlayer['id']): void {
+export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer): void {
 
   BR.pushAnimation(() => {
 
@@ -54,8 +54,7 @@ export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer
       .to({ x: newAttackerVisualX }, JUMP_DURATION * 2)
       .start()
       .onUpdate(() => {
-        const value = attacker.id === povPlayerID ? 1 : -1
-        const dir = (attackerGfx.x > newDefenderVisualX ? -value : value)
+        const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
         attackerGfx.scaleX = 0.2 * dir
         defenderGfx.scaleX = attackerGfx.scaleX * -1
       })
@@ -297,7 +296,7 @@ export function charge (oldState: Battle, newState: Battle, attacker: BattlePlay
 
 
 
-export function teleport (oldState: Battle, newState: Battle, attacker: BattlePlayer, damage: number, povPlayerID: BattlePlayer['id']): void {
+export function teleport (oldState: Battle, newState: Battle, attacker: BattlePlayer, damage: number): void {
 
   BR.pushAnimation(() => {
 
@@ -335,8 +334,7 @@ export function teleport (oldState: Battle, newState: Battle, attacker: BattlePl
       .chain(appear, hitOpponent)
       .onComplete(() => {
 
-        const value = attacker.id === povPlayerID ? 1 : -1
-        const dir = (newAttackerVisualX > newDefenderVisualX ? -value : value)
+        const dir = newAttackerVisualX > newDefenderVisualX ? -1 : 1
         attackerGfx.scaleX = 0.2 * dir
         defenderGfx.scaleX = attackerGfx.scaleX * -1
 

@@ -31,13 +31,25 @@ export class CanvasFlyingText extends CanvasObject {
 
     }
 
+    if (this.opacity === 0) {
+      return
+    }
+    
+    ctx.save()
+
+    ctx.translate(this.globalX, this.globalY)
+    ctx.scale(this.globalScaleX, this.globalScaleY)
+    
+    ctx.globalAlpha = this.opacity
     ctx.fillStyle = this.fillStyle
     ctx.strokeStyle = this.strokeStyle
     ctx.lineWidth = 4
     ctx.textAlign = 'center'
     ctx.font = '1.6em monospace'
-    ctx.strokeText(this.text, this.globalX, this.globalY)
-    ctx.fillText(this.text, this.globalX, this.globalY)
+    ctx.strokeText(this.text, 0, 0)
+    ctx.fillText(this.text, 0, 0)
+
+    ctx.restore()
 
     this.renderChildren(ctx)
 

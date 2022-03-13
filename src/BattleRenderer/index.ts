@@ -327,5 +327,8 @@ export function showFlyingText (text: string, x: number, rgb: [number, number, n
   const flyingText = new CanvasFlyingText(text, rgb)
   flyingText.x = x
   flyingText.y = -50
+  if (engine.mech2.player.id === engine.pov) {
+    flyingText.scaleX = -1
+  }
   engine.mechsGfxContainer.addChild(flyingText)
 }

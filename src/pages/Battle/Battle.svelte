@@ -212,7 +212,7 @@ function onQuit (): void {
     </div>
   
   
-    <div class="mechs-container" style="transform: scaleX({reverse ? -1 : 1})">
+    <div class="mechs-container {reverse ? 'reverse' : ''}">
       <canvas bind:this={battleCanvas}>
         Canvas element is not supported in your browser
       </canvas>
@@ -297,6 +297,10 @@ main > .buttons > button {
   width: 100%;
   flex: 1;
   overflow: hidden;
+}
+
+.mechs-container.reverse {
+  transform: scaleX(-1);
 }
 
 .mechs-container > canvas {

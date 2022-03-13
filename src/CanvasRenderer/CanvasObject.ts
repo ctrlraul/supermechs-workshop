@@ -33,13 +33,14 @@ export class CanvasObject {
       return
     }
 
+    ctx.save()
+
+    ctx.translate(this.globalX, this.globalY)
+    ctx.scale(this.globalScaleX, this.globalScaleY)
+    
+    ctx.globalAlpha = this.opacity
+
     if (this.image && this.image.data && this.image.state === 'complete') {
-
-      ctx.save()
-      ctx.translate(this.globalX, this.globalY)
-      ctx.scale(this.globalScaleX, this.globalScaleY)
-
-      ctx.globalAlpha = this.opacity
 
       ctx.drawImage(
         this.image.data,
@@ -52,8 +53,6 @@ export class CanvasObject {
         this.width,
         this.height
       )
-
-      ctx.restore()
 
     } else {
 
@@ -68,6 +67,8 @@ export class CanvasObject {
       ctx.closePath()
 
     }
+
+    ctx.restore()
 
     this.renderChildren(ctx)
 
