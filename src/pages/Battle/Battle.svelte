@@ -43,8 +43,8 @@ $: reverse = player.id === $battle!.p2.id
 onMount(() => {
   
   if (battleCanvas) {
-    battleCanvas.width = battleCanvas.offsetWidth
-    battleCanvas.height = battleCanvas.offsetHeight
+    battleCanvas.width = battleCanvas.offsetWidth * 2
+    battleCanvas.height = battleCanvas.offsetHeight * 2
     BattleRenderer.setCanvas(battleCanvas)
   }
   

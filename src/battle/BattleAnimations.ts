@@ -55,7 +55,7 @@ export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer
       .start()
       .onUpdate(() => {
         const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
-        attackerGfx.scaleX = 0.2 * dir
+        attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
         defenderGfx.scaleX = attackerGfx.scaleX * -1
       })
 
@@ -328,14 +328,14 @@ export function teleport (oldState: Battle, newState: Battle, attacker: BattlePl
       .onComplete(() => BR.nextAnimation())
     
     // Disappear
-    const disappear = new TWEEN.Tween(attackerGfx)
+    new TWEEN.Tween(attackerGfx)
       .to({ opacity: 0 }, TELEPORTING_DURATION * 0.5)
       .easing(TWEEN.Easing.Quadratic.In)
       .chain(appear, hitOpponent)
       .onComplete(() => {
 
         const dir = newAttackerVisualX > newDefenderVisualX ? -1 : 1
-        attackerGfx.scaleX = 0.2 * dir
+        attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
         defenderGfx.scaleX = attackerGfx.scaleX * -1
 
         attackerGfx.x = newAttackerVisualX

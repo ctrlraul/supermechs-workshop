@@ -31,8 +31,8 @@ class CanvasMech extends CanvasObject {
     super()
 
     this.player = player
-    this.scaleX = 0.2
-    this.scaleY = 0.2
+    this.scaleX = 0.4
+    this.scaleY = 0.4
 
   }
 
@@ -245,10 +245,7 @@ export class CanvasBattleEngine extends CanvasEngine {
     this.mech1.init()
     this.mech2.init()
 
-    const dir = this.mech1.player.position > this.mech2.player.position ? -1 : 1
-
-    this.mech1.scaleX = 0.2 * dir
-    this.mech2.scaleX = this.mech1.scaleX * -1
+    this.mech2.scaleX *= -1
 
   }
 
