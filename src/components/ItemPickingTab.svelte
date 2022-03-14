@@ -104,7 +104,7 @@ function getFilteredItemsList (filter: Filter): Item[] {
 
 
 
-<div class="item-picking-tab" data-select-null on:click={onOffClick}>
+<div class="item-picking-tab global-blur-sublings global-darkscreen" data-select-null on:click={onOffClick}>
   <div class="content" data-select-null>
 
     <header>
@@ -203,15 +203,6 @@ function getFilteredItemsList (filter: Filter): Item[] {
 <style>
 
 .item-picking-tab {
-  position: fixed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000aa;
   z-index: var(--z-index-tab);
 }
 

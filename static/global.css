@@ -14,6 +14,8 @@
   --ui-radius: 0.2rem;
 
   --z-index-tab: 100;
+  --z-index-popup: 200;
+  --z-index-tooltip: 300;
 
   --content-width: 50em;
   --content-height: 28em;
@@ -55,17 +57,6 @@ body > main {
   height: 100%;
 }
 
-.classic-box {
-  background-color: var(--color-background);
-}
-
-.global-disabled {
-  /* opacity: 0.5em; */
-  filter: brightness(0.3);
-  -webkit-filter: brightness(0.3);
-  box-shadow: unset !important;
-}
-
 button {
   border: none;
   border-radius: inherit;
@@ -93,8 +84,32 @@ input[type="text"],
 }
 
 
-.blur {
+.classic-box {
+  background-color: var(--color-background);
+}
+
+.global-disabled {
+  /* opacity: 0.5em; */
+  filter: brightness(0.3);
+  -webkit-filter: brightness(0.3);
+  box-shadow: unset !important;
+}
+
+.global-darkscreen {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000aa;
+}
+
+.global-blur-sublings ~ * {
   filter: blur(0.5em);
+  -webkit-filter: blur(0.5em);
 }
 
 

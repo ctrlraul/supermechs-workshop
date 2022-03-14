@@ -94,7 +94,7 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
   left: 0;
   display: block;
   padding: 0.3em 0.5em;
-  z-index: 99999999;
+  z-index: var(--z-index-tooltip);
   background-color: var(--color-background-dark);
   border: 0.2em solid var(--color-background);
 }

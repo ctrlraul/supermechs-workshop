@@ -136,14 +136,14 @@ function conditionsFailed () {
 
 
 {#if didLoadStats}
-  
-  <div class="pages {$popup ? 'blur' : ''}">
-    <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
-  </div>
-  
-  <Popup/>
 
   <Tooltip/>
+
+  <Popup/>
+  
+  <div class="pages">
+    <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
+  </div>
 
 {:else}
   <div class="loading">

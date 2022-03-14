@@ -167,6 +167,14 @@ function toggleArenaBuffs (): void {
 
 
 
+{#if mech && focusedSlotInfo}
+  <ItemPickingTab
+    type={focusedSlotInfo.type}
+    currentItem={mech.setup[focusedSlotInfo.index]}
+    selectItem={onSelectItem}
+  />
+{/if}
+
 <main class={focusedSlotInfo ? 'blur' : ''}>
 
   <div class="mech-container">
@@ -248,14 +256,6 @@ function toggleArenaBuffs (): void {
   </div>
 
 </main>
-
-{#if mech && focusedSlotInfo}
-  <ItemPickingTab
-    type={focusedSlotInfo.type}
-    currentItem={mech.setup[focusedSlotInfo.index]}
-    selectItem={onSelectItem}
-  />
-{/if}
 
 
 
