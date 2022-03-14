@@ -1,14 +1,14 @@
 <script lang="ts">
 
-import SvgIcon from "./SvgIcon/SvgIcon.svelte"
+import SvgIcon from './SvgIcon/SvgIcon.svelte'
 	
-import type { PopupData } from "../managers/PopupManager"
+import type { PopupData } from '../managers/PopupManager'
 
 
 export let data: PopupData
 
 
-function onOffClick (e: Event) {
+function onOffClick (e: Event): void {
 	if (data.hideOnOffclick && (e.currentTarget === e.target)) {
 		data.remove()
 	}
@@ -42,11 +42,13 @@ function onOffClick (e: Event) {
 
 		{#if Object.keys(data.options).length}
 			<div class="buttons">
+
 				{#each Object.entries(data.options) as [text, handler]}
-					<button on:click={handler.bind(data)}>
-						{text}
-					</button>
+
+					<button on:click={handler.bind(data)}>{text}</button>
+          
 				{/each}
+
 			</div>
 		{/if}
 
