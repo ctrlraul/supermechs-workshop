@@ -129,7 +129,8 @@ export function hook (battle: Battle, damage: number): void {
 }
 
 
-export function teleport (battle: Battle, damage: number, position: number): void {
+/** @returns The amount of damage dealt */
+export function teleport (battle: Battle, damage: number, position: number): number {
 
   const { attacker, defender } = battle
 
@@ -143,12 +144,10 @@ export function teleport (battle: Battle, damage: number, position: number): voi
   }
   
   // Only deals damage if teleported to opponent's side
-  const teleportedToOpponentSide = Math.abs(position - defender.position) === 1
-
-  if (teleportedToOpponentSide) {
-    battle.dealDamagesAndTakeBackfire(tele,
-      teleportedToOpponentSide ? damage : 0
-    )
+  if (Math.abs(position - defender.position) === 1) {
+    battle.dealDamagesAndTakeBackfire(tele, damage)
+  } else {
+    damage = 0
   }
   
   battle.countItemUsage(tele)
@@ -161,5 +160,8 @@ export function teleport (battle: Battle, damage: number, position: number): voi
 
 
   battle.pushLog(`*${attacker.name} teleported* from position *${previousPosition}* to position *${attacker.position}* (${damage} damage)`, 'action')
+
+
+  return damage
 
 }

@@ -728,13 +728,13 @@ export class Battle {
         }
 
         const damageScale = action.damageScale || Math.random()
-        const damage = this.getDamageForItemAtIndex(Mech.TELEPORTER_INDEX, damageScale)
+        const damageBase = this.getDamageForItemAtIndex(Mech.TELEPORTER_INDEX, damageScale)
 
-        BattleActionsHandler.teleport(this, damage, action.position)
+        const damageDealt = BattleActionsHandler.teleport(this, damageBase, action.position)
 
         const newState = cloneDeep(this)
 
-        BattleAnimations.teleport(oldState, newState, attacker, damage)
+        BattleAnimations.teleport(oldState, newState, attacker, damageDealt)
 
         break
 
