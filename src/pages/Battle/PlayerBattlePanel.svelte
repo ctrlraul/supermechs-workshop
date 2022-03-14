@@ -250,6 +250,7 @@ function toggleItemsInspector (): void {
 
 .resistances > div > .value {
   position: relative;
+  direction: ltr;
 }
 
 
