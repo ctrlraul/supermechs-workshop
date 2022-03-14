@@ -52,33 +52,6 @@ type CantFireWeaponReason = (
   | 'Out of retreating range'
 )
 
-export type BattleAnimation = {
-  playerID: BattlePlayer['id'],
-  name: 'cooldown'
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'jump',
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'stomp'
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'useWeapon',
-  weaponIndex: number
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'toggleDrone'
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'charge'
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'teleport'
-} | {
-  playerID: BattlePlayer['id'],
-  name: 'hook'
-}
-
 
 
 // Class

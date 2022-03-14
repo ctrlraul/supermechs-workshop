@@ -9,7 +9,7 @@ export class CanvasEngine {
   ctx: CanvasRenderingContext2D | null = null
   
 
-  private running = false
+  protected running = false
 
 
   start (): void {
@@ -42,14 +42,8 @@ export class CanvasEngine {
 
 
   setCanvas (canvas: HTMLCanvasElement): void {
-
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
-
-    if (this.ctx === null) {
-      throw new Error('Canvas rendering not supported')
-    }
-
   }
 
 
