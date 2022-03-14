@@ -28,6 +28,7 @@ const DRONE_TOGGLE_DURATION = 300
 const TELEPORTING_DURATION = 400
 const HOOK_DURATION = 150
 const ROLL_DURATION = 300
+const CHARGE_DURATION = 600
 
 
 
@@ -379,6 +380,13 @@ export function charge (oldState: Battle, newState: Battle, attacker: BattlePlay
 
     // Create animation
 
+    const dir = attackerGfx.x < defenderGfx.x ? 1 : -1
+
+    const spotsMoved = Math.abs(
+      oldState.getPlayerForID(defender.id).position
+       - newState.getPlayerForID(defender.id).position
+    )
+
     const bounceBack = new TWEEN.Tween(attackerGfx)
       .to({ x: newAttackerVisualX }, KNOCKBACK_DURATION)
       .easing(TWEEN.Easing.Quadratic.Out)
@@ -390,8 +398,8 @@ export function charge (oldState: Battle, newState: Battle, attacker: BattlePlay
 
     // Charge towards opponent
     new TWEEN.Tween(attackerGfx)
-      .to({ x: newAttackerVisualX + CHARGE_HIT_INSET }, 1000)
-      .easing(TWEEN.Easing.Quadratic.In)
+      .to({ x: newAttackerVisualX + CHARGE_HIT_INSET * dir }, CHARGE_DURATION * spotsMoved)
+      .easing(TWEEN.Easing.Quartic.In)
       .chain(bounceBack, hitOpponent)
       .onComplete(() => {
         showFlyingDamage(damage, defenderGfx.x)
