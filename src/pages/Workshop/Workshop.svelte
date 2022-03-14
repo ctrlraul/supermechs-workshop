@@ -233,10 +233,6 @@ function toggleArenaBuffs (): void {
 
   <div class="buttons">
 
-    <!-- <button class="classic-box" on:click={() => router.push('/settings')}>
-      <SvgIcon name="cog" color="var(--color-text)" />
-    </button> -->
-
     <button class="classic-box" on:click={toggleArenaBuffs} use:tooltip={'Arena Buffs: ' + (arenaBuffs ? 'ON' : 'OFF')}>
       <SvgIcon name="arena_buffs" color={arenaBuffs ? 'var(--color-success)' : 'var(--color-text-dark)'} />
     </button>
@@ -251,6 +247,10 @@ function toggleArenaBuffs (): void {
 
     <button class="classic-box" on:click={onClickDismountMech} use:tooltip={'Dismount Mech'}>
       <SvgIcon name="trash" color="var(--color-error)" />
+    </button>
+
+    <button class="classic-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
+      <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 
   </div>

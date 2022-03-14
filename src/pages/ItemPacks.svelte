@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as router from 'svelte-spa-router'
-import { importItemsPack, ItemsPack } from '../items/ItemsManager'
+import { importItemsPack } from '../items/ItemsManager'
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
 import * as LocalStorageHandler from '../managers/LocalStorageHandler'
@@ -174,6 +174,10 @@ function loadFromFile (e: Event): void {
           on:change={loadFromFile}
         />
       </WideButton>
+
+      {#if $itemsPackData !== null}
+        <WideButton text="Cancel" on:click={() => router.pop()} />
+      {/if}
 
     </div>
   {/if}
