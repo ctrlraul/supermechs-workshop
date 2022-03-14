@@ -1,6 +1,6 @@
 import TWEEN from '@tweenjs/tween.js'
 import * as BR from '../BattleRenderer'
-import { Battle } from './Battle'
+import type { Battle } from './Battle'
 import { Tags } from '../items/ItemsManager'
 
 
@@ -26,7 +26,7 @@ const STOMP_LEG_MOVEMENT_DURATION = 400
 const KNOCKBACK_DURATION = 200
 const DRONE_TOGGLE_DURATION = 300
 const TELEPORTING_DURATION = 400
-const HOOK_DURATION = 5000
+const HOOK_DURATION = 150
 const ROLL_DURATION = 300
 
 
@@ -487,14 +487,17 @@ export function hook (oldState: Battle, newState: Battle, attacker: BattlePlayer
 
     // Create animation
 
+    const spotsMoved = Math.abs(
+      oldState.getPlayerForID(defender.id).position
+       - newState.getPlayerForID(defender.id).position
+    )
+
     showFlyingDamage(damage, defenderGfx.x)
     attackerGfx.updateStats()
     defenderGfx.updateStats()
-
-    const distanceScale = Math.abs(attacker.position - defender.position) / Battle.MAX_POSITION_INDEX
           
     new TWEEN.Tween(defenderGfx)
-      .to({ x: newDefenderVisualX }, HOOK_DURATION * distanceScale)
+      .to({ x: newDefenderVisualX }, HOOK_DURATION * spotsMoved)
       .onComplete(() => BR.nextAnimation())
       .start()
 
