@@ -1,6 +1,7 @@
 import TWEEN from '@tweenjs/tween.js'
 import * as BR from '../BattleRenderer'
 import { Battle } from './Battle'
+import { Tags } from '../items/ItemsManager'
 
 
 
@@ -26,6 +27,7 @@ const KNOCKBACK_DURATION = 200
 const DRONE_TOGGLE_DURATION = 300
 const TELEPORTING_DURATION = 400
 const HOOK_DURATION = 5000
+const ROLL_DURATION = 300
 
 
 
@@ -77,6 +79,99 @@ export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer
 
   })
   
+}
+
+
+
+export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer): void {
+  
+  BR.pushAnimation(() => {
+
+    const defender = newState.getOpponentForPlayerID(attacker.id)
+
+    const attackerGfx = BR.getPlayerGfx(attacker.id)
+    const newAttackerVisualX = BR.getVisualX(newState.attacker.position)
+    const defenderGfx = BR.getPlayerGfx(defender.id)
+    const newDefenderVisualX = BR.getVisualX(newState.defender.position)
+
+
+    // Reset positions before running animation
+
+    attackerGfx.x = BR.getVisualX(oldState.attacker.position)
+    attackerGfx.y = 0
+
+    
+
+    // Create animation
+
+    const spotsMoved = Math.abs(
+      oldState.getPlayerForID(attacker.id).position
+       - newState.getPlayerForID(attacker.id).position
+    )
+
+    if (attacker.legs.tags.includes(Tags.TAG_ROLLER)) {
+
+      // Rolling animation
+      
+      new TWEEN.Tween(attackerGfx)
+        .to({ x: newAttackerVisualX }, ROLL_DURATION * spotsMoved)
+        .onComplete(() => BR.nextAnimation())
+        .onUpdate(() => {
+          const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
+          attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
+          defenderGfx.scaleX = attackerGfx.scaleX * -1
+        })
+        .start()
+
+    } else {
+
+      new TWEEN.Tween(attackerGfx)
+        .to({ x: newAttackerVisualX }, JUMP_DURATION * 2)
+        .onComplete(() => BR.nextAnimation())
+        .onUpdate(() => {
+          const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
+          attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
+          defenderGfx.scaleX = attackerGfx.scaleX * -1
+        })
+        .start()
+
+      if (spotsMoved < 2 || !attacker.legs.stats.jump) {
+
+        console.log('TODO: Implement walking animation')
+
+        const fall = new TWEEN.Tween(attackerGfx)
+          .to({ y: 0 }, JUMP_DURATION)
+          .easing(TWEEN.Easing.Quadratic.In)
+
+        // Jump
+        new TWEEN.Tween(attackerGfx)
+          .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .chain(fall)
+          .start()
+
+      } else {
+
+        // Jumping animation
+
+        const fall = new TWEEN.Tween(attackerGfx)
+          .to({ y: 0 }, JUMP_DURATION)
+          .easing(TWEEN.Easing.Quadratic.In)
+
+        // Jump
+        new TWEEN.Tween(attackerGfx)
+          .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .chain(fall)
+          .start()
+
+      }
+
+    }
+  
+
+  })
+
 }
 
 

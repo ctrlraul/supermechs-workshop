@@ -2,7 +2,6 @@ import { CanvasObject } from '../CanvasRenderer'
 import { cloneDeep } from 'lodash'
 import { CanvasMechPart } from './CanvasMechPart'
 import { getItemByID } from '../items/ItemsManager'
-import { getVisualX } from '.'
 import Mech from '../mechs/Mech'
 
 
@@ -11,6 +10,7 @@ import Mech from '../mechs/Mech'
 
 import type { BattlePlayer } from '../battle/BattlePlayer'
 import type { AttachmentPoint, TorsoAttachment } from '../items/Item'
+import { getVisualX } from '.'
 
 
 

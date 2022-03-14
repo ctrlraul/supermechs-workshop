@@ -52,6 +52,10 @@ export type ImportItemsPackFn <ItemsPack = any> = (itemsPack: ItemsPack, onProgr
 
 // Stuff
 
+export const Tags = {
+  TAG_ROLLER: 'roller'
+}
+
 const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED'];
 const logger = new Logger('ItemsManager')
 
