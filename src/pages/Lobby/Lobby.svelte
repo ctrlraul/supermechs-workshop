@@ -156,7 +156,12 @@ function onGoBack (): void {
 }
 
 
-function onPickOpponentMech (opponentMech: Mech): void {
+function onPickOpponentMech (opponentMech: Mech | null): void {
+
+  if (opponentMech === null) {
+    pickOpponentMech = false
+    return
+  }
 
   const [pos1, pos2] = getRandomStartingPositions()
   const playerID = 'player'

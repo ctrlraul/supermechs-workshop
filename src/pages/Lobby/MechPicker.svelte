@@ -1,5 +1,6 @@
 <script lang="ts">
 
+import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import { onMount } from 'svelte'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import { items2ids } from '../../items/ItemsManager'
@@ -7,7 +8,7 @@ import Mech from '../../mechs/Mech'
 import { createMechForCurrentPack, getMechs, saveMech, setLastMech } from '../../mechs/MechsManager'
 import * as Stores from '../../stores'
 
-export let onPickMech: (mech: Mech) => void
+export let onPickMech: (mech: Mech | null) => void
 export let title: string = 'Pick Mech'
 export let allowCreating: boolean = false
 
@@ -76,6 +77,9 @@ function onCreateNewMech (): void {
           Create New Mech
         </button>
       {/if}
+      <button class="classic-box quit" on:click={() => onPickMech(null)}>
+        <SvgIcon name="cross" />
+      </button>
     </header>
 
     <div class="mechs-list">
@@ -141,6 +145,13 @@ header {
   border-top-right-radius: var(--ui-radius);
   box-shadow: 0 0.1em 1em -0.2em black;
   z-index: 1;
+}
+
+
+.quit {
+  width: 1.8em;
+  height: 1.8em;
+  stroke: var(--color-text);
 }
 
 
