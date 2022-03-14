@@ -1,11 +1,12 @@
 <script lang="ts">
 import * as router from 'svelte-spa-router'
-import { importItemsPack } from '../items/ItemsManager'
+import { importItemsPack, ItemsPack } from '../items/ItemsManager'
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
 import * as LocalStorageHandler from '../managers/LocalStorageHandler'
 import { itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
+import { onMount } from 'svelte';
 
 
 
@@ -17,8 +18,23 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 
 
 
-// State
+// Data
+
 let loadingProgress = 0
+
+onMount(() => {
+
+  if ($itemsPackData !== null) {
+    return
+  }
+
+  const lastPackURL = LocalStorageHandler.get('last-items-pack-url')
+
+  if (lastPackURL) {
+    loadFromURL(lastPackURL)
+  }
+
+})
 
 
 
