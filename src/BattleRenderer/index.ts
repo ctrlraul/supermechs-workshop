@@ -1,6 +1,6 @@
 import { Battle } from '../battle/Battle'
 import { CanvasFlyingText } from './CanvasFlyingText'
-import { CanvasBattleEngine } from './CamvasBattleEngine'
+import { CanvasBattleEngine } from './CanvasBattleEngine'
 
 
 
