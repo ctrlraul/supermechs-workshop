@@ -13,6 +13,7 @@ import { CanvasFlyingText } from './CanvasFlyingText'
 import type Item from '../items/Item'
 import type { AttachmentPoint, TorsoAttachment } from '../items/Item'
 import type { BattlePlayer } from '../battle/BattlePlayer'
+import { cloneDeep } from 'lodash'
 
 type PartName = 'torso' | 'leg1' | 'leg2' | 'side1' | 'side2' | 'side3' | 'side4' | 'top1' | 'top2' | 'drone'
 
@@ -22,8 +23,10 @@ type PartName = 'torso' | 'leg1' | 'leg2' | 'side1' | 'side2' | 'side3' | 'side4
 
 class CanvasMech extends CanvasObject {
 
-  player!: BattlePlayer
+  player: BattlePlayer
+  stats: BattlePlayer['stats']
   parts: (CanvasMechPart | null)[] = []
+  onStatsUpdate: (stats: BattlePlayer['stats']) => void = () => {}
 
 
   constructor (player: BattlePlayer) {
@@ -31,6 +34,7 @@ class CanvasMech extends CanvasObject {
     super()
 
     this.player = player
+    this.stats = cloneDeep(player.stats)
     this.scaleX = 0.4
     this.scaleY = 0.4
 
@@ -179,6 +183,12 @@ class CanvasMech extends CanvasObject {
 
   }
 
+
+  updateStats (): void {
+    Object.assign(this.stats, this.player.stats)
+    this.onStatsUpdate(this.stats)
+  }
+
 }
 
 
@@ -226,9 +236,6 @@ export class CanvasBattleEngine extends CanvasEngine {
     // Reset arena
     this.animationsStack = []
     this.mechsGfxContainer = new CanvasObject()
-    this.mechsGfxContainer.y = this.root.height - 10
-    this.mechsGfxContainer.width = this.root.width
-    this.mechsGfxContainer.height = 0
     this.root.clear()
     this.root.addChild(this.mechsGfxContainer)
 
@@ -247,6 +254,17 @@ export class CanvasBattleEngine extends CanvasEngine {
 
     this.mech2.scaleX *= -1
 
+    this.adjust()
+
+  }
+
+
+  adjust () {
+    this.mechsGfxContainer.y = this.root.height - 10
+    this.mechsGfxContainer.width = this.root.width
+    this.mechsGfxContainer.height = 0
+    this.mech1.adjust()
+    this.mech2.adjust()
   }
 
 }
@@ -272,6 +290,7 @@ export function setCanvas (canvas: HTMLCanvasElement) {
   engine.setCanvas(canvas)
   engine.root.width = canvas.width
   engine.root.height = canvas.height
+  engine.adjust()
   engine.start()
 }
 

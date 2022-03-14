@@ -15,7 +15,7 @@ import { onDestroy, onMount } from 'svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import type { BattleAction } from '../../battle/Battle'
 import { addPopup } from '../../managers/PopupManager'
-import * as BattleRenderer from '../../BattleRenderer'
+import { setCanvas } from '../../BattleRenderer'
 
 
 
@@ -41,15 +41,11 @@ $: reverse = player.id === $battle!.p2.id
 // Life
 
 onMount(() => {
-  
   if (battleCanvas) {
     battleCanvas.width = battleCanvas.offsetWidth * 2
     battleCanvas.height = battleCanvas.offsetHeight * 2
-    BattleRenderer.setCanvas(battleCanvas)
+    setCanvas(battleCanvas)
   }
-  
-  BattleRenderer.setBattle($battle!, player.id)
-
 })
 
 onMount(() => {

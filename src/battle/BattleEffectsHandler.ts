@@ -7,6 +7,7 @@ import * as BattleAnimations from './BattleAnimations'
 
 import type { Battle } from './Battle'
 import type { BattlePlayer } from './BattlePlayer'
+import { getPlayerGfx } from '../BattleRenderer'
 
 
 
@@ -17,7 +18,7 @@ export function fireDrone (battle: Battle, attacker: BattlePlayer, damage: numbe
   const { drone } = attacker
 
   if (drone === null) {
-    throw new Error(`Failed to fire drone: ${attacker.name} does not have a drone equipped`)
+	  throw new Error(`Failed to fire drone: ${attacker.name} does not have a drone equipped`)
   }
 
 	const oldState = cloneDeep(battle)
@@ -65,9 +66,13 @@ export function forceCooldown (battle: Battle, player: BattlePlayer): boolean {
 }
 
 
-export function regenEnergy (battle: Battle): void {
-	battle.attacker.stats.energy = Math.min(
-		battle.attacker.stats.eneCap,
-		battle.attacker.stats.energy + battle.attacker.stats.eneReg
+export function regenEnergy (player: BattlePlayer): void {
+
+	player.stats.energy = Math.min(
+		player.stats.eneCap,
+		player.stats.energy + player.stats.eneReg
 	)
+
+  getPlayerGfx(player.id).updateStats()
+
 }

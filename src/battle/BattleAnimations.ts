@@ -97,6 +97,7 @@ export function cooldown (oldState: Battle, newState: Battle, attacker: BattlePl
     // Create animation
 
     showFlyingDamage(heat, attackerGfx.x)
+    attackerGfx.updateStats()
     
     setTimeout(() => BR.nextAnimation(), COOLDOWN_DURATION)
 
@@ -138,7 +139,11 @@ export function stomp (oldState: Battle, newState: Battle, attacker: BattlePlaye
       .to({ y: -legGfx.height }, STOMP_LEG_MOVEMENT_DURATION * 0.2)
       .easing(TWEEN.Easing.Quintic.In)
       .chain(hitDefender)
-      .onComplete(() => showFlyingDamage(damage, defenderGfx.x))
+      .onComplete(() => {
+        showFlyingDamage(damage, defenderGfx.x)
+        attackerGfx.updateStats()
+        defenderGfx.updateStats()
+      })
 
     // Raise leg
     new TWEEN.Tween(legGfx)
@@ -198,12 +203,18 @@ export function useWeapon (oldState: Battle, newState: Battle, attacker: BattleP
         .to({ x: newAttackerVisualX }, FLIGHT_DURATION)
         .easing(TWEEN.Easing.Sinusoidal.Out)
         .chain(hitOpponent, fall)
-        .onComplete(() => showFlyingDamage(damage, defenderGfx.x))
+        .onComplete(() => {
+          showFlyingDamage(damage, defenderGfx.x)
+          attackerGfx.updateStats()
+          defenderGfx.updateStats()
+        })
         .start()
   
     } else {
 
       showFlyingDamage(damage, defenderGfx.x)
+      attackerGfx.updateStats()
+      defenderGfx.updateStats()
   
       // Recoil
       new TWEEN.Tween(attackerGfx)
@@ -287,7 +298,11 @@ export function charge (oldState: Battle, newState: Battle, attacker: BattlePlay
       .to({ x: newAttackerVisualX + CHARGE_HIT_INSET }, 1000)
       .easing(TWEEN.Easing.Quadratic.In)
       .chain(bounceBack, hitOpponent)
-      .onComplete(() => showFlyingDamage(damage, defenderGfx.x))
+      .onComplete(() => {
+        showFlyingDamage(damage, defenderGfx.x)
+        attackerGfx.updateStats()
+        defenderGfx.updateStats()
+      })
       .start()
 
   })
@@ -317,6 +332,8 @@ export function teleport (oldState: Battle, newState: Battle, attacker: BattlePl
 
 
     // Create animation
+
+    attackerGfx.updateStats()
     
     const appear = new TWEEN.Tween(attackerGfx)
       .to({ opacity: 1 }, TELEPORTING_DURATION * 0.5)
@@ -342,6 +359,7 @@ export function teleport (oldState: Battle, newState: Battle, attacker: BattlePl
 
         if (damage > 0) {
           showFlyingDamage(damage, defenderGfx.x)
+          defenderGfx.updateStats()
         }
 
       })
@@ -374,14 +392,16 @@ export function hook (oldState: Battle, newState: Battle, attacker: BattlePlayer
 
     // Create animation
 
+    showFlyingDamage(damage, defenderGfx.x)
+    attackerGfx.updateStats()
+    defenderGfx.updateStats()
+
     const distanceScale = Math.abs(attacker.position - defender.position) / Battle.MAX_POSITION_INDEX
           
     new TWEEN.Tween(defenderGfx)
       .to({ x: newDefenderVisualX }, HOOK_DURATION * distanceScale)
       .onComplete(() => BR.nextAnimation())
       .start()
-    
-    showFlyingDamage(damage, defenderGfx.x)
 
   })
 

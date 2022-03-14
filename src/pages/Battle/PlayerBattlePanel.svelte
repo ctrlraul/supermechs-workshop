@@ -1,7 +1,5 @@
 <script lang="ts">
 
-import type { BattlePlayer } from '../../battle/BattlePlayer'
-import type { Battle } from '../../battle/Battle'
 import { getStatInstruction } from '../../stats/StatsManager'
 import ProgressBar from '../../components/ProgressBar.svelte'
 import { BattleItem, getItemByID } from '../../items/ItemsManager'
@@ -9,7 +7,7 @@ import ItemImage from '../../components/ItemImage.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import ControlItemButton from './ControlItemButton.svelte'
-
+import { getPlayerGfx } from '../../BattleRenderer'
 
 
 export let player: BattlePlayer
@@ -18,17 +16,30 @@ export let rtl = false
 
 
 
+// Types 
+
+import type { BattlePlayer } from '../../battle/BattlePlayer'
+import type { Battle } from '../../battle/Battle'
+
+
+
 // State
 
 const torso = getItemByID(player.items[0]!.id)!
 const opponentName = battle.getOpponentForPlayerID(player.id).name
 const turnIconURL = getStatInstruction('uses').imageURL
-$: inspectableItems = [player.legs, ...player.weapons, ...player.utils].filter(Boolean) as BattleItem[]
+const playerGfx = getPlayerGfx(player.id)
 
 let showItemsInspector = false
 let focusedItem: BattleItem | null = null
+let stats = playerGfx.stats
 
+$: inspectableItems = [player.legs, ...player.weapons, ...player.utils].filter(Boolean) as BattleItem[]
 $: isMyTurn = battle.attacker.id === player.id
+
+
+
+playerGfx.onStatsUpdate = value => stats = value
 
 
 
@@ -72,46 +83,46 @@ function toggleItemsInspector (): void {
   <!-- Stats -->
 
   <ProgressBar
-    progress={player.stats.health / player.stats.healthCap}
+    progress={stats.health / stats.healthCap}
     barColor="#e6aa44"
     style="grid-area:health"
-    fraction={player.stats.healthCap}
+    fraction={stats.healthCap}
     rtl={rtl}
   />
 
   <ProgressBar
-    progress={player.stats.energy / player.stats.eneCap}
+    progress={stats.energy / stats.eneCap}
     barColor="rgb(68, 166, 230)"
     style="grid-area:energy"
-    fraction={player.stats.eneCap}
+    fraction={stats.eneCap}
     rtl={rtl}
-    tooltipData={player.stats.eneReg + ' Energy Regeneration'}
+    tooltipData={stats.eneReg + ' Energy Regeneration'}
   />
 
   <ProgressBar
-    progress={player.stats.heat / player.stats.heaCap}
+    progress={stats.heat / stats.heaCap}
     barColor="rgb(212 56 56)"
     style="grid-area:heat"
-    fraction={player.stats.heaCap}
+    fraction={stats.heaCap}
     rtl={rtl}
-    tooltipData={player.stats.heaCol + ' Cooling'}
+    tooltipData={stats.heaCol + ' Cooling'}
   />
 
   <div class="resistances">
 
-    <div use:tooltip={getResTooltipText('Physical', player.stats.phyRes, '#e6aa44')}>
+    <div use:tooltip={getResTooltipText('Physical', stats.phyRes, '#e6aa44')}>
       <img src="/assets/phy-shield.png" alt="Physical Resistance">
-      <div class="value text-outline">{player.stats.phyRes}</div>
+      <div class="value text-outline">{stats.phyRes}</div>
     </div>
 
-    <div use:tooltip={getResTooltipText('Explosive', player.stats.expRes, 'rgb(212 56 56)')}>
+    <div use:tooltip={getResTooltipText('Explosive', stats.expRes, 'rgb(212 56 56)')}>
       <img src="/assets/exp-shield.png" alt="Explosive Resistance">
-      <div class="value text-outline">{player.stats.expRes}</div>
+      <div class="value text-outline">{stats.expRes}</div>
     </div>
 
-    <div use:tooltip={getResTooltipText('Electric', player.stats.eleRes, 'rgb(68, 166, 230)')}>
+    <div use:tooltip={getResTooltipText('Electric', stats.eleRes, 'rgb(68, 166, 230)')}>
       <img src="/assets/ele-shield.png" alt="Electric Resistance">
-      <div class="value text-outline">{player.stats.eleRes}</div>
+      <div class="value text-outline">{stats.eleRes}</div>
     </div>
 
   </div>

@@ -6,7 +6,7 @@ import type { BattleItem } from '../items/ItemsManager'
 import { cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
 import Mech from '../mechs/Mech'
-import { CanvasBattleEngine } from '../BattleRenderer'
+import { setBattle } from '../BattleRenderer'
 
 
 
@@ -104,7 +104,6 @@ export class Battle {
   completion: BattleCompletion | null = null
   logs: BattleLog[] = []
   onUpdate: (battle: Battle) => void
-  renderer = new CanvasBattleEngine()
 
 
   constructor (args: BattleArgs) {
@@ -122,6 +121,8 @@ export class Battle {
     this.onUpdate = args.onUpdate
 
     this.pushLog(`Battle Started!`)
+
+    setBattle(this, this.povPlayerID)
 
   }
 
@@ -784,7 +785,7 @@ export class Battle {
     this.actionPoints = 0
 
     // Regen energy at end of turn
-    BattleEffectsHandler.regenEnergy(this)
+    BattleEffectsHandler.regenEnergy(this.attacker)
 
     // Clear items used
     this.attacker.itemsAlreadyUsed = []
