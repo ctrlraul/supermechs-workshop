@@ -651,7 +651,7 @@ export class Battle {
 
         const newState = cloneDeep(this)
 
-        BattleAnimations.jump(oldState, newState, attacker, this.povPlayerID)
+        BattleAnimations.jump(oldState, newState, attacker)
 
         break
 
@@ -734,7 +734,7 @@ export class Battle {
 
         const newState = cloneDeep(this)
 
-        BattleAnimations.teleport(oldState, newState, attacker, damage, this.povPlayerID)
+        BattleAnimations.teleport(oldState, newState, attacker, damage)
 
         break
 
