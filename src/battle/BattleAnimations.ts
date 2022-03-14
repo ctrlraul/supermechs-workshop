@@ -13,9 +13,9 @@ import type { BattlePlayer } from './BattlePlayer'
 
 // Consts (Editing durations might fuck up animations, send me a line)
 
-const JUMP_HEIGHT = 70
-const STOMP_LEG_RAISE_HEIGHT = 30
-const CHARGE_HIT_INSET = 40
+const JUMP_HEIGHT = 140
+const STOMP_LEG_RAISE_HEIGHT = 60
+const CHARGE_HIT_INSET = 80
 
 const FLIGHT_DURATION = 1000
 const JUMP_DURATION = 400
