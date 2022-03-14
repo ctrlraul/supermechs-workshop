@@ -1,16 +1,12 @@
 <script lang="ts">
 
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
-	
-import type { PopupData } from '../managers/PopupManager'
-
-
-export let data: PopupData
+import { popup } from '../managers/PopupManager'
 
 
 function onOffClick (e: Event): void {
-	if (data.hideOnOffclick && (e.currentTarget === e.target)) {
-		data.remove()
+	if ($popup && $popup.hideOnOffclick && (e.currentTarget === e.target)) {
+		$popup.remove()
 	}
 }
 
@@ -18,48 +14,50 @@ function onOffClick (e: Event): void {
 
 
 
-<div class="container" on:click={onOffClick}>
-	<div class="classic-box {data.mode}">
+{#if $popup}
+  <div class="container" on:click={onOffClick}>
+    <div class="classic-box {$popup.mode}">
 
-		<div class="title">{data.title}</div>
+      <div class="title">{$popup.title}</div>
 
-		{#if data.message}
-			<div class="message">
-				{#if Array.isArray(data.message)}
+      {#if $popup.message}
+        <div class="message">
+          {#if Array.isArray($popup.message)}
 
-					{#each data.message as line}
-						<div>{line}<br/></div>
-					{/each}
+            {#each $popup.message as line}
+              <div>{line}<br/></div>
+            {/each}
 
-				{:else}
+          {:else}
 
-					{data.message}
+            {$popup.message}
 
-				{/if}
-			</div>
-		{/if}
-		
+          {/if}
+        </div>
+      {/if}
+      
 
-		{#if Object.keys(data.options).length}
-			<div class="buttons">
+      {#if Object.keys($popup.options).length}
+        <div class="buttons">
 
-				{#each Object.entries(data.options) as [text, handler]}
+          {#each Object.entries($popup.options) as [text, handler]}
 
-					<button on:click={handler.bind(data)}>{text}</button>
-          
-				{/each}
+            <button on:click={handler.bind($popup)}>{text}</button>
 
-			</div>
-		{/if}
+          {/each}
 
-		{#if data.spinner}
-			<div class="spinner">
-				<SvgIcon name="aim" />
-			</div>
-		{/if}
+        </div>
+      {/if}
 
-	</div>
-</div>
+      {#if $popup.spinner}
+        <div class="spinner">
+          <SvgIcon name="aim" />
+        </div>
+      {/if}
+
+    </div>
+  </div>
+{/if}
 
 
 

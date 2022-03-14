@@ -141,11 +141,9 @@ function conditionsFailed () {
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
   
-  {#if $popup}
-    <Popup data={$popup} />
-  {/if}
+  <Popup/>
 
-  <Tooltip />
+  <Tooltip/>
 
 {:else}
   <div class="loading">
