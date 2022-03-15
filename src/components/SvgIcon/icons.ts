@@ -59,15 +59,7 @@ const icons = {
 
 	arrows_cross: {
 		viewBox: '0 0 100 100',
-		svg: `
-			<defs>
-				<path id="arrow" d="m0 -20L17.5 0H10V15H-10V0H-17.5z" />
-			</defs>
-			<use x=" 50" y=" 20" xlink:href="#arrow" />
-			<use x=" 50" y="-80" xlink:href="#arrow" transform="rotate(90)" />
-			<use x="-50" y="-80" xlink:href="#arrow" transform="rotate(180)" />
-			<use x="-50" y=" 20" xlink:href="#arrow" transform="rotate(270)" />
-		`
+		svg: '<path stroke="none" d="M 40 78.15 L 28.15 78.15 50 100 71.85 78.15 60 78.15 60 62.5 40 62.5 40 78.15 M 37.45 40 L 21.85 40 21.85 28.15 0 50 21.85 71.85 21.85 60 37.45 60 37.45 40 M 60 37.45 L 60 21.85 71.85 21.85 50 0 28.15 21.85 40 21.85 40 37.45 60 37.45 M 78.15 40 L 62.5 40 62.5 60 78.15 60 78.15 71.85 100 50 78.15 28.15 78.15 40 Z"/>'
 	},
 
 	aim: {
