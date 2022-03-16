@@ -7,7 +7,6 @@ import StatBlocks from '../../components/StatBlocks.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import { push, location as routerLocation } from "svelte-spa-router"
 import { currentMech } from '../../stores'
-import { checkSetup } from '../../battle/utils'
 import * as LocalStorageHandler from '../../managers/LocalStorageHandler'
 import Mech from '../../mechs/Mech'
 import SLOTS from './slots'
@@ -126,29 +125,6 @@ function onClickDismountMech (): void {
 }
 
 
-function onClickBattle (): void {
-
-  try {
-
-    checkSetup(mech!.setup)
-    push('/lobby')
-
-  } catch (err: any) {
-
-    addPopup({
-      title: 'Wait!',
-      message: err.message,
-      hideOnOffclick: true,
-      options: {
-        Ok () { this.remove() }
-      }
-    })
-
-  }
-
-}
-
-
 function toggleArenaBuffs (): void {
 
   arenaBuffs = !arenaBuffs
@@ -241,7 +217,7 @@ function toggleArenaBuffs (): void {
       <SvgIcon name="mech" color="var(--color-text)" />
     </button>
 
-    <button class="classic-box" on:click={onClickBattle} use:tooltip={'Battle!'}>
+    <button class="classic-box" on:click={() => push('/lobby')} use:tooltip={'Battle!'}>
       <SvgIcon name="swords" color="var(--color-text)" />
     </button>
 

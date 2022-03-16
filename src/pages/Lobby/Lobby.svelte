@@ -14,6 +14,7 @@ import { getRandomStartingPositions } from '../../battle/utils'
 import Mech from '../../mechs/Mech'
 import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
+import { checkSetup } from '../../battle/utils'
 
 
 
@@ -68,6 +69,27 @@ function onRename (e: Event): void {
 
 
 function onOnlineBattle (): void {
+
+  try {
+
+    checkSetup(mech!.setup)
+
+  } catch (err: any) {
+
+    addPopup({
+      title: `Can't use invalid mech in online battles!`,
+      message: err.message,
+      mode: 'error',
+      hideOnOffclick: true,
+      options: {
+        Ok () { this.remove() }
+      }
+    })
+
+    return
+
+  }
+
 
   if (SocketManager.socket.disconnected) {
 
