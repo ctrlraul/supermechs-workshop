@@ -177,7 +177,7 @@ export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer
 
 
 
-export function cooldown (oldState: Battle, newState: Battle, attacker: BattlePlayer, heat: number): void {
+export function cooldown (newState: Battle, attacker: BattlePlayer, heat: number): void {
 
   BR.pushAnimation(() => {
 

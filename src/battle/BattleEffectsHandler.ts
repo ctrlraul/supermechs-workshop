@@ -51,15 +51,13 @@ export function forceCooldown (battle: Battle, player: BattlePlayer): boolean {
 	const double = player.stats.heat - player.stats.heaCol! > player.stats.heaCap;
 	const amount = player.stats.heaCol! * (double ? 2 : 1)
 
-	const oldState = cloneDeep(battle)
-
 	player.stats.heat = Math.max(0, player.stats.heat - amount)
 
 	const newState = cloneDeep(battle)
 
 	battle.pushLog(`*${player.name}* was forced to *${double ? 'double' : ''} cooldown* (-${amount} heat)`)
 
-	BattleAnimations.cooldown(oldState, newState, player, amount)
+	BattleAnimations.cooldown(newState, player, amount)
 
 	return double
 	

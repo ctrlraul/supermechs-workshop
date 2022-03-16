@@ -130,7 +130,7 @@ export class Battle {
 
 
     if (this.idle) {
-      await this.proccessAction(action)
+      this.proccessAction(action)
     } else {
       this.actionsStack.push(action)
     }
@@ -606,7 +606,7 @@ export class Battle {
         const amount = BattleActionsHandler.cooldown(this, attacker)
         const newState = cloneDeep(this)
 
-        BattleAnimations.cooldown(oldState, newState, attacker, amount)
+        BattleAnimations.cooldown(newState, attacker, amount)
 
         break
 

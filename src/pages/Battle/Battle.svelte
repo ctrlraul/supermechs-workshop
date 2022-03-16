@@ -132,8 +132,7 @@ onDestroy(() => {
 async function handleBattleEvent (action: BattleAction): Promise<void> {
 
   if ($battle === null) {
-    console.warn('No battle', event)
-    return
+    throw new Error('Attempt to handle event but there is no battle')
   }
 
   const moveAuthor = $battle!.getPlayerForID(action.actorID)
