@@ -52,12 +52,12 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
   }
 
 
-  try {
+  const popup = addPopup({
+    title: 'Awaiting Response...',
+    spinner: true
+  })
 
-    const popup = addPopup({
-      title: 'Awaiting Response...',
-      spinner: true
-    })
+  try {
 
     const response = await fetch(url)
     const pack = await response.json()
@@ -67,8 +67,6 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
     }
 
     await importItemsPack(pack, onProgress)
-
-    popup.remove()
 
     loadingProgress = 0
 
@@ -99,6 +97,8 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
     })
 
   } finally {
+
+    popup.remove()
 
     if (itemsPackData !== null && saveURL) {
       LocalStorageHandler.set('last-items-pack-url', url)
