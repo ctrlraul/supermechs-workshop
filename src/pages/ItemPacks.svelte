@@ -68,8 +68,6 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
     await importItemsPack(pack, onProgress)
 
-    loadingProgress = 0
-
     router.push('/workshop')
 
   } catch (err: any) {
