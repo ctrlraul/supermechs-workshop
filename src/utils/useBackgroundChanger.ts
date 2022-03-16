@@ -1,4 +1,14 @@
 const times: number[] = []
+const localStorageKey = '__dnuorgkcab__'
+const lastBackground = localStorage.getItem(localStorageKey)
+
+
+if (lastBackground !== null) {
+  document.body.style.backgroundImage = `url(${lastBackground})`
+  document.body.style.backgroundPosition = 'center'
+  document.body.style.backgroundSize = 'cover'
+}
+
 
 export function backgroundChanger (element: HTMLElement): void {
 
@@ -22,6 +32,7 @@ export function backgroundChanger (element: HTMLElement): void {
         document.body.style.backgroundImage = `url(${backgroundURL})`
         document.body.style.backgroundPosition = 'center'
         document.body.style.backgroundSize = 'cover'
+        localStorage.setItem(localStorageKey, backgroundURL)
       }
 
     }
