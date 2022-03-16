@@ -41,8 +41,8 @@ export class CanvasMechPart extends CanvasObject {
     this.item = item
     this.zIndex = zIndex
 
-    this.width = item.image.width
-    this.height = item.image.height
+    this.width = item.width
+    this.height = item.height
 
     this.setImage(spritesSheet, item.image)
 
