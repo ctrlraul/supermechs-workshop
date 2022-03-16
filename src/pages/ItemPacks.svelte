@@ -98,6 +98,7 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
   } finally {
 
+    loadingProgress = 0
     popup.remove()
 
     if (itemsPackData !== null && saveURL) {
