@@ -188,7 +188,7 @@ export function getItemByID (id: Item['id']): Item | null {
   const item = items.find(item => item.id === id)
 
   if (!item) {
-    throw new Error(`No item with id "${id}" in the current pack.`)
+    return null
   }
 
   return item
