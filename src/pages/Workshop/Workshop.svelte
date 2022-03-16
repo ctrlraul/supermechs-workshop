@@ -15,6 +15,7 @@ import MechCanvas from '../../components/MechCanvas.svelte'
 import { items2ids } from '../../items/ItemsManager'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
+import { backgroundChanger } from '../../utils/useBackgroundChanger'
 
 
 
@@ -153,7 +154,7 @@ function toggleArenaBuffs (): void {
 
 <main class={focusedSlotInfo ? 'blur' : ''}>
 
-  <div class="mech-container">
+  <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
       <MechCanvas setup={$currentMech.setup} style="max-width: 70%; max-height: 90%;" />
     {/if}
