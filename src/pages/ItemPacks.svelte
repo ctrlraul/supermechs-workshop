@@ -57,16 +57,12 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
     spinner: true
   })
 
+
   try {
 
-    const response = await fetch(url)
-    const pack = await response.json()
-
-    const onProgress = (progress: number) => {
+    await importItemsPack(url, progress => {
       loadingProgress = progress
-    }
-
-    await importItemsPack(pack, onProgress)
+    })
 
     router.push('/workshop')
 

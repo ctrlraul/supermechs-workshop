@@ -3,7 +3,7 @@ import importItemsPackV1 from './importItemsPackV1'
 import importItemsPackV2 from './importItemsPackV2'
 import Logger from '../utils/Logger'
 import { getBuffedItemStats } from '../stats/StatsManager'
-import { itemsPackData, ItemsPackData } from '../stores'
+import { itemsPackData as itemsPackDataStore, ItemsPackData } from '../stores'
 
 
 
@@ -12,6 +12,7 @@ import { itemsPackData, ItemsPackData } from '../stores'
 import type Item from './Item'
 import type { ItemsPackV1 } from './importItemsPackV1'
 import type { ItemsPackV2 } from './importItemsPackV2'
+import { get } from 'svelte/store'
 
 
 export type ItemsPack = ItemsPackV1 | ItemsPackV2
@@ -56,10 +57,8 @@ export const Tags = {
   TAG_ROLLER: 'roller'
 }
 
-const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED'];
+const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED']
 const logger = new Logger('ItemsManager')
-
-let spritesSheet: HTMLCanvasElement | null = null
 
 let imported: boolean = false
 let importing: boolean = false
@@ -67,22 +66,57 @@ let importing: boolean = false
 let items: Item[]
 let itemsFailed: any[]
 
+let itemsPackData = get(itemsPackDataStore)
 
+itemsPackDataStore.subscribe(value => itemsPackData = value)
 
 
 
 // Methods
 
-export async function importItemsPack (itemsPack: ItemsPack, onProgress: (progress: number) => void): Promise<void> {
+export async function importItemsPack (url: string, onProgress: (progress: number) => void): Promise<void> {
 
   if (importing) {
     throw new Error('Already importing a pack.')
   }
 
 
+  // Reset state
+
   imported = false
   importing = true
 
+
+  // Import
+
+  try {
+
+    // Fetch data
+
+    const response = await fetch(url)
+    const itemsPack = await response.json()
+    const result = await doImport(itemsPack, onProgress)
+
+    items = result.items
+    itemsFailed = result.itemsFailed
+
+    imported = true
+    importing = false
+
+    itemsPackDataStore.set(result.itemsPackData)
+
+  } catch (err: any) {
+
+    importing = false
+
+    throw err
+
+  }
+
+}
+
+
+async function doImport (itemsPack: ItemsPack, onProgress: (progress: number) => void) {
 
   let importFn: ImportItemsPackFn
   let packData: Partial<ItemsPackData>
@@ -126,34 +160,19 @@ export async function importItemsPack (itemsPack: ItemsPack, onProgress: (progre
     
   }
 
+  const [done, failed, sprites] = await importFn(itemsPack, onProgress)
 
-  try {
+  // Sort items by element
+  done.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1)
 
-    const [done, failed, sprites] = await importFn(itemsPack, onProgress)
+  packData.items = done
+  packData.spritesSheet = sprites
 
-    items = done
-    itemsFailed = failed
-    spritesSheet = sprites
-
-    // Sort items by element
-    items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1)
-
-    packData.items = items
-    packData.spritesSheet = sprites
-    itemsPackData.set(packData as ItemsPackData)
-
-    imported = true
-
-  } catch (err: any) {
-
-    imported = false
-
-    throw err // Let whatever called this function to handle the issue.
-
-  } finally {
-
-    importing = false
-
+  return {
+    items: done,
+    itemsFailed: failed,
+    spritesSheet: sprites,
+    itemsPackData: packData as ItemsPackData
   }
 
 }
@@ -241,20 +260,20 @@ export function getBattleItems (setup: number[]): (BattleItem | null)[] {
 
 export function renderItem (ctx: CanvasRenderingContext2D, item: Item, x: number, y: number, width: number, height: number): void {
 
-  if (spritesSheet === null) {
-    throw new Error('No sprites sheet loaded')
-  }
-
-  if (typeof item.image === 'string') {
-    throw new Error('TODO: Make compile all item images from packs with individual images into a single spritessheet to make this work lols')
+  if (itemsPackData === null) {
+    throw new Error('No items pack loaded')
   }
 
   ctx.drawImage(
-    spritesSheet,
-    item.image.x, item.image.y,
-    item.image.width, item.image.height,
-    x, y,
-    width, height
+    itemsPackData.spritesSheet,
+    item.image.x,
+    item.image.y,
+    item.image.width,
+    item.image.height,
+    x,
+    y,
+    width, 
+    height
   )
 
 }
