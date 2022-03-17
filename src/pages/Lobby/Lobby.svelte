@@ -8,7 +8,7 @@ import * as SocketManager from '../../managers/SocketManager'
 import { items2ids } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import * as Stores from '../../stores'
-import { currentMech } from '../../stores'
+import { currentMech, itemsPackData } from '../../stores'
 import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
 import Mech from '../../mechs/Mech'
@@ -29,15 +29,15 @@ let pickOpponentMech = false
 
 // Stores
 
-Stores.itemsPackData.subscribe(value => {
-  if (value) {
-    if (getMechs().length) {
-      mech = new Mech(getLastMech())
-    }
+// Update the mech when the items pack changes
+$: {
+  if ($itemsPackData && getMechs().length) {
+    mech = new Mech(getLastMech())
   } else {
     mech = null
   }
-})
+}
+
 
 
 
