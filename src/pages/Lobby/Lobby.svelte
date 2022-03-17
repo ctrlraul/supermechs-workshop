@@ -7,8 +7,7 @@ import { getLastMech, getMechs, saveMech } from '../../mechs/MechsManager'
 import * as SocketManager from '../../managers/SocketManager'
 import { items2ids } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
-import * as Stores from '../../stores'
-import { currentMech, itemsPackData } from '../../stores'
+import { currentMech, itemsPackData, battle } from '../../stores'
 import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
 import Mech from '../../mechs/Mech'
@@ -188,31 +187,27 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
   const [pos1, pos2] = getRandomStartingPositions()
   const playerID = 'player'
 
-  Stores.battle.set(
+  $battle = new Battle({
+    online: false,
+    p1: {
+      id: playerID,
+      name: mech!.name,
+      position: pos1,
+      setup: items2ids(mech!.setup)
+    },
+    p2: {
+      id: 'bot',
+      name: 'Skynet',
+      position: pos2,
+      setup: items2ids(opponentMech.setup),
+      ai: true
+    },
+    starterID: playerID,
+    onUpdate: value => $battle = value,
+    povPlayerID: playerID,
+  })
 
-    new Battle({
-      online: false,
-      p1: {
-        id: playerID,
-        name: mech!.name,
-        position: pos1,
-        setup: items2ids(mech!.setup)
-      },
-      p2: {
-        id: 'bot',
-        name: 'Skynet',
-        position: pos2,
-        setup: items2ids(opponentMech.setup),
-        ai: true
-      },
-      starterID: playerID,
-      onUpdate: battle => Stores.battle.set(battle),
-      povPlayerID: playerID,
-    })
-
-  )
-
-  router.push('/battle');
+  router.push('/battle')
 
 }
 
@@ -258,17 +253,18 @@ onMount(() => {
     
 
     'battle.start': (battleJSON: any) => {
-      const battle = new Battle({
+
+      $battle = new Battle({
         online: true,
         starterID: battleJSON.starterID,
         p1: battleJSON.p1,
         p2: battleJSON.p2,
-        onUpdate: battle => Stores.battle.set(battle),
+        onUpdate: value => $battle = value,
         povPlayerID: SocketManager.socket.id
       })
-      console.log('battle:', battle)
-      Stores.battle.set(battle)
+
       router.push('/battle')
+
     },
 
   })
