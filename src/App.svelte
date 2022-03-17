@@ -62,26 +62,21 @@ function needsItemsPack (): boolean {
       spinner: true
     })
 
-    fetch(packURL)
-      .then(response => response.json())
-      .then(pack => {
 
-        importItemsPack(pack, () => {})
-          .then(popup.remove.bind(popup))
-          .catch(err => {
+    importItemsPack(packURL, () => {})
+      .then(popup.remove.bind(popup))
+      .catch(err => {
 
-            popup.replace({
-              title: 'Failed to load items pack!',
-              message: err.message,
-              mode: 'error',
-              options: {
-                Ok () { this.remove() }
-              }
-            })
+        popup.replace({
+          title: 'Failed to load items pack!',
+          message: err.message,
+          mode: 'error',
+          options: {
+            Ok () { this.remove() }
+          }
+        })
 
-            replace('/')
-
-          })
+        replace('/')
 
       })
 
