@@ -69,9 +69,19 @@ function onRename (e: Event): void {
 
 function onOnlineBattle (): void {
 
+  // Make sure we're using a mech
+
+  if (mech === null) {
+    showNoMechSelectedPopup()
+    return
+  }
+
+
+  // Make sure our mech is valid
+
   try {
 
-    checkSetup(mech!.setup)
+    checkSetup(mech.setup)
 
   } catch (err: any) {
 
@@ -89,6 +99,8 @@ function onOnlineBattle (): void {
 
   }
 
+
+  // Make sure we're connected to server
 
   if (SocketManager.socket.disconnected) {
 
@@ -137,12 +149,13 @@ function onOnlineBattle (): void {
     return
   }
 
-  if (mech === null) {
-    showNoMechSelectedPopup()
-    return
-  }
+
+  // Show overlay
 
   awaitingResponse = true
+
+
+  // Resolve action
 
   if (inMatchMaker) {
 
@@ -161,14 +174,11 @@ function onOnlineBattle (): void {
 
 
 function onOfflineBattle (): void {
-
   if (mech === null) {
     showNoMechSelectedPopup()
-    return
+  } else {
+    pickOpponentMech = true
   }
-
-  pickOpponentMech = true
-  
 }
 
 
