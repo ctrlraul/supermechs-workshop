@@ -19,6 +19,7 @@ const { viewBox, svg } = icons[name]
 	fill={color}
 	stroke={color}
 	style={$$props.style}
+	class={$$props.class}
 	{width}
 	{height}
 	{viewBox}>

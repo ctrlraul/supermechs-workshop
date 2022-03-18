@@ -26,6 +26,7 @@ import Battle from './pages/Battle/Battle.svelte'
 // Types
 
 import type { RouteDefinition } from 'svelte-spa-router'
+import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 
 
 
@@ -142,14 +143,43 @@ function conditionsFailed () {
 
 {:else}
   <div class="loading">
-    SuperMechs Workshop
-    <img src="/assets/logo.png" alt="logo" />
+
+    <div class="branding">
+      <span>SuperMechs Workshop</span>
+      <img src="/assets/logo.png" alt="logo" />
+    </div>
+    
+    <div class="spinner">
+      <SvgIcon name="aim" class="spinner" color="var(--color-text)" />
+    </div>
+
   </div>
 {/if}
 
 
 
 <style>
+
+.branding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+img {
+  margin-top: 1em;
+  width: 5em;
+  height: 5em;
+}
+
+.spinner {
+  position: absolute;
+  left: 0;
+  bottom: 3em;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
 
 .pages {
   position: relative;
@@ -169,11 +199,6 @@ function conditionsFailed () {
   justify-content: space-between;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 700;
-}
-
-.loading > img {
-  width: 5em;
-  height: 5em;
 }
 
 </style>
