@@ -123,6 +123,8 @@ onDestroy(() => {
     SocketManager.emit('battle.quit')
   }
 
+  $battle = null
+
 })
 
 
