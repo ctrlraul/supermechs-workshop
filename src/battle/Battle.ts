@@ -97,6 +97,8 @@ export class Battle {
 
     setBattle(this, this.povPlayerID)
 
+    console.log('[Battle] Battle created:', this)
+
   }
 
 
