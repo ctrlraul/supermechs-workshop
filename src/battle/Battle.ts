@@ -807,7 +807,7 @@ export class Battle {
 
       const action = think(this, this.attacker.id)
 
-      setTimeout(() => this.pushAction(action), 1000)
+      this.pushAction(action)
 
     }
 
