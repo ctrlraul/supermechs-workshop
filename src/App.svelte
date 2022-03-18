@@ -169,7 +169,6 @@ function conditionsFailed () {
   justify-content: space-between;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 700;
-  font-size: 2vw;
 }
 
 .loading > img {
