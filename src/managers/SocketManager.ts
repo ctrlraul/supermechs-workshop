@@ -17,9 +17,6 @@ const connectErrorStreakCountMax = 3
 export let connectErrorStreakCount = 0
 export let lastError: Error = new Error('Server Offline')
 
-const attachments: Record<number, Record<string, (data: any) => void>> = {}
-let currentAttachmentID = 0
-
 const logger = new Logger('SocketManager')
 
 
@@ -42,30 +39,21 @@ socket.on('connect_error', error => {
 
 // Functions
 
-export function attach (listeners: Record<string, (data: any) => void>): number {
-  
-  const id = ++currentAttachmentID
+export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
-  attachments[id] = listeners
-
-  for (const name in listeners) {
-    socket.on(name, listeners[name])
+  const attach = () => {
+    for (const name in listeners) {
+      socket.on(name, listeners[name])
+    }
   }
 
-  return id
-
-}
-
-
-export function detach (id: number): void {
-  
-  const listeners = attachments[id]
-
-  for (const name in listeners) {
-    socket.off(name)
+  const detach = () => {
+    for (const name in listeners) {
+      socket.off(name, listeners[name])
+    }
   }
 
-  delete attachments[id]
+  return { attach, detach }
 
 }
 
@@ -73,7 +61,6 @@ export function detach (id: number): void {
 export function emit (...args: Parameters<typeof socket['emit']>) {
   return socket.emit(...args)
 }
-
 
 
 export function tryToConnectManually (): Promise<void> {

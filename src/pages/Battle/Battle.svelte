@@ -23,7 +23,6 @@ import { setCanvas } from '../../BattleRenderer'
 
 let myID: string = $battle!.online ? SocketManager.socket.id : 'player'
 let awaitingMove: boolean = false
-let socketAttachmentID: number
 let viewLogs = false
 
 $: player = $battle!.getPlayerForID(myID)
@@ -40,36 +39,13 @@ $: reverse = player.id === $battle!.p2.id
 
 // Life
 
-onMount(() => {
-  if (battleCanvas) {
-    battleCanvas.width = battleCanvas.offsetWidth * 2
-    battleCanvas.height = battleCanvas.offsetHeight * 2
-    setCanvas(battleCanvas)
-  }
-})
+const socketAttachment = SocketManager.createAttachment({
 
-onMount(() => {
-
-  socketAttachmentID = SocketManager.attach({
-
-    'battle.event.confirmation': (action: BattleAction) => {
-      awaitingMove = false
-      try {
-        $battle!.pushAction(action)
-      } catch (err: any) {
-        addPopup({
-          title: 'Error!',
-          message: err.message,
-          mode: 'error',
-          options: {
-            Ok () { this.remove() }
-          }
-        })
-      }
-    },
-
-    'battle.event.error': (err: any) => {
-      awaitingMove = false
+  'battle.event.confirmation': (action: BattleAction) => {
+    awaitingMove = false
+    try {
+      $battle!.pushAction(action)
+    } catch (err: any) {
       addPopup({
         title: 'Error!',
         message: err.message,
@@ -77,47 +53,71 @@ onMount(() => {
         options: {
           Ok () { this.remove() }
         }
-      });
-    },
-
-    'battle.opponent.quit': () => {
-      if ($battle!.completion === null) {
-        addPopup({
-          title: 'Opponent has quit',
-          message: 'They were too afraid!',
-          options: {
-            Ok () {
-              router.pop()
-              this.remove()
-            }
-          }
-        })
-      }
-    },
-
-    'disconnect': () => {
-      if ($battle!.online) {
-
-        router.pop()
-
-        addPopup({
-          title: 'Lost connection!',
-          message: `Tip: Don't idle for too long`,
-          options: {
-            Ok () { this.remove() }
-          }
-        })
-
-      }
+      })
     }
+  },
 
-  })
+  'battle.event.error': (err: any) => {
+    awaitingMove = false
+    addPopup({
+      title: 'Error!',
+      message: err.message,
+      mode: 'error',
+      options: {
+        Ok () { this.remove() }
+      }
+    });
+  },
+
+  'battle.opponent.quit': () => {
+    if ($battle!.completion === null) {
+      addPopup({
+        title: 'Opponent has quit',
+        message: 'They were too afraid!',
+        options: {
+          Ok () {
+            router.pop()
+            this.remove()
+          }
+        }
+      })
+    }
+  },
+
+  'disconnect': () => {
+    if ($battle!.online) {
+
+      router.pop()
+
+      addPopup({
+        title: 'Lost connection!',
+        message: `Tip: Don't idle for too long`,
+        options: {
+          Ok () { this.remove() }
+        }
+      })
+
+    }
+  }
+
+})
+
+
+onMount(() => {
+
+  socketAttachment.attach()
+
+  if (battleCanvas) {
+    battleCanvas.width = battleCanvas.offsetWidth * 2
+    battleCanvas.height = battleCanvas.offsetHeight * 2
+    setCanvas(battleCanvas)
+  }
 
 })
 
 onDestroy(() => {
-  
-  SocketManager.detach(socketAttachmentID)
+
+  socketAttachment.detach()
 
   if ($battle!.online) {
     SocketManager.emit('battle.quit')

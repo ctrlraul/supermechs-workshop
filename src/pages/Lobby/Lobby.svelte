@@ -225,65 +225,64 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
 
 // Socket shit
 
-let socketAttachmentID: number
+const socketAttachment = SocketManager.createAttachment({
 
-onMount(() => {
+  'matchmaker.join.success': () => {
+    awaitingResponse = false
+    inMatchMaker = true
+  },
 
-  socketAttachmentID = SocketManager.attach({
+  'matchmaker.join.error': (err: any) => {
 
-    'matchmaker.join.success': () => {
-      awaitingResponse = false
-      inMatchMaker = true
-    },
+    awaitingResponse = false
+    inMatchMaker = false
 
-    'matchmaker.join.error': (err: any) => {
-      awaitingResponse = false
-      addPopup({
-        title: 'Failed to join match maker!',
-        message: err.message,
-        hideOnOffclick: true,
-        mode: 'error',
-        options: {
-          Ok () { this.remove() }
-        }
-      })
-    },
+    addPopup({
+      title: 'Failed to join match maker!',
+      message: err.message,
+      hideOnOffclick: true,
+      mode: 'error',
+      options: {
+        Ok () { this.remove() }
+      }
+    })
 
+  },
+
+
+  'matchmaker.quit.success': () => {
+    awaitingResponse = false
+    inMatchMaker = false
+  },
+
+  'matchmaker.quit.error': (_err: any) => {
+    awaitingResponse = false
+    inMatchMaker = false
+  },
+
+
+  'battle.start': (battleJSON: any) => {
     
-    'matchmaker.quit.success': () => {
-      awaitingResponse = false
-      inMatchMaker = false
-    },
-    
-    'matchmaker.quit.error': (err: any) => {
-      console.warn('Failed to quit matchmaker:', err)
-      awaitingResponse = false
-      inMatchMaker = false
-    },
-    
+    awaitingResponse = true
+    inMatchMaker = false
 
-    'battle.start': (battleJSON: any) => {
+    $battle = new Battle({
+      online: true,
+      starterID: battleJSON.starterID,
+      p1: battleJSON.p1,
+      p2: battleJSON.p2,
+      onUpdate: value => $battle = value,
+      povPlayerID: SocketManager.socket.id
+    })
 
-      $battle = new Battle({
-        online: true,
-        starterID: battleJSON.starterID,
-        p1: battleJSON.p1,
-        p2: battleJSON.p2,
-        onUpdate: value => $battle = value,
-        povPlayerID: SocketManager.socket.id
-      })
+    router.push('/battle')
 
-      router.push('/battle')
-
-    },
-
-  })
+  },
 
 })
 
-onDestroy(() => {
-  SocketManager.detach(socketAttachmentID)
-})
+onMount(() => socketAttachment.attach())
+onDestroy(() => socketAttachment.detach())
 
 </script>
 
