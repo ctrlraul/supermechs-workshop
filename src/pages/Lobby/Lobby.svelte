@@ -308,6 +308,23 @@ const socketAttachment = SocketManager.createAttachment({
 
   },
 
+
+  'disconnect': () => {
+    if (inMatchMaker) {
+      
+      inMatchMaker = false
+
+      addPopup({
+        title: 'Lost connection!',
+        message: `The server stopped vibing`,
+        options: {
+          Ok () { this.remove() }
+        }
+      })
+
+    }
+  }
+
 })
 
 onMount(() => socketAttachment.attach())

@@ -91,7 +91,7 @@ const socketAttachment = SocketManager.createAttachment({
 
       addPopup({
         title: 'Lost connection!',
-        message: `Tip: Don't idle for too long`,
+        message: `The server stopped vibing`,
         options: {
           Ok () { this.remove() }
         }
