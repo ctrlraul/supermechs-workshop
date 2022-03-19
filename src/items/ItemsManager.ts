@@ -309,8 +309,8 @@ export function createSyntheticItemAttachment (type: Item['type'], width: number
 
     case 'TORSO':
       return {
-        leg1: { x: width * 0.33333, y: height * 0.9 },
-        leg2: { x: width * 0.66666, y: height * 0.9 },
+        leg1: { x: width * 0.4, y: height * 0.9 },
+        leg2: { x: width * 0.8, y: height * 0.9 },
         side1: { x: width * 0.25, y: height * 0.6 },
         side2: { x: width * 0.75, y: height * 0.6 },
         side3: { x: width * 0.2, y: height * 0.3 },
