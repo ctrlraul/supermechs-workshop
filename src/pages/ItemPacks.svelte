@@ -68,8 +68,12 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
   } catch (err: any) {
 
-    if (err.message === 'Failed to fetch' && window.navigator.onLine === false) {
-      err.message = 'No internet connection'
+    if (err.message === 'Failed to fetch') {
+      if (window.navigator.onLine === false) {
+        err.message = 'No internet connection'
+      } else {
+        err.message = 'Network error'
+      }
     }
 
     addPopup({
