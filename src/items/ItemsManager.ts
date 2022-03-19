@@ -4,6 +4,7 @@ import importItemsPackV2 from './importItemsPackV2'
 import Logger from '../utils/Logger'
 import { getBuffedItemStats } from '../stats/StatsManager'
 import { itemsPackData as itemsPackDataStore, ItemsPackData } from '../stores'
+import { sha256 } from 'hash.js'
 
 
 
@@ -228,17 +229,20 @@ export function getItemByIdOrThrow (id: Item['id']): Item {
 }
 
 
-export function getBattleItems (setup: number[]): (BattleItem | null)[] {
+export function getBattleItems (setup: number[], throwIfInvalid = true): (BattleItem | null)[] {
+
+  const getItemFn = throwIfInvalid ? getItemByIdOrThrow : getItemByID
+
   return setup.map((id, i) => {
 
     if (id === 0) {
       return null;
     }
 
-    const item = getItemByID(id)
+    const item = getItemFn(id)
 
     if (item === null) {
-      throw new Error(`No item with id '${id}'`)
+      return null
     }
 
     const battleItem: BattleItem = {
@@ -250,11 +254,11 @@ export function getBattleItems (setup: number[]): (BattleItem | null)[] {
       tags: cloneDeep(item.tags),
       timesUsed: 0,
       type: item.type,
-    };
+    }
 
     return battleItem;
 
-  });
+  })
 }
 
 
@@ -275,5 +279,24 @@ export function renderItem (ctx: CanvasRenderingContext2D, item: Item, x: number
     width, 
     height
   )
+
+}
+
+
+export function getItemsHash (setup: number[]): string {
+
+  const jsonString = JSON.stringify(getBattleItems(setup, false))
+  const hash = sha256().update(jsonString).digest('hex')
+
+  return hash
+
+}
+
+
+export function matchItemsHash (setup: number[], hash: string): boolean {
+
+  const newHash = getItemsHash(setup)
+
+  return newHash === hash
 
 }

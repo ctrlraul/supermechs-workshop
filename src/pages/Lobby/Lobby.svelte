@@ -5,7 +5,7 @@ import MechGfx from '../../components/MechGfx.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import { getLastMech, getMechs, saveMech } from '../../mechs/MechsManager'
 import * as SocketManager from '../../managers/SocketManager'
-import { items2ids } from '../../items/ItemsManager'
+import { items2ids, getItemsHash, matchItemsHash } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { currentMech, itemsPackData, battle } from '../../stores'
 import { Battle } from '../../battle/Battle'
@@ -14,6 +14,15 @@ import Mech from '../../mechs/Mech'
 import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
+
+
+
+// Types
+
+interface MatchMaker_Validation {
+  setup: number[]
+  itemsHash: string
+}
 
 
 
@@ -163,9 +172,12 @@ function onOnlineBattle (): void {
 
   } else {
 
+    const setup = items2ids(mech.setup)
+
     SocketManager.emit('matchmaker.join', {
       name: mech.name,
-      setup: items2ids(mech.setup),
+      setup,
+      itemsHash: getItemsHash(setup)
     })
 
   }
@@ -235,17 +247,26 @@ const socketAttachment = SocketManager.createAttachment({
   'matchmaker.join.error': (err: any) => {
 
     awaitingResponse = false
-    inMatchMaker = false
 
-    addPopup({
-      title: 'Failed to join match maker!',
-      message: err.message,
-      hideOnOffclick: true,
-      mode: 'error',
-      options: {
-        Ok () { this.remove() }
-      }
-    })
+    if (err.message === 'Already match-making') {
+
+      inMatchMaker = true
+
+    } else {
+
+      inMatchMaker = false
+
+      addPopup({
+        title: 'Failed to join match maker!',
+        message: err.message,
+        hideOnOffclick: true,
+        mode: 'error',
+        options: {
+          Ok () { this.remove() }
+        }
+      })
+
+    }
 
   },
 
@@ -258,6 +279,14 @@ const socketAttachment = SocketManager.createAttachment({
   'matchmaker.quit.error': (_err: any) => {
     awaitingResponse = false
     inMatchMaker = false
+  },
+
+  'matchmaker.validation': (data: MatchMaker_Validation) => {
+
+    const result = matchItemsHash(data.setup, data.itemsHash)
+
+    SocketManager.emit('matchmaker.validation', { result })
+
   },
 
 
