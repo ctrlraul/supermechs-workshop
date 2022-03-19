@@ -14,6 +14,7 @@ import type Item from './Item'
 import type { ItemsPackV1 } from './importItemsPackV1'
 import type { ItemsPackV2 } from './importItemsPackV2'
 import { get } from 'svelte/store'
+import type { AttachmentPoint, TorsoAttachment } from './Item'
 
 
 export type ItemsPack = ItemsPackV1 | ItemsPackV2
@@ -298,5 +299,47 @@ export function matchItemsHash (setup: number[], hash: string): boolean {
   const newHash = getItemsHash(setup)
 
   return newHash === hash
+
+}
+
+
+export function createSyntheticItemAttachment (type: Item['type'], width: number, height: number): TorsoAttachment | AttachmentPoint | null {
+
+  switch (type) {
+
+    case 'TORSO':
+      return {
+        leg1: { x: width * 0.33333, y: height * 0.9 },
+        leg2: { x: width * 0.66666, y: height * 0.9 },
+        side1: { x: width * 0.25, y: height * 0.6 },
+        side2: { x: width * 0.75, y: height * 0.6 },
+        side3: { x: width * 0.2, y: height * 0.3 },
+        side4: { x: width * 0.80, y: height * 0.3 },
+        top1: { x: width * 0.25, y: height * 0.1 },
+        top2: { x: width * 0.75, y: height * 0.1 },
+      }
+    
+    case 'LEGS':
+      return {
+        x: width * 0.5,
+        y: height * 0.1
+      }
+  
+    case 'SIDE_WEAPON':
+      return {
+        x: width * 0.3,
+        y: height * 0.5
+      }
+  
+    case 'TOP_WEAPON':
+      return {
+        x: width * 0.3,
+        y: height * 0.8
+      }
+
+    default:
+      return null
+
+  }
 
 }

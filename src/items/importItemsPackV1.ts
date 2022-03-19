@@ -1,7 +1,7 @@
 import potpack from 'potpack'
 import type { Attachment } from './Item'
 import type Item from './Item'
-import type { ImportItemsPackFn } from './ItemsManager'
+import { createSyntheticItemAttachment, ImportItemsPackFn } from './ItemsManager'
 
 
 
@@ -86,8 +86,7 @@ const importItemsPackV1: ImportItemsPackFn<ItemsPackV1> = async (itemsPack, onPr
     // Render on sprites sheet
     ctx.drawImage(image, x, y, w, h)
 
-    // Create item
-    done.push({
+    const finalItem: Item = {
         
       id: item.id,
 
@@ -108,7 +107,17 @@ const importItemsPackV1: ImportItemsPackFn<ItemsPackV1> = async (itemsPack, onPr
       image: { width: w, height: h, x, y },
       attachment: item.attachment || null,
 
-    })
+    }
+
+    if (finalItem.attachment === null) {
+      finalItem.attachment = createSyntheticItemAttachment(
+        finalItem.type,
+        finalItem.width,
+        finalItem.height
+      )
+    }
+
+    done.push(finalItem)
 
   }
 

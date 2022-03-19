@@ -1,7 +1,7 @@
 import type { Attachment } from "./Item";
 import type Item from "./Item";
 import type { Rectangle } from "./Item";
-import type { ImportItemsPackFn } from "./ItemsManager";
+import { createSyntheticItemAttachment, ImportItemsPackFn } from "./ItemsManager";
 
 
 
@@ -65,7 +65,7 @@ const importItemsPackV2: ImportItemsPackFn<ItemsPackV2> = (itemsPack, onProgress
 
         if (rect !== undefined) {
 
-          done.push({
+          const finalItem: Item = {
             id: raw.id,
         
             name: raw.name,
@@ -84,7 +84,17 @@ const importItemsPackV2: ImportItemsPackFn<ItemsPackV2> = (itemsPack, onProgress
             height: raw.height || rect.height,
             image: rect,
             attachment: raw.attachment || null,
-          })
+          }
+
+          if (finalItem.attachment === null) {
+            finalItem.attachment = createSyntheticItemAttachment(
+              finalItem.type,
+              finalItem.width,
+              finalItem.height
+            )
+          }
+
+          done.push(finalItem)
 
         } else {
 
