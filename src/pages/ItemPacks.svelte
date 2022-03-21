@@ -114,6 +114,8 @@ function loadFromFile (e: Event): void {
 
   if (target && target.files) {
 
+    LocalStorageHandler.set('last-items-pack-url', '')
+
     const file = target.files[0]
 
     try {
