@@ -21,7 +21,8 @@
   --content-height: 28em;
 }
 
-html {
+html,
+body {
   height: 100%;
 }
 
@@ -32,29 +33,12 @@ html {
 }
 
 body {
-  position: fixed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
   color: var(--color-text);
-  margin: 0;
   font-family: 'Barlow Semi Condensed', sans-serif;
   letter-spacing: 0.05em;
   background-color: var(--color-background-darker);
-  /* background-image: url(./assets/background.png);
   background-position: center;
   background-size: cover;
-  background-repeat: no-repeat; */
-}
-
-body > main {
-  position: relative;
-  width: 100%;
-  height: 100%;
 }
 
 button {
@@ -119,6 +103,18 @@ input[type="text"],
     -0.08em  0.08em 0.1em #000000,
      0.08em -0.08em 0.1em #000000,
     -0.08em -0.08em 0.1em #000000;
+}
+
+
+#app {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 
