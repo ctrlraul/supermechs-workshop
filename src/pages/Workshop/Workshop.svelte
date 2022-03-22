@@ -14,13 +14,13 @@ import MechCanvas from '../../components/MechCanvas.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
+import MechSummary from './MechSummary.svelte'
 
 
 
 // Types
 
 import type Item from '../../items/Item'
-import MechSummary from './MechSummary.svelte'
 
 
 
