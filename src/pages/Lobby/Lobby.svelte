@@ -29,6 +29,7 @@ interface MatchMaker_Validation {
 // State
 
 let mech: Mech | null = $currentMech ? new Mech($currentMech) : null
+let mechName = mech ? mech.name : ''
 let inMatchMaker = false
 let awaitingResponse = false
 let pickOpponentMech = false
@@ -46,7 +47,13 @@ $: {
   }
 }
 
-
+$: {
+  if (mech) {
+    mech.name = mechName
+    $currentMech = mech.toJSONModel()
+    saveMech($currentMech!)
+  }
+}
 
 
 // Functions
@@ -69,12 +76,6 @@ function showNoMechSelectedPopup (): void {
 
 
 // events
-
-function onRename (e: Event): void {
-  mech!.name = (e.target as HTMLInputElement).value
-  saveMech(mech!.toJSONModel())
-}
-
 
 function onOnlineBattle (): void {
 
@@ -351,8 +352,7 @@ onDestroy(() => socketAttachment.detach())
       <input
         type="text"
         class="name"
-        value={mech.name}
-        on:change={onRename}
+        bind:value={mechName}
       />
     </label>
   
