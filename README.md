@@ -1,6 +1,6 @@
 # What is SuperMechs Workshop?
 
-A tool for [Super Mechs](http://supermechs.com/) players to build and test mechs using every premium item and more.
+A **tool** for [Super Mechs](http://supermechs.com/) players to build and test mechs using every premium item and more.
 
 
 # Why?
@@ -14,7 +14,7 @@ Grinding resources, buying lootboxes to get premium items and upgrading those it
 
 - [Svelte](https://svelte.dev/) - While still new, Svelte showed great potential for app-like websites, it is incredibly performant and easy to use at the same time, and for that, it replaced the previously used React in this project.
 
-- [Vite](https://vitejs.dev/) - It's [i]Lightning Fast[/i] Hot Module Replacement (HMR), instant build times and for forethinking the concept of bundling itself.
+- [Vite](https://vitejs.dev/) - It's *Lightning Fast* Hot Module Replacement (HMR), instant build times and for forethinking the concept of bundling itself.
 
 
 # Features
