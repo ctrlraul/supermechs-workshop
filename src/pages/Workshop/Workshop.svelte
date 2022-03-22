@@ -203,7 +203,7 @@ function toggleArenaBuffs (): void {
   </div>
 
   {#if $currentMech !== null}
-    <MechSummary setup={$currentMech.setup} />
+    <MechSummary setup={$currentMech.setup} text={$currentMech.name} />
   {/if}
 
   <div class="buttons">

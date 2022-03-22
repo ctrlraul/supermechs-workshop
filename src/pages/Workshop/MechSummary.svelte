@@ -6,6 +6,7 @@ import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 
 
 export let setup: number[]
+export let text: string = 'Mech Summary'
 
 </script>
 
@@ -22,7 +23,7 @@ export let setup: number[]
         style="width: 1.5em; height: 1.5em;"
       />
 
-      Mech Stats Summary
+      {text}
 
     </div>
 
