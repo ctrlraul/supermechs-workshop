@@ -4,7 +4,7 @@ export let span = ''
 </script>
 
 
-<button on:click class="classic-box">
+<button on:click class="global-box">
 
 	{text}
 

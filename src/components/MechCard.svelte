@@ -46,8 +46,8 @@ $: saveMech(mech.toJSONModel())
 
     {#if orientation === 'portrait'}
       <div class="buttons-container">
-        <button class="classic-box" on:click={() => onDelete(mech.id)}>Delete</button>
-        <button class="classic-box" on:click={() => onSetActive(mech)}>Equip</button>
+        <button class="global-box" on:click={() => onDelete(mech.id)}>Delete</button>
+        <button class="global-box" on:click={() => onSetActive(mech)}>Equip</button>
       </div>
     {/if}
 
@@ -74,7 +74,7 @@ $: saveMech(mech.toJSONModel())
   overflow: hidden;
   width: var(--size);
   cursor: pointer;
-  background-color: var(--color-background);
+  background-color: var(--color-primary);
 
   /* Aspect Ratio Hack */
   height: 0;
@@ -82,7 +82,7 @@ $: saveMech(mech.toJSONModel())
 }
 
 .mech-card.active {
-  background: var(--color-border);
+  background: var(--color-accent);
 }
 
 

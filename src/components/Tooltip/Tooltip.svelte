@@ -64,19 +64,19 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
   
   {#if typeof $tooltip === 'string'}
 
-    <div class="classic-box tooltip" bind:this={element}>
+    <div class="global-box tooltip text no-select" bind:this={element}>
       {@html $tooltip.replace(/\n/g, '<br/>')}
     </div>
 
   {:else if 'summary' in $tooltip}
 
-    <div class="classic-box tooltip summary" bind:this={element}>
+    <div class="global-box tooltip summary no-select" bind:this={element}>
       <StatBlocks source={$tooltip.summary} style="width: 50%" />
     </div>
 
   {:else}
 
-    <div class="classic-box tooltip" bind:this={element} style="width: 15em">
+    <div class="global-box tooltip no-select" bind:this={element} style="width: 15em">
       <ItemInfo item={$tooltip} style="background-color: unset; box-shadow: unset;" />
     </div>
 
@@ -93,10 +93,12 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
   top: 0;
   left: 0;
   display: block;
-  padding: 0.3em 0.5em;
   z-index: var(--z-index-tooltip);
-  background-color: var(--color-background-dark);
-  border: 0.2em solid var(--color-background);
+  border: 0.15em solid var(--color-secondary);
+}
+
+.text {
+  padding: 0.25em;
 }
 
 .summary {

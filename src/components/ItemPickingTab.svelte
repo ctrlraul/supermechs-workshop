@@ -3,8 +3,10 @@
 import ItemInfo from './ItemInfo.svelte'
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import ItemImage from './ItemImage.svelte'
+import ItemButton from './ItemButton.svelte'
 import { itemsPackData } from '../stores'
 import { getStatInstruction } from '../stats/StatsManager'
+import { clickOutside } from '../utils/useClickOutside'
 
 
 export let type: Item['type']
@@ -43,11 +45,13 @@ function onOffClick (e: MouseEvent): void {
 
   try {
 
-    // @ts-ignore
-    const selectNull = e.target!.getAttribute('data-select-null')
+    const target = e.target as HTMLElement
+    const selectNull = target.getAttribute('data-select-null')
 
-    if (selectNull) {
+    if (selectNull !== null || currentItem === null) {
       selectItem(0)
+    } else {
+      selectItem(currentItem.id)
     }
 
   } catch (err) {}
@@ -104,37 +108,37 @@ function getFilteredItemsList (filter: Filter): Item[] {
 
 
 
-<div class="item-picking-tab global-blur-sublings global-darkscreen" data-select-null on:click={onOffClick}>
-  <div class="content" data-select-null>
+<div class="item-picking-tab global-blur-sublings global-darkscreen" data-select-null use:clickOutside={onOffClick}>
+  <div class="content" data-select-null use:clickOutside={onOffClick}>
 
-    <header>
+    <header data-select-null use:clickOutside={onOffClick}>
       <input type="text" placeholder="Search" on:input={onSeach} />
       <div class="item-filters" style={filter.query ? 'filter: contrast(0.75) brightness(0.25);' : ''}>
         <button
-          class="classic-box"
+          class="global-box no-select"
           style="{!filter.element || (filter.element === 'PHYSICAL') ? '' : 'opacity:0.5'}"
           on:click={() => toggleElementFilter('PHYSICAL')}>
           <img src={phyDmgImgURL} alt="Physical"/>
         </button>
         <button
-          class="classic-box"
+          class="global-box no-select"
           style="{!filter.element || (filter.element === 'EXPLOSIVE') ? '' : 'opacity:0.5'}"
           on:click={() => toggleElementFilter('EXPLOSIVE')}>
           <img src={expDmgImgURL} alt="Explosive"/>
         </button>
         <button
-          class="classic-box"
+          class="global-box no-select"
           style="{!filter.element || (filter.element === 'ELECTRIC') ? '' : 'opacity:0.5'}"
           on:click={() => toggleElementFilter('ELECTRIC')}>
           <img src={eleDmgImgURL} alt="Electric"/>
         </button>
       </div>
-      <button on:click={() => selectItem(0)} class="classic-box">
+      <button on:click={() => selectItem(0)} class="global-box">
         <SvgIcon name="cross" color="var(--color-text)" />
       </button>
     </header>
 
-    <div class="image-container">
+    <div class="image-container" use:clickOutside={onOffClick}>
       {#if itemToDisplay}
         <ItemImage item={itemToDisplay} style="
           position: relative;
@@ -156,32 +160,25 @@ function getFilteredItemsList (filter: Filter): Item[] {
         "
       />
     {:else}
-      <div class="info-placeholder classic-box">
+      <div class="info-placeholder global-box">
         Select an item!
       </div>
     {/if}
 
-    <div class="items-list classic-box" data-select-null>
+    <div class="items-list global-box" data-select-null>
 
       {#if itemsFiltered.length}
 
         {#each itemsFiltered as item}
-          <button
-            class={currentItem && item.id === currentItem.id ? 'active' : ''}
+          <ItemButton
+            {item}
+            active={currentItem !== null && currentItem.id === item.id}
+            on:click={() => onSelectItem(item)}
             on:mouseover={() => inspectedItem = item}
             on:mouseout={() => inspectedItem = null}
-            on:click={() => onSelectItem(item)}
-            on:focus={() => { /* ffs svelte */ }}
-            on:blur={() => { /* ffs svelte */ }}>
-            <ItemImage {item} style="
-              position: absolute;
-              left: 5%;
-              top: 5%;
-              width: 90%;
-              height: 90%;
-              z-index: 1;
-            "/>
-          </button>
+            on:focus={() => inspectedItem = item}
+            on:blur={() => { /* ffs svelte */ }}
+          />
         {/each}
         
       {:else}
@@ -236,6 +233,13 @@ header > input[type=text] {
   height: 2em;
 }
 
+
+header > button {
+  margin-left: auto;
+  width: 2em;
+  height: 2em;
+}
+
 .item-filters {
   position: relative;
   display: flex;
@@ -245,20 +249,14 @@ header > input[type=text] {
 }
 
 .item-filters > button {
+  margin-right: 0.5em;
   width: 2em;
   height: 2em;
-  margin-right: 0.5em;
 }
 
 .item-filters > button > img {
-  width: 100%;
-  height: 100%;
-}
-
-header > button {
-  width: 2em;
-  height: 2em;
-  margin-left: auto;
+  width: 90%;
+    height: 90%;
 }
 
 
@@ -300,21 +298,6 @@ header > button {
   margin: 0.4em;
 }
 
-.items-list > button {
-  --size: 11.2%;
-  position: relative;
-  display: inline-block;
-  width: var(--size);
-  height: 0;
-  padding: 0;
-  padding-top: var(--size);
-  will-change: visibility;
-  background: var(--color-background-dark);
-}
-
-.items-list > button.active {
-  background: var(--color-border);
-}
 
 .no-items-text {
   position: absolute;
@@ -351,10 +334,6 @@ header > button {
   header > .item-filters {
     margin: 0;
     justify-content: start;
-  }
-
-  .item-picking-tab > .content > .items-list > button {
-    --size: 15.5%;
   }
 
 }

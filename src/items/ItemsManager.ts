@@ -56,7 +56,8 @@ export type ImportItemsPackFn <ItemsPack = any> = (itemsPack: ItemsPack, onProgr
 // Stuff
 
 export const Tags = {
-  TAG_ROLLER: 'roller'
+  TAG_ROLLER: 'roller',
+  PREMIUM: 'premium',
 }
 
 const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED']

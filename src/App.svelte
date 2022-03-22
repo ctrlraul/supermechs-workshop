@@ -149,7 +149,7 @@ function conditionsFailed () {
       <img src="/assets/logo.png" alt="logo" />
     </div>
     
-    <div class="spinner">
+    <div class="spinner-container">
       <SvgIcon name="aim" class="spinner" color="var(--color-text)" />
     </div>
 
@@ -172,7 +172,7 @@ img {
   height: 5em;
 }
 
-.spinner {
+.spinner-container {
   position: absolute;
   left: 0;
   bottom: 3em;

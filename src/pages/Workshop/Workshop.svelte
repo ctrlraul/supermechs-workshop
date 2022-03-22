@@ -3,7 +3,6 @@
 import EquippedItemSlot from './EquippedItemSlot.svelte'
 import { saveMech } from '../../mechs/MechsManager'
 import ItemPickingTab from '../../components/ItemPickingTab.svelte'
-import StatBlocks from '../../components/StatBlocks.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import { push, location as routerLocation } from "svelte-spa-router"
 import { currentMech } from '../../stores'
@@ -12,7 +11,6 @@ import Mech from '../../mechs/Mech'
 import SLOTS from './slots'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
-import { items2ids } from '../../items/ItemsManager'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
@@ -22,6 +20,7 @@ import { backgroundChanger } from '../../utils/useBackgroundChanger'
 // Types
 
 import type Item from '../../items/Item'
+import MechSummary from './MechSummary.svelte'
 
 
 
@@ -31,7 +30,7 @@ let arenaBuffs = LocalStorageHandler.get('settings').arena_buffs
 let focusedSlotInfo = null as null | { index: number, type: Item['type'] }
 
 $: mech = $currentMech ? new Mech($currentMech) : null
-
+$: hasItemsEquipped = mech && mech.setup.some(Boolean)
 $: {
   if ($currentMech !== null) {
     updateMechURL()
@@ -105,10 +104,11 @@ function onSelectItem (itemID: Item['id']): void {
 
 function onClickDismountMech (): void {
 
-  if (mech!.setup.some(Boolean)) {
+  if (hasItemsEquipped) {
     addPopup({
       title: 'Dismount Mech',
       message: 'Are you sure?',
+      mode: 'error',
       options: {
         Yes () {
           this.remove()
@@ -202,31 +202,29 @@ function toggleArenaBuffs (): void {
     </div>
   </div>
 
-  <div class="mech-summary">
-    <div class="classic-box">
-      <StatBlocks source={mech ? items2ids(mech.setup) : []}/>
-    </div>
-  </div>
+  {#if $currentMech !== null}
+    <MechSummary setup={$currentMech.setup} />
+  {/if}
 
   <div class="buttons">
 
-    <button class="classic-box" on:click={toggleArenaBuffs} use:tooltip={'Arena Buffs: ' + (arenaBuffs ? 'ON' : 'OFF')}>
+    <button class="global-box" on:click={toggleArenaBuffs} use:tooltip={'Arena Buffs: ' + (arenaBuffs ? 'ON' : 'OFF')}>
       <SvgIcon name="arena_buffs" color={arenaBuffs ? 'var(--color-success)' : 'var(--color-text-dark)'} />
     </button>
 
-    <button class="classic-box" on:click={() => push('/mechs')} use:tooltip={'Mechs Manager'}>
+    <button class="global-box" on:click={() => push('/mechs')} use:tooltip={'Mechs Manager'}>
       <SvgIcon name="mech" color="var(--color-text)" />
     </button>
 
-    <button class="classic-box" on:click={() => push('/lobby')} use:tooltip={'Battle!'}>
+    <button class="global-box" on:click={() => push('/lobby')} use:tooltip={'Battle!'}>
       <SvgIcon name="swords" color="var(--color-text)" />
     </button>
 
-    <button class="classic-box" on:click={onClickDismountMech} use:tooltip={'Dismount Mech'}>
+    <button class="global-box {hasItemsEquipped ? '' : 'global-disabled'}" on:click={onClickDismountMech} use:tooltip={'Dismount Mech'}>
       <SvgIcon name="trash" color="var(--color-error)" />
     </button>
 
-    <button class="classic-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
+    <button class="global-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
       <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 
@@ -288,25 +286,6 @@ main {
   height: 100%;
 }
 
-.mech-summary {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  grid-area: summary;
-}
-
-.mech-summary > .classic-box {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  height: 6em;
-  width: 100%;
-  max-width: 20em;
-  padding: 0 0.6em;
-}
 
 .buttons {
   position: absolute;
@@ -380,22 +359,9 @@ main {
     height: 25%;
   }
 
-  .mech-summary {
-    position: absolute;
-    left: 0;
-    bottom: 30%;
-    width: 100%;
-    height: 6em;
-    background-color: var(--color-front);
-  }
-
-  .mech-summary > .classic-box {
-    background-color: none;
-  }
-
   .mech-container {
     position: absolute;
-    bottom: calc(30% + 6.5em);
+    bottom: calc(30% + 8.25em);
   }
 
 }

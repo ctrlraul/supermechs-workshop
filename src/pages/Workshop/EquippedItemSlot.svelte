@@ -12,29 +12,38 @@ export let rtl = false
 export let onClear: (index: number) => void
 export let onClick: (index: number, type: Item['type']) => void
 
+
+
+// Functions
+
+function onSelect (): void {
+  onClick(index, type)
+}
+
+function onClickClear (): void {
+  onClear(index)
+}
+
 </script>
 
 
 
 <div class="slot" style={$$props.style}>
 
-  {#if item}
-    <button on:click={() => onClear(index)} class="clear">
-      <SvgIcon name="cross" />
-    </button>
-  {/if}
-
-  <button on:click={() => onClick(index, type)} class="img-container classic-box" use:tooltip={item}>
+  <button class="img-container global-box" on:click={onSelect} use:tooltip={item}>
 
     {#if item}
 
-      <ItemImage {item} style="
-        position: absolute;
-        left: auto;
-        top: auto;
-        max-width: 86%;
-        max-height: 86%;
-      " />
+      <ItemImage
+        {item}
+        style="
+          position: absolute;
+          left: auto;
+          top: auto;
+          max-width: 86%;
+          max-height: 86%;
+        "
+      />
 
     {:else}
 
@@ -42,12 +51,12 @@ export let onClick: (index: number, type: Item['type']) => void
         name={type}
         color="var(--color-text)"
         style="
-          transform: scaleX({rtl ? -1 : 1});
           position: absolute;
           left: auto;
           top: auto;
           width: 90%;
           height: 90%;
+          {rtl ? 'transform: scaleX(-1);' : ''}
         "
       />
       
@@ -55,11 +64,18 @@ export let onClick: (index: number, type: Item['type']) => void
 
   </button>
 
+  {#if item}
+    <button class="clear" on:click={onClickClear}  use:tooltip={'Clear Slot'}>
+      <SvgIcon name="cross" />
+    </button>
+  {/if}
+
 </div>
 
 
 
 <style>
+
 .slot {
   position: relative;
   display: flex;
@@ -86,25 +102,27 @@ export let onClick: (index: number, type: Item['type']) => void
   top: 0.2em;
   width: 1em;
   height: 1em;
-  border: none;
   border-radius: 0 var(--ui-radius) 0 var(--ui-radius);
-  background-color: var(--color-text);
+  background-color: var(--color-primary-dark);
+  stroke: var(--color-error);
   z-index: 2;
-  opacity: 0.5;
+  /* opacity: 0.5; */
   cursor: pointer;
-  stroke: var(--color-background);
+  stroke: var(--color-text);
   transition:
-    opacity 100ms ease-out,
-    width 100ms ease-out,
-    height 100ms ease-out,
-    fill 100ms ease-out;
+    opacity 200ms cubic-bezier(0, 0, 0, 1),
+    width 200ms cubic-bezier(0, 0, 0, 1),
+    height 200ms cubic-bezier(0, 0, 0, 1),
+    stroke 200ms cubic-bezier(0, 0, 0, 1);
 }
 
-.clear:hover {
-  opacity: 0.8;
+.clear:hover,
+.clear:focus {
+  opacity: 1;
   width: 1.4em;
   height: 1.4em;
   stroke: var(--color-error);
+  transition: unset;
 }
 
 </style>

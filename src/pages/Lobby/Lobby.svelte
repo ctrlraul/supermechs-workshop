@@ -366,11 +366,11 @@ onDestroy(() => socketAttachment.detach())
 
   <div class="buttons">
 
-    <button class="classic-box" on:mousedown={onOfflineBattle}>
+    <button class="global-box" on:mousedown={onOfflineBattle}>
       Battle VS Computer
     </button>
 
-    <button class="classic-box" on:mousedown={onOnlineBattle}>
+    <button class="global-box" on:mousedown={onOnlineBattle}>
       Online Battle
     </button>
     
@@ -379,7 +379,7 @@ onDestroy(() => socketAttachment.detach())
   {#if inMatchMaker && !awaitingResponse}
     <div class="searching-for-battle">
 
-      <div class="classic-box contents">
+      <div class="global-box contents">
         <div class="spinner-container">
           Searching for battle...
           <div class="spinner">
@@ -387,7 +387,7 @@ onDestroy(() => socketAttachment.detach())
           </div>
         </div>
   
-        <button class="classic-box" on:mousedown={onOnlineBattle}>
+        <button class="global-box" on:mousedown={onOnlineBattle}>
           Cancel
         </button>
       </div>
@@ -433,7 +433,6 @@ main {
   height: 2em;
   align-self: end;
   margin: 0.5em;
-  background: none;
 }
 
 .mech-gfx-container {

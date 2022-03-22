@@ -61,13 +61,15 @@ function getColorForWeight (weight: number | number[]): string {
 
 
 <style>
+
 .stat-block {
 	position: relative;
 	display: flex;
   align-items: center;
   white-space: nowrap;
-	width: calc(100% / 3);
-	height: calc(100% / 3);
+	background-image: linear-gradient(90deg, #00000000, var(--color-secondary));
+	border-radius: var(--ui-radius);
+	width: 100%;
 }
 
 .stat-block > img {
@@ -79,4 +81,5 @@ function getColorForWeight (weight: number | number[]): string {
 	object-fit: contain;
 	image-rendering: -webkit-optimize-contrast;
 }
+
 </style>

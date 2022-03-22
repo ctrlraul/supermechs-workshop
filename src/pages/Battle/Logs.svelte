@@ -96,15 +96,15 @@ function generateLogsString () {
 
 
 
-<div class="container">
-  <div class="content classic-box">
+<div class="global-darkscreen" style="z-index: 10">
+  <div class="content global-box">
     <header>
       <span>Battle Logs</span>
       <div class="buttons">
-        <button class="classic-box copy {copyingText ? 'global-disabled' : ''} {textCopied ? 'copied' : ''}" on:click={copyLogs}>
+        <button class="global-box copy {copyingText ? 'global-disabled' : ''} {textCopied ? 'copied' : ''}" on:click={copyLogs}>
           Copy
         </button>
-        <button class="classic-box" on:click>
+        <button class="global-box" on:click>
           <SvgIcon name="cross" color="var(--color-text)" />
         </button>
       </div>
@@ -127,19 +127,6 @@ function generateLogsString () {
 
 
 <style>
-.container {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #000000aa;
-  z-index: 999999;
-}
-
 
 .content {
   position: relative;
@@ -147,10 +134,12 @@ function generateLogsString () {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background-color: var(--color-secondary);
   width: calc(var(--content-width) - 3em);
   height: calc(var(--content-height) - 3em);
   max-height: 90%;
   max-width: 90%;
+  overflow: hidden;
 }
 
 
@@ -179,7 +168,6 @@ header > .buttons {
 header > .buttons > button {
   width: 2em;
   height: 2em;
-  background-color: var(--color-background-dark);
 }
 
 header > .buttons > .copy {
@@ -199,8 +187,6 @@ ul {
   width: 100%;
   padding: 0.5em;
   background: #00000080;
-  border-radius: inherit;
-  margin-top: 0.3em;
   list-style: none;
   overflow-x: auto;
 }

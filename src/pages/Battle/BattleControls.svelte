@@ -200,7 +200,7 @@ let focusedItem = null as BattleItem | null
   width: 100%;
   padding: 0.5em;
   gap: 0.5em;
-  background-color: var(--color-background);
+  background-color: var(--color-primary);
 }
 
 
@@ -213,7 +213,7 @@ let focusedItem = null as BattleItem | null
   height: 4em;
   padding: 0.4em;
   border-radius: var(--ui-radius);
-  background-color: var(--color-background-dark);
+  background-color: var(--color-primary-dark);
 }
 
 

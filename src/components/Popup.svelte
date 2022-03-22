@@ -16,7 +16,7 @@ function onOffClick (e: Event): void {
 
 {#if $popup}
   <div class="popup global-blur-sublings global-darkscreen" on:click={onOffClick}>
-    <div class="classic-box {$popup.mode}">
+    <div class="global-box {$popup.mode}">
 
       <div class="title">{$popup.title}</div>
 
@@ -68,28 +68,27 @@ function onOffClick (e: Event): void {
 }
 
 .popup > div {
-	--color: var(--color-text);
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	width: 24rem;
 	max-height: 16rem;
 	padding: 0.7rem 1rem;
-	border-left: 0.2rem solid var(--color);
-	border-right: 0.2rem solid var(--color);
+	border-left: 0.2rem solid var(--color-text);
+	border-right: 0.2rem solid var(--color-text);
 	box-shadow: 0 0 1rem #000000;
 }
 
 .error {
-	--color: var(--color-error);
+	border-color: var(--color-error) !important;
 }
 
 .warn {
-	--color: var(--color-warn);
+	border-color: var(--color-warn) !important;
 }
 
 .success {
-	--color: var(--color-success);
+	border-color: var(--color-success) !important;
 }
 
 
@@ -122,7 +121,7 @@ function onOffClick (e: Event): void {
 	width: 30%;
 	height: 100%;
 	background-color: var(--color-text);
-	color: var(--color-background-dark);
+	color: var(--color-primary);
 	border-radius: var(--ui-radius);
 	font-weight: 700;
 }

@@ -139,7 +139,7 @@ function toggleItemsInspector (): void {
   <!-- Items Inspector -->
 
   <div class="items-inspector-toggle">
-    <button class="classic-box" on:click={toggleItemsInspector}>
+    <button class="global-box" on:click={toggleItemsInspector} on:blur={() => showItemsInspector = false}>
       <SvgIcon name="SIDE_WEAPON" />
     </button>
   </div>
@@ -298,8 +298,8 @@ function toggleItemsInspector (): void {
   gap: 0.3em;
   padding: 0.3em;
   max-width: 20em;
-  background-color: var(--color-background-darker);
-  border: 0.2em solid var(--color-background);
+  background-color: var(--color-primary-darker);
+  border: 0.15em solid var(--color-primary);
   border-radius: var(--ui-radius);
   z-index: 2;
 }

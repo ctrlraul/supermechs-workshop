@@ -1,4 +1,11 @@
 :root {
+  /* --color-text: #dddddd;
+  --color-text-dark: #979797;
+  --color-border: #006699;
+  --color-background: #001e33;
+  --color-background-dark: #010c15;
+  --color-background-darker: #000910;
+  --color-input-background: #888888; */
   --color-text: #EEEEEE;
   --color-text-dark: #999999;
   --color-primary: #222831;
@@ -20,18 +27,16 @@
   --content-height: 28em;
 }
 
+html,
+body {
+  height: 100%;
+}
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   outline: none;
-}
-
-
-html,
-body {
-  height: 100%;
 }
 
 body {
@@ -43,40 +48,14 @@ body {
   background-size: cover;
 }
 
-
-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-secondary);
-  border-radius: var(--ui-radius);
-  border: none;
-  color: var(--color-text);
-  font-family: inherit;
-  font-size: inherit;
-  cursor: pointer;
-  transition: background-color 200ms;
-}
-
-button:hover,
-button:focus {
-  background-color: var(--color-accent);
-  transition: background-color 0ms;
-}
-
-
-
 input[type="text"] {
   font-family: inherit;
   font-size: inherit;
   letter-spacing: inherit;
-  background-color: var(--color-primary);
-  border: 0.15em solid var(--color-secondary);
+  background-color: var(--color-secondary);
+  border: 0.15em solid var(--color-primary-dark);
   padding: 0.3em;
-  border-radius: var(--ui-radius);
   transition: border-color 100ms;
-  color: var(--color-text);
 }
 
 input[type="text"]:hover,
@@ -86,16 +65,36 @@ input[type="text"]:focus {
 }
 
 
-
-/* classes */
-
-.global-box {
-  position: relative;
-  display: flex;
+input[type="text"],
+.classic-box {
   border-radius: var(--ui-radius);
+  /* box-shadow: 0 0.15em 0.3em #000000; */
+  color: var(--color-text);
+}
+
+
+.global-button {
+  background-color: var(--color-secondary);
+  border-radius: var(--ui-radius);
+  border: none;
+  border-radius: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+
+.classic-box {
   background-color: var(--color-primary);
 }
 
+.global-disabled {
+  /* opacity: 0.5em; */
+  filter: brightness(0.3);
+  -webkit-filter: brightness(0.3);
+  box-shadow: unset !important;
+}
 
 .global-darkscreen {
   position: fixed;
@@ -109,32 +108,20 @@ input[type="text"]:focus {
   background-color: #000000aa;
 }
 
-
 .global-blur-sublings ~ * {
   filter: blur(0.5em);
   -webkit-filter: blur(0.5em);
 }
 
 
-.global-disabled {
-  /* opacity: 0.5em; */
-  filter: brightness(0.3);
-  -webkit-filter: brightness(0.3);
+.text-outline {
+  text-shadow:
+     0.08em  0.08em 0.1em #000000,
+    -0.08em  0.08em 0.1em #000000,
+     0.08em -0.08em 0.1em #000000,
+    -0.08em -0.08em 0.1em #000000;
 }
 
-
-.no-select {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-
-
-/* IDs */
 
 #app {
   position: absolute;
@@ -157,10 +144,6 @@ input[type="text"]:focus {
   animation: spin linear 3s infinite;
 }
 
-
-
-/* Animations */
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
@@ -168,36 +151,34 @@ input[type="text"]:focus {
 
 
 
-/* Misc */
 
-::-moz-selection {
-  color: var(--color-accent);
+/* Selection */
+/* ::-moz-selection {
+  color: var(--color-primary-light);
   background: #051020;
   text-shadow: none;
 }
 ::selection {
-  color: var(--color-accent);
+  color: var(--color-primary-light);
   background: #051020;
   text-shadow: none;
-}
+} */
 
 
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 0.5em;
   border-radius: var(--ui-radius);
-  cursor: pointer;
 }
 ::-webkit-scrollbar-track {
-  background-color: var(--color-primary);
+  background-color: var(--color-background-dark);
 }
 ::-webkit-scrollbar-thumb {
   border-radius: var(--ui-radius);
-  background-color: var(--color-accent);
+  background-color: var(--color-text);
 }
 
 
-
-/* Media queries */
 
 @media (orientation: portrait) {
   :root {

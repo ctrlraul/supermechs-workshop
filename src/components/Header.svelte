@@ -13,7 +13,7 @@ export let onGoBack: () => any
 	<div class="title">{title}</div>
 
 	{#if onGoBack}
-		<button class="classic-box" on:click={onGoBack}>
+		<button class="global-box" on:click={onGoBack}>
 			<SvgIcon name="cross" color="var(--color-text)" />
 		</button>
 	{/if}

@@ -1,12 +1,13 @@
 <script lang="ts">
 
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import { onMount } from 'svelte'
 import MechCanvas from '../../components/MechCanvas.svelte'
-import { items2ids } from '../../items/ItemsManager'
 import Mech from '../../mechs/Mech'
-import { createMechForCurrentPack, getMechs, saveMech, setLastMech } from '../../mechs/MechsManager'
 import * as Stores from '../../stores'
+import { items2ids } from '../../items/ItemsManager'
+import { onMount } from 'svelte'
+import { createMechForCurrentPack, getMechs, saveMech, setLastMech } from '../../mechs/MechsManager'
+import { clickOutside } from '../../utils/useClickOutside'
 
 export let onPickMech: (mech: Mech | null) => void
 export let title: string = 'Pick Mech'
@@ -67,8 +68,8 @@ function onCreateNewMech (): void {
 
 
 
-<div class="mech-picker">
-  <div class="contents classic-box">
+<div class="global-darkscreen" use:clickOutside={() => onPickMech(null)}>
+  <div class="contents global-box">
 
     <header>
       {title}
@@ -77,7 +78,7 @@ function onCreateNewMech (): void {
           Create New Mech
         </button>
       {/if}
-      <button class="classic-box quit" on:click={() => onPickMech(null)}>
+      <button class="quit" on:click={() => onPickMech(null)}>
         <SvgIcon name="cross" />
       </button>
     </header>
@@ -109,25 +110,12 @@ function onCreateNewMech (): void {
 
 <style>
 
-.mech-picker {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #000000a0;
-  z-index: 30;
-}
-
-
 .contents {
   position: relative;
   width: 27em;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 
@@ -164,6 +152,7 @@ header {
   max-height: 20em;
   overflow-y: auto;
   padding: 1em;
+  background-color: var(--color-primary-dark);
 }
 
 
@@ -175,7 +164,6 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  background-color: var(--color-background-dark);
   overflow: hidden;
   border-radius: var(--ui-radius);
 }

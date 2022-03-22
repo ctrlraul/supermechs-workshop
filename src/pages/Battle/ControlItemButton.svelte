@@ -73,7 +73,7 @@ button {
   height: 4em;
   padding: 0.4em;
   border-radius: var(--ui-radius);
-  background-color: var(--color-background-dark);
+  background-color: var(--color-primary-dark);
 }
 
 .uses {
