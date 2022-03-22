@@ -5,15 +5,17 @@ import Logger from '../utils/Logger'
 
 // Init
 
+const runningLocally = (/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
+
 const serverURL = (
-  (/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
+  runningLocally
   ? window.location.hostname + ':3000'
   : 'https://supermechs-workshop-server.thearchives.repl.co'
 )
 
 export const socket = Socket(serverURL)
 
-const connectErrorStreakCountMax = 3
+const connectErrorStreakCountMax = runningLocally ? 1 : Infinity
 export let connectErrorStreakCount = 0
 export let lastError: Error = new Error('Server Offline')
 
