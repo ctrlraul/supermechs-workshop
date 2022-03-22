@@ -1,14 +1,14 @@
-# What is SuperMechs Workshop?
+# ❗ What is SuperMechs Workshop?
 
 A **tool** for [Super Mechs](http://supermechs.com/) players to build and test mechs using every premium item and more.
 
 
-# Why?
+# 💡 Why?
 
 Grinding resources, buying lootboxes to get premium items and upgrading those items is time-consuming, SuperMechs Workshop was made for people who don't want to wait any longer to test their million dollar mech ideas. 
 
 
-# Technologies
+# 🛠️ Technologies
 
 - [TypeScript](https://www.typescriptlang.org/) - Because we have no time to waste fixing type errors, catching them before they go to production is a must.
 
@@ -17,7 +17,7 @@ Grinding resources, buying lootboxes to get premium items and upgrading those it
 - [Vite](https://vitejs.dev/) - It's *Lightning Fast* Hot Module Replacement (HMR), instant build times and for forethinking the concept of bundling itself.
 
 
-# Features
+# 📦 Features
 
 - Unlimited access to every useful item in the game, including premium items.
 - Save and load multiple mech setups.
