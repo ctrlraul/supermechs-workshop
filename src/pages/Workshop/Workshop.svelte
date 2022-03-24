@@ -318,7 +318,7 @@ main {
 .buttons > button {
   width: 2.2em;
   height: 2.2em;
-  padding: 0.2em;
+  padding: 0.3em;
 }
 
 .mech-container {
@@ -374,6 +374,10 @@ main {
     top: 75%;
     width: 100%;
     height: 25%;
+  }
+
+  .buttons > button {
+    padding: 0.2em;
   }
 
   .mech-container {
