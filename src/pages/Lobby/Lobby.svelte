@@ -187,11 +187,39 @@ function onOnlineBattle (): void {
 
 
 function onOfflineBattle (): void {
+
+  let issue = ''
+
   if (mech === null) {
     showNoMechSelectedPopup()
-  } else {
-    pickOpponentMech = true
+    return
   }
+  
+  if (mech.setup[Mech.TORSO_INDEX] === null) {
+    issue = 'a torso!'
+  } else if (mech.setup[Mech.LEGS_INDEX] === null) {
+    issue = 'legs!'
+  }
+
+  if (issue) {
+
+    addPopup({
+      title: 'Hold on!',
+      message: `You can't battle without ` + issue,
+      mode: 'error',
+      options: {
+        Ok () {
+          this.remove()
+        }
+      }
+    })
+
+  } else {
+
+    pickOpponentMech = true
+
+  }
+
 }
 
 

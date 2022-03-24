@@ -151,7 +151,41 @@ function openPatreon (): void {
     newWindow.focus()
   }
 
-} 
+}
+
+
+function onClickBattle (): void {
+
+  let issue = ''
+
+  if (mech === null) {
+    issue = 'a mech!'
+  } else if (mech.setup[Mech.TORSO_INDEX] === null) {
+    issue = 'a torso!'
+  } else if (mech.setup[Mech.LEGS_INDEX] === null) {
+    issue = 'legs!'
+  }
+
+  if (issue) {
+
+    addPopup({
+      title: 'Hold on!',
+      message: `You can't battle without ` + issue,
+      mode: 'error',
+      options: {
+        Ok () {
+          this.remove()
+        }
+      }
+    })
+
+  } else {
+
+    push('/lobby')
+
+  }
+
+}
 
 </script>
 
@@ -229,7 +263,7 @@ function openPatreon (): void {
       <SvgIcon name="mech" color="var(--color-text)" />
     </button>
 
-    <button class="global-box" on:click={() => push('/lobby')} use:tooltip={'Battle!'}>
+    <button class="global-box" on:click={onClickBattle} use:tooltip={'Battle!'}>
       <SvgIcon name="swords" color="var(--color-text)" />
     </button>
 
