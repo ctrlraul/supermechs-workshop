@@ -26,6 +26,8 @@ import type Item from '../../items/Item'
 
 // State
 
+const PATREON_URL = 'https://www.patreon.com/ctrlraul'
+
 let arenaBuffs = LocalStorageHandler.get('settings').arena_buffs
 let focusedSlotInfo = null as null | { index: number, type: Item['type'] }
 
@@ -140,6 +142,17 @@ function toggleArenaBuffs (): void {
 
 }
 
+
+function openPatreon (): void {
+
+  const newWindow = window.open(PATREON_URL, '_blank')
+
+  if (newWindow !== null) {
+    newWindow.focus()
+  }
+
+} 
+
 </script>
 
 
@@ -226,6 +239,10 @@ function toggleArenaBuffs (): void {
 
     <button class="global-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
       <SvgIcon name="cog" color="var(--color-text)" />
+    </button>
+
+    <button class="global-box patreon-button" on:click={openPatreon} use:tooltip={'Support me on Patreon!'}>
+      <SvgIcon name="patreon_logo" color="#FF424D" />
     </button>
 
   </div>
