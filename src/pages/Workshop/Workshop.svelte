@@ -241,7 +241,7 @@ function openPatreon (): void {
       <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 
-    <button class="global-box patreon-button" on:click={openPatreon} use:tooltip={'Support me on Patreon!'}>
+    <button class="global-box patreon-button" on:click={openPatreon} use:tooltip={'Help me continue working on SuperMechs Workshop!'}>
       <SvgIcon name="patreon_logo" color="#FF424D" />
     </button>
 
