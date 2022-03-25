@@ -1,11 +1,15 @@
 import potpack from 'potpack'
-import type { Attachment } from './Item'
-import type Item from './Item'
-import { createSyntheticItemAttachment, ImportItemsPackFn } from './ItemsManager'
+import { createSyntheticItemAttachment, ImportResult, ProgressListener } from './ItemsManager'
+import { loadImage } from '../utils/loadImage'
 
 
 
 // Types
+
+import type Item from './Item'
+import type { Attachment, Rectangle } from './Item'
+import type { ItemsPackData } from '../stores'
+
 
 interface RawItemV1 {
 
@@ -45,91 +49,189 @@ export interface ItemsPackV1 {
   items: RawItemV1[]
 }
 
-type IndividualImagesResult = Promise<{
-  images: [RawItemV1, HTMLImageElement][]
-  failed: Awaited<ReturnType<ImportItemsPackFn>>[1]
-}>
-
-
-
-// Methods
-
-/**
- * Beyond importing the items, this function also compiles
- * all the individual item images into a sprites sheet.
- */
-const importItemsPackV1: ImportItemsPackFn<ItemsPackV1> = async (itemsPack, onProgress) => {
-  
-  const baseURL = getBaseURL(itemsPack)
-
-  const done: Item[] = []
-  const result = await loadIndividualItemImages(baseURL, itemsPack.items, onProgress)
-
-  const boxes = result.images.map(([item, image]) => ({
-    item,
-    image,
-    w: item.width || image.naturalWidth,
-    h: item.height || image.naturalHeight,
-    x: 0,
-    y: 0
-  }))
-
-  const potpackStats = potpack(boxes)
-  const spritesSheet = document.createElement('canvas')
-  const ctx = spritesSheet.getContext('2d')!
-
-  spritesSheet.width = potpackStats.w
-  spritesSheet.height = potpackStats.h
-
-  for (const { image, item, w, h, x, y } of boxes) {
-
-    // Render on sprites sheet
-    ctx.drawImage(image, x, y, w, h)
-
-    const finalItem: Item = {
-        
-      id: item.id,
-
-      name: item.name,
-      kind: getKindString(item),
-      unlockLevel: item.unlock_level || 0,
-      goldPrice: item.gold_price || 0,
-      tokensPrice: item.tokens_price || 0,
-      transformRange: item.transform_range,
-
-      type: item.type,
-      element: item.element,
-      stats: item.stats,
-      tags: getItemTags(item),
-
-      width: item.width || image.naturalWidth,
-      height: item.height || image.naturalHeight,
-      image: { width: w, height: h, x, y },
-      attachment: item.attachment || null,
-
-    }
-
-    if (finalItem.attachment === null) {
-      finalItem.attachment = createSyntheticItemAttachment(
-        finalItem.type,
-        finalItem.width,
-        finalItem.height
-      )
-    }
-
-    done.push(finalItem)
-
-  }
-
-  return [done, result.failed, spritesSheet]
-
+interface LoadItemImagesResult {
+  imagesData: {
+    rawItem: RawItemV1
+    image: HTMLImageElement
+  }[]
+  errors: string[]
 }
 
 
 
-// Private utils
+export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: ProgressListener): Promise<ImportResult> {
 
-function getBaseURL (itemsPack: ItemsPackV1): string {
+  const onProgressSub: ProgressListener = progress => onProgress(progress / 1.01)
+
+  const { spritesSheet, errors, boxes } = await loadSpritesSheet(itemsPack, onProgressSub)
+  const items = importItems(boxes)
+
+  const data: ItemsPackData = {
+    version: itemsPack.version || '1',
+    key: itemsPack.config.key,
+    name: itemsPack.config.name,
+    description: itemsPack.config.description,
+    spritesSheet: spritesSheet,
+    items,
+  }
+
+  onProgress(1)
+
+  return { data, errors }
+
+}
+
+
+async function loadSpritesSheet (itemsPack: ItemsPackV1, onProgress: ProgressListener) {
+
+  // Get data required
+  const baseURL = getProperBaseURL(itemsPack)
+  const { imagesData, errors } = await loadItemImages(baseURL, itemsPack.items, onProgress)
+
+  // Create sprites sheet rects
+  const boxes = createBoxes(imagesData)
+  const potpackStats = potpack(boxes)
+
+  // Create canvas
+  const spritesSheet = document.createElement('canvas')
+  const ctx = spritesSheet.getContext('2d')!
+
+  // Prepare the canvas
+  spritesSheet.width = potpackStats.w
+  spritesSheet.height = potpackStats.h
+
+  // Render the sprites sheet
+  for (const box of boxes) {
+    ctx.drawImage(box.image, box.x, box.y, box.w, box.h)
+  }
+
+  // Bob is your uncle
+  return { spritesSheet, errors, boxes }
+
+}
+
+
+function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: ProgressListener): Promise<LoadItemImagesResult> {
+
+  return new Promise(resolve => {
+
+    const result: LoadItemImagesResult = {
+      imagesData: [],
+      errors: []
+    }
+
+    let completedItems = 0
+
+
+    const awaiter = setInterval(() => {
+
+      const progress = completedItems / rawItems.length
+
+      onProgress(progress)
+
+      if (progress === 1) {
+        clearInterval(awaiter)
+        resolve(result)
+      }
+
+    }, 100)
+
+
+    for (const rawItem of rawItems) {
+
+      const url = rawItem.image.replace('%url%', baseURL)
+
+      loadImage(url).then(image => {
+
+        result.imagesData.push({ rawItem, image })
+
+      }).catch(err => {
+
+        result.errors.push(err.message)
+
+      }).finally(() => {
+
+        completedItems++
+
+      })
+
+    }
+
+  })
+
+}
+
+
+function createBoxes (imagesData: LoadItemImagesResult['imagesData']) {
+  return imagesData.map(({ rawItem, image }) => {
+
+    return {
+      rawItem,
+      image,
+      w: rawItem.width || image.naturalWidth,
+      h: rawItem.height || image.naturalHeight,
+      x: 0,
+      y: 0
+    }
+
+  })
+}
+
+
+function importItems (boxes: ReturnType<typeof createBoxes>): Item[] {
+
+  return boxes.map(box => {
+
+    const rect: Rectangle = {
+      width: box.w,
+      height: box.h,
+      x: box.x,
+      y: box.y
+    }
+
+    return importItem(box.rawItem, rect)
+
+  })
+
+}
+
+
+function importItem (raw: RawItemV1, rect: Rectangle): Item {
+
+  const item: Item = {
+    id: raw.id,
+
+    name: raw.name,
+    kind: getKindString(raw),
+    unlockLevel: raw.unlock_level || 0,
+    goldPrice: raw.gold_price || 0,
+    tokensPrice: raw.tokens_price || 0,
+    transformRange: raw.transform_range,
+
+    type: raw.type,
+    element: raw.element,
+    stats: raw.stats,
+    tags: getItemTags(raw),
+
+    /* As I type this, rect's width and height already tests for the item's raw width
+     * and height, but we test here again for some possible future change we don't know */
+    width: raw.width || rect.width,
+    height: raw.height || rect.height,
+    image: rect,
+    
+    attachment: raw.attachment || null,
+  }
+
+  if (item.attachment === null) {
+    item.attachment = createSyntheticItemAttachment(item.type, item.width, item.height)
+  }
+
+  return item
+
+}
+
+
+function getProperBaseURL (itemsPack: ItemsPackV1): string {
   
   const oldBaseURL = 'https://raw.githubusercontent.com/ctrl-raul/workshop-unlimited/master/items/'
   const newBaseURL = 'https://raw.githubusercontent.com/ctrl-raul/supermechs-item-images/master/png/'
@@ -179,55 +281,6 @@ function getKindString (item: RawItemV1): string {
 }
 
 
-function loadIndividualItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: (progress: number) => void): IndividualImagesResult {
-
-  return new Promise(resolve => {
-
-    const result: Awaited<IndividualImagesResult> = {
-      images: [],
-      failed: []
-    }
-
-    let completedItems = 0
-
-    const awaiter = setInterval(() => {
-
-      const progress = completedItems / rawItems.length
-
-      onProgress(progress)
-
-      if (progress === 1) {
-        clearInterval(awaiter)
-        resolve(result)
-      }
-
-    }, 250)
-
-    for (const item of rawItems) {
-    
-      const image = new Image()
-
-      image.addEventListener('load', () => {
-        result.images.push([item, image])
-        completedItems++
-      })
-
-      image.addEventListener('error', ({ message }) => {
-        result.failed.push({ item, message })
-        completedItems++
-      })
-
-      image.src = item.image.replace('%url%', baseURL)
-
-    }
-
-  })
-
-}
-
-
-
-export default importItemsPackV1
 
 
 // function checkItemsPack (itemsPack: ItemsPack): void {

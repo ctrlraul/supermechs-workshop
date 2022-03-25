@@ -4,9 +4,9 @@ import ItemInfo from './ItemInfo.svelte'
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import ItemImage from './ItemImage.svelte'
 import ItemButton from './ItemButton.svelte'
-import { itemsPackData } from '../stores'
 import { getStatInstruction } from '../stats/StatsManager'
 import { clickOutside } from '../utils/useClickOutside'
+import { getItemsByType } from '../items/ItemsManager'
 
 
 export let type: Item['type']
@@ -86,7 +86,7 @@ function toggleElementFilter (element: Item['element']): void {
 
 function getFilteredItemsList (filter: Filter): Item[] {
 
-  const items = ($itemsPackData ? $itemsPackData.items.filter(item => item.type === type) : []) as Item[]
+  const items = getItemsByType(type)
 
   if (filter.query) {
     return items.filter(item => {

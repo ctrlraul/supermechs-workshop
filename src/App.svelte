@@ -65,7 +65,10 @@ function needsItemsPack (): boolean {
 
 
     importItemsPack(packURL, () => {})
-      .then(popup.remove.bind(popup))
+      .then(result => {
+        popup.remove()
+        itemsPackData.set(result.data)
+      })
       .catch(err => {
 
         popup.replace({

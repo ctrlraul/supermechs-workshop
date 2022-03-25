@@ -7,12 +7,13 @@ import * as LocalStorageHandler from '../managers/LocalStorageHandler'
 import { itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
 import { onMount } from 'svelte';
+import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage';
 
 
 
 // Consts
-// const defaultPackURL = 'https://gist.githubusercontent.com/ctrl-raul/3b5669e4246bc2d7dc669d484db89062/raw'
-const defaultPackURL = 'https://gist.githubusercontent.com/ctrl-raul/22b71089a0dd7fef81e759dfb3dda67b/raw'
+// const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/3b5669e4246bc2d7dc669d484db89062/raw'
+const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/22b71089a0dd7fef81e759dfb3dda67b/raw'
 const discordTag = 'ctrl-raul#9419'
 const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 
@@ -59,27 +60,28 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
 
   try {
+  
+    const result = await importItemsPack(url, progress => loadingProgress = progress)
 
-    await importItemsPack(url, progress => {
-      loadingProgress = progress
-    })
+    itemsPackData.set(result.data)
 
     router.push('/workshop')
 
   } catch (err: any) {
 
-    if (err.message === 'Failed to fetch') {
-      if (window.navigator.onLine === false) {
-        err.message = 'No internet connection'
-      } else {
-        err.message = 'Network error'
-      }
+    console.error(err)
+
+    let errMessage = getUsefulErrorMessage(err)
+
+    if (!Array.isArray(errMessage)) {
+      errMessage = [errMessage.message]
     }
 
     addPopup({
       title: 'Could not load this pack!',
       message: [
-        `Error: ${err.message}`,
+        `Error:`,
+        ...errMessage,
         '',
         'If you\'re having trouble contact me:',
         `Discord: ${discordTag}`,

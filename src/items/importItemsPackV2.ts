@@ -1,11 +1,14 @@
-import type { Attachment } from "./Item";
-import type Item from "./Item";
-import type { Rectangle } from "./Item";
-import { createSyntheticItemAttachment, ImportItemsPackFn } from "./ItemsManager";
+import { createSyntheticItemAttachment, ImportResult } from './ItemsManager'
+import { loadImage } from '../utils/loadImage'
 
 
 
 // Types
+
+import type Item from './Item'
+import type { Attachment, Rectangle } from './Item'
+import type { ItemsPackData } from '../stores'
+
 
 interface RawItemV2 {
 
@@ -43,93 +46,99 @@ export interface ItemsPackV2 {
 
 
 
-const importItemsPackV2: ImportItemsPackFn<ItemsPackV2> = (itemsPack, onProgress) => {
+export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (progress: number) => void): Promise<ImportResult> {
 
-  return new Promise((resolve, reject) => {
+  const spritesSheet = await loadSpritesSheet(itemsPack.spritesSheet)
+  const { items, errors } = importItems(itemsPack.items, itemsPack.spritesMap)
 
-    const image = new Image()
+  const data: ItemsPackData = {
+    version: itemsPack.version,
+    key: itemsPack.key,
+    name: itemsPack.name,
+    description: itemsPack.description,
+    spritesSheet,
+    items,
+  }
 
-    // Import sprites sheet
+  onProgress(1)
 
-    image.onload = () => {
-
-      const done: Item[] = []
-      const failed: Awaited<ReturnType<ImportItemsPackFn>>[1] = []
-
-
-      // Import items
-      for (const raw of itemsPack.items) {
-
-        const spritesMapKey = raw.name.replace(/\s/g, '')
-        const rect = itemsPack.spritesMap[spritesMapKey]
-
-        if (rect !== undefined) {
-
-          const finalItem: Item = {
-            id: raw.id,
-        
-            name: raw.name,
-            kind: getKindString(raw),
-            unlockLevel: raw.unlock_level || 0,
-            goldPrice: raw.gold_price || 0,
-            tokensPrice: raw.tokens_price || 0,
-            transformRange: raw.transform_range,
-  
-            type: raw.type,
-            element: raw.element,
-            stats: raw.stats,
-            tags: getItemTags(raw),
-  
-            width: raw.width || rect.width,
-            height: raw.height || rect.height,
-            image: rect,
-            attachment: raw.attachment || null,
-          }
-
-          if (finalItem.attachment === null) {
-            finalItem.attachment = createSyntheticItemAttachment(
-              finalItem.type,
-              finalItem.width,
-              finalItem.height
-            )
-          }
-
-          done.push(finalItem)
-
-        } else {
-
-          failed.push({
-            item: raw,
-            message: `No image mapped for key "${spritesMapKey}"`
-          })
-
-        }
-
-      }
-
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')!
-
-      canvas.width = image.naturalWidth
-      canvas.height = image.naturalHeight
-
-      ctx.drawImage(image, 0, 0)
-
-      resolve([done, failed, canvas])
-      onProgress(1)
-
-    }
-
-    image.onerror = reject
-
-    image.src = itemsPack.spritesSheet
-
-  })
+  return { data, errors }
 
 }
 
 
-export default importItemsPackV2
+async function loadSpritesSheet (url: string): Promise<HTMLCanvasElement> {
+
+  const image = await loadImage(url)
+
+  const spritesSheet = document.createElement('canvas')
+  const ctx = spritesSheet.getContext('2d')!
+
+  spritesSheet.width = image.naturalWidth
+  spritesSheet.height = image.naturalHeight
+
+  ctx.drawImage(image, 0, 0)
+
+  return spritesSheet
+
+}
+
+
+function importItems (rawItems: RawItemV2[], spritesMap: ItemsPackV2['spritesMap']): { items: Item[], errors: string[] } {
+
+  const items: Item[] = []
+  const errors: string[] = []
+
+  for (const raw of rawItems) {
+    try {
+      items.push(importItem(raw, spritesMap))
+    } catch (err: any) {
+      errors.push(err.message)
+    }
+  }
+
+  return { items, errors }
+
+}
+
+
+function importItem (raw: RawItemV2, spritesMap: ItemsPackV2['spritesMap']): Item {
+
+  const spritesMapKey = raw.name.replace(/\s/g, '')
+  const spriteRect = spritesMap[spritesMapKey]
+
+  if (spriteRect === undefined) {
+    throw new Error(`Failed to import "${raw.name}": No sprite mapped for key "${spritesMapKey}"`)
+  }
+
+  const item: Item = {
+    id: raw.id,
+
+    name: raw.name,
+    kind: getKindString(raw),
+    unlockLevel: raw.unlock_level || 0,
+    goldPrice: raw.gold_price || 0,
+    tokensPrice: raw.tokens_price || 0,
+    transformRange: raw.transform_range,
+
+    type: raw.type,
+    element: raw.element,
+    stats: raw.stats,
+    tags: getItemTags(raw),
+
+    width: raw.width || spriteRect.width,
+    height: raw.height || spriteRect.height,
+    image: spriteRect,
+    attachment: raw.attachment || null,
+  }
+
+  if (item.attachment === null) {
+    item.attachment = createSyntheticItemAttachment(item.type, item.width, item.height)
+  }
+
+  return item
+
+}
 
 
 function getItemTags (raw: RawItemV2): Item['tags'] {
