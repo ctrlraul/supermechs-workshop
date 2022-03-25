@@ -233,7 +233,7 @@ function importItem (raw: RawItemV1, rect: Rectangle): Item {
 
 function getProperBaseURL (itemsPack: ItemsPackV1): string {
   
-  const oldBaseURL = 'https://raw.githubusercontent.com/ctrlraul/workshop-unlimited/master/items/'
+  const oldBaseURL = 'https://raw.githubusercontent.com/ctrl-raul/workshop-unlimited/master/items/'
   const newBaseURL = 'https://raw.githubusercontent.com/ctrlraul/supermechs-item-images/master/png/'
 
   // Oui, we changed where we host the item images, it's
