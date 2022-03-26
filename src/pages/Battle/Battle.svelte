@@ -29,6 +29,12 @@ $: player = $battle!.getPlayerForID(myID)
 $: opponent = $battle!.getOpponentForPlayerID(myID)
 $: battleCanvas = null as HTMLCanvasElement | null
 
+$: {
+  if (battleCanvas !== null) {
+    setCanvas(battleCanvas)
+  }
+}
+
 
 
 // Graphic
@@ -105,17 +111,17 @@ const socketAttachment = SocketManager.createAttachment({
 
 onMount(() => {
 
+  window.addEventListener('resize', adjustBattleCanvas)
+
   socketAttachment.attach()
 
-  if (battleCanvas) {
-    battleCanvas.width = battleCanvas.offsetWidth * 2
-    battleCanvas.height = battleCanvas.offsetHeight * 2
-    setCanvas(battleCanvas)
-  }
+  adjustBattleCanvas()
 
 })
 
 onDestroy(() => {
+
+  window.removeEventListener('resize', adjustBattleCanvas)
 
   socketAttachment.detach()
 
@@ -167,6 +173,15 @@ async function handleBattleEvent (action: BattleAction): Promise<void> {
   }
 
 }
+
+
+function adjustBattleCanvas (): void {
+  if (battleCanvas !== null) {
+    battleCanvas.width = battleCanvas.offsetWidth * 2
+    battleCanvas.height = battleCanvas.offsetHeight * 2
+  }
+}
+
 
 
 // events
