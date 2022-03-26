@@ -23,7 +23,7 @@ const WEIGHT_LIMIT = 1000
 export const OVERLOAD_LIMIT = 1010
 const OVERLOAD_PENALTY = 15
 
-const STAT_IMAGES_BASE_URL = 'https://raw.githubusercontent.com/ctrlraul/workshop-unlimited/master/src/assets/images/stats/'
+const STAT_IMAGES_BASE_URL = 'https://gist.githubusercontent.com/ctrlraul/de0f1ed5783ee5d5e16894f426f17ee2/raw/'
 const IMAGE_MISSING_URL = '/assets/texture-missing.png'
 const MAX_IMAGE_SIZE = 128
 
