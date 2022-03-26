@@ -14,7 +14,6 @@ import Mech from '../../mechs/Mech'
 import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
-import { Socket } from 'socket.io-client';
 
 
 
