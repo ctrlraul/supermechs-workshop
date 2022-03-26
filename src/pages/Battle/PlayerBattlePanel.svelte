@@ -111,17 +111,17 @@ function toggleItemsInspector (): void {
   <div class="resistances">
 
     <div use:tooltip={getResTooltipText('Physical', stats.phyRes, '#e6aa44')}>
-      <img src="/assets/phy-shield.png" alt="Physical Resistance">
+      <img src="/assets/images/phy-shield.png" alt="Physical Resistance">
       <div class="value text-outline">{stats.phyRes}</div>
     </div>
 
     <div use:tooltip={getResTooltipText('Explosive', stats.expRes, 'rgb(212 56 56)')}>
-      <img src="/assets/exp-shield.png" alt="Explosive Resistance">
+      <img src="/assets/images/exp-shield.png" alt="Explosive Resistance">
       <div class="value text-outline">{stats.expRes}</div>
     </div>
 
     <div use:tooltip={getResTooltipText('Electric', stats.eleRes, 'rgb(68, 166, 230)')}>
-      <img src="/assets/ele-shield.png" alt="Electric Resistance">
+      <img src="/assets/images/ele-shield.png" alt="Electric Resistance">
       <div class="value text-outline">{stats.eleRes}</div>
     </div>
 

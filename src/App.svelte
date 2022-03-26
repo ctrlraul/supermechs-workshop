@@ -149,7 +149,7 @@ function conditionsFailed () {
 
     <div class="branding">
       <span>SuperMechs Workshop</span>
-      <img src="/assets/logo.png" alt="logo" />
+      <img src="/assets/images/logo-white.svg" alt="logo" />
     </div>
     
     <div class="spinner-container">
