@@ -1,6 +1,7 @@
 import potpack from 'potpack'
 import { createSyntheticItemAttachment, ImportResult, ProgressListener } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
+// import { ItemsPackV1Te } from './Typeyes/ItemsPackV1Te'
 
 
 
@@ -11,6 +12,9 @@ import type { Attachment, Rectangle } from './Item'
 import type { ItemsPackData } from '../stores'
 
 
+
+// Types
+
 interface RawItemV1 {
 
   id: Item['id']
@@ -18,16 +22,16 @@ interface RawItemV1 {
   // Meta
   name: Item['name']
   transform_range: Item['transformRange']
-	unlock_level?: Item['unlockLevel']
-	gold_price?: Item['goldPrice']
-	tokens_price?: Item['tokensPrice']
+  unlock_level?: Item['unlockLevel']
+  gold_price?: Item['goldPrice']
+  tokens_price?: Item['tokensPrice']
 
   // Stats
   type: Item['type']
-	element: Item['element']
+  element: Item['element']
   stats: Item['stats']
   tags?: Item['tags']
-	
+  
   // Graphic
   width?: number
   height?: number
@@ -59,7 +63,12 @@ interface LoadItemImagesResult {
 
 
 
+// Methods
+
 export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: ProgressListener): Promise<ImportResult> {
+
+  // Throw error if pack doesn't match the format expected
+  // ItemsPackV1Te.assert(itemsPack)
 
   const onProgressSub: ProgressListener = progress => onProgress(progress / 1.01)
 
@@ -81,6 +90,9 @@ export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: Pro
 
 }
 
+
+
+// Functions
 
 async function loadSpritesSheet (itemsPack: ItemsPackV1, onProgress: ProgressListener) {
 
@@ -279,37 +291,3 @@ function getKindString (item: RawItemV1): string {
   const words = [item.element, ...item.type.split('_')]
   return words.map(word => word[0].toUpperCase() + word.slice(1).toLowerCase()).join(' ')
 }
-
-
-
-
-// function checkItemsPack (itemsPack: ItemsPack): void {
-
-//   // First we should check if the pack format is valid
-//   // at all, but we don't do that at the moment because
-//   // Runtypes decided to not give useful error messages.
-
-//   // Then we check for items with the same ID
-
-//   const idsMap: Record<string | number, RawItem[]> = {};
-//   let messageLines: string[] = [];
-
-//   for (const item of itemsPack.items) {
-//     if (idsMap[item.id]) {
-//       idsMap[item.id].push(item);
-//     } else {
-//       idsMap[item.id] = [item];
-//     }
-//   }
-
-//   for (const [id, items] of Object.entries(idsMap)) {
-//     if (items.length > 1) {
-//       messageLines.push(`Found ${items.length} items with id ${id}`);
-//     }
-//   }
-
-//   if (messageLines.length) {
-//     throw new Error(messageLines.join('\n'));
-//   }
-
-// }
