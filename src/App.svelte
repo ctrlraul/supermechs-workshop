@@ -134,7 +134,7 @@ function conditionsFailed () {
 
 
 
-{#if didLoadStats}
+{#if didLoadStats && false}
 
   <Tooltip/>
 
@@ -147,10 +147,7 @@ function conditionsFailed () {
 {:else}
   <div class="loading">
 
-    <div class="branding">
-      <span>SuperMechs Workshop</span>
-      <img src="/assets/images/logo-white.svg" alt="logo" />
-    </div>
+    <img src="/assets/images/logo-white.svg" alt="logo" />
     
     <div class="spinner-container">
       <SvgIcon name="aim" class="spinner" color="var(--color-text)" />
@@ -162,12 +159,6 @@ function conditionsFailed () {
 
 
 <style>
-
-.branding {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 img {
   margin-top: 1em;
