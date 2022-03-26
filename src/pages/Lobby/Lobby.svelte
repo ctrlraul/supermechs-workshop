@@ -47,6 +47,7 @@ $: {
   }
 }
 
+// Save mech name whenever edited
 $: {
   if (mech) {
     mech.name = mechName
