@@ -134,7 +134,7 @@ function conditionsFailed () {
 
 
 
-{#if didLoadStats && false}
+{#if didLoadStats}
 
   <Tooltip/>
 
