@@ -232,9 +232,9 @@ function onQuit (): void {
       />
     {:else if $battle.completion}
       <div class="battle-complete">
-        <div class="classic-box contents">
+        <div class="global-box contents">
           <div class="title">{$battle.completion.winnerID === myID ? 'Victory!' : 'Defeat!'}</div>
-          <button class="classic-box go-back-button" on:click={() => router.pop()}>
+          <button class="global-box go-back-button" on:click={() => router.pop()}>
             Go Back
           </button>
           <button class="logs-button" on:click={() => viewLogs = !viewLogs}>
@@ -343,7 +343,7 @@ main > .buttons > button {
 .battle-complete > .contents > .go-back-button {
   height: 2em;
   background-color: var(--color-text);
-  color: var(--color-background);
+  color: var(--color-primary);
   width: 80%;
   font-weight: bold;
   margin: 0.5em;
