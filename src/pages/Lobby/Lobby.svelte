@@ -14,6 +14,7 @@ import Mech from '../../mechs/Mech'
 import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
+import { Socket } from 'socket.io-client';
 
 
 
@@ -78,7 +79,7 @@ function showNoMechSelectedPopup (): void {
 
 // events
 
-function onOnlineBattle (): void {
+async function onOnlineBattle (): Promise<void> {
 
   // Make sure we're using a mech
 
@@ -115,49 +116,70 @@ function onOnlineBattle (): void {
 
   if (SocketManager.socket.disconnected) {
 
-    addPopup({
-      title: 'Unable to connect to server!',
-      message: [
-        `We tried to connect ${SocketManager.connectErrorStreakCount} times. Try again later.`,
-        '',
-        `Last error: "${SocketManager.lastError.message}"`
-      ],
-      mode: 'error',
+    let canceled = false
+
+    const tryingToConnectPopup = addPopup({
+      title: 'Trying to connect to server',
+      message: 'Please wait up to 10 seconds...',
+      hideOnOffclick: false,
+      spinner: true,
       options: {
-        'Ok' () { this.remove() },
-        'Try again now' () {
-
-          let canceled = false
-
-          this.replace({
-            title: 'Trying to connect to server',
-            message: 'Please wait...',
-            hideOnOffclick: false,
-            spinner: true,
-            options: {
-              Cancel () {
-                canceled = true
-                this.remove()
-              }
-            }
-          })
-
-          SocketManager.tryToConnectManually()
-            .catch()
-            .finally(() => {
-              if (!canceled) {
-                if (SocketManager.socket.connected) {
-                  this.remove()
-                }
-                onOnlineBattle()
-              }
-            })
-
+        Cancel () {
+          canceled = true
+          this.remove()
         }
       }
     })
 
-    return
+    try {
+
+      await SocketManager.tryToConnectManually()
+
+      if (canceled) {
+        return
+      }
+
+    } catch (err: any) {
+
+      if (canceled) {
+        return
+      }
+
+      const attempts = SocketManager.connectErrorStreakCount
+      const message = [
+        `We tried to reconnect ${attempts} time${attempts > 1 ? 's' : ''}!`,
+        '',
+        `Error: "${SocketManager.lastError.message}"`,
+      ]
+
+      if (attempts > 4) {
+        message.push(
+          '',
+          'Please try again in a few minutes.'
+        )
+      }
+
+      addPopup({
+        mode: 'error',
+        title: 'Failed to connect to server',
+        message,
+        options: {
+          Ok () { this.remove() },
+          Retry () {
+            this.remove()
+            onOnlineBattle()
+          }
+        }
+      })
+
+      return
+
+    } finally {
+
+      tryingToConnectPopup.remove()
+
+    }
+
   }
 
 
