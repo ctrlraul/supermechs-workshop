@@ -50,6 +50,7 @@ export interface ImportResult {
 export const Tags = {
   TAG_ROLLER: 'roller',
   PREMIUM: 'premium',
+  SWORD: 'sword'
 }
 
 const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED']

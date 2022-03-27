@@ -263,6 +263,7 @@ export function useWeapon (oldState: Battle, newState: Battle, attacker: BattleP
     const newAttackerVisualX = BR.getVisualX(newState.attacker.position)
     const defenderGfx = BR.getPlayerGfx(defender.id)
     const newDefenderVisualX = BR.getVisualX(newState.defender.position)
+    const oldDistance = Math.abs(oldState.attacker.position - oldState.defender.position)
 
 
     // Reset positions before running animation
@@ -278,34 +279,71 @@ export function useWeapon (oldState: Battle, newState: Battle, attacker: BattleP
     const hitOpponent = new TWEEN.Tween(defenderGfx)
       .to({ x: newDefenderVisualX }, HIT_DURATION)
       .easing(TWEEN.Easing.Quadratic.Out)
-    
-    
 
+
+
+    // Advance/Retreat jump
     if ('advance' in weapon.stats || 'retreat' in weapon.stats) {
   
       const fall = new TWEEN.Tween(attackerGfx)
         .to({ y: 0 }, JUMP_DURATION)
         .easing(TWEEN.Easing.Quadratic.In)
-        .onComplete(() => BR.nextAnimation())
+        .onComplete(() => {
+          showFlyingDamage(damage, defenderGfx.x)
+          attackerGfx.updateStats()
+          defenderGfx.updateStats()
+          BR.nextAnimation()
+        })
 
       // Jump
       new TWEEN.Tween(attackerGfx)
         .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
         .easing(TWEEN.Easing.Quadratic.Out)
+        .chain(fall)
         .start()
   
       // Fly
       new TWEEN.Tween(attackerGfx)
         .to({ x: newAttackerVisualX }, FLIGHT_DURATION)
         .easing(TWEEN.Easing.Sinusoidal.Out)
-        .chain(hitOpponent, fall)
+        .chain(hitOpponent)
+        .start()
+  
+    
+    // Sword jump
+    } else if (weapon.tags.includes(Tags.SWORD) && oldDistance > 1) {
+
+      hitOpponent.onComplete(() => BR.nextAnimation())
+
+      const fall = new TWEEN.Tween(attackerGfx)
+        .to({ y: 0 }, JUMP_DURATION)
+        .easing(TWEEN.Easing.Quadratic.In)
         .onComplete(() => {
           showFlyingDamage(damage, defenderGfx.x)
           attackerGfx.updateStats()
           defenderGfx.updateStats()
+          hitOpponent.start()
         })
+
+      // Move horizontally
+      new TWEEN.Tween(attackerGfx)
+        .to({ x: newAttackerVisualX }, JUMP_DURATION * 2)
         .start()
-  
+        .onUpdate(() => {
+          const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
+          attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
+          defenderGfx.scaleX = attackerGfx.scaleX * -1
+        })
+
+      // Jump
+      new TWEEN.Tween(attackerGfx)
+        .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .chain(fall)
+        .start()
+
+
+    // Regular animation
     } else {
 
       showFlyingDamage(damage, defenderGfx.x)
