@@ -73,13 +73,11 @@ export function tryToConnectManually (): Promise<void> {
 
     const onConnect = () => {
       socket.off('connect_error', onError)
-      logger.log('connected')
       resolve()
     }
   
     const onError = () => {
       socket.off('connect', onConnect)
-      logger.log('connect error!')
       reject()
     }
   
