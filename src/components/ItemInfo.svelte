@@ -29,7 +29,7 @@ const displayTags: [keyof Item['tags'], string][] = [
   {#if hasAnyTag}
     <div class="tags">
       {#each displayTags as [tag, color]}
-        {#if tag}
+        {#if item.tags[tag]}
           <span style="color: {color};">{tag.replace(/_/g, ' ')}</span>
         {/if}
       {/each}
