@@ -53,11 +53,7 @@ export const Tags = {
 }
 
 const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED']
-const logger = new Logger('ItemsManager')
-
-let itemsPackData = get(itemsPackDataStore)
-
-itemsPackDataStore.subscribe(value => itemsPackData = value)
+const logger = new Logger()
 
 
 
