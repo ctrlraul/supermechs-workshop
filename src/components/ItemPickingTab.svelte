@@ -7,6 +7,7 @@ import ItemButton from './ItemButton.svelte'
 import { getStatInstruction } from '../stats/StatsManager'
 import { clickOutside } from '../utils/useClickOutside'
 import { getItemsByType } from '../items/ItemsManager'
+import { chunk } from 'lodash'
 
 
 export let type: Item['type']
@@ -104,6 +105,13 @@ function getFilteredItemsList (filter: Filter): Item[] {
 
 }
 
+
+function getItemGroups (): Promise<Item[]>[] {
+  return chunk(itemsFiltered, 10).map((group, i) => new Promise(resolve => {
+    setTimeout(() => resolve(group), i * 30)
+  }))
+}
+
 </script>
 
 
@@ -169,16 +177,20 @@ function getFilteredItemsList (filter: Filter): Item[] {
 
       {#if itemsFiltered.length}
 
-        {#each itemsFiltered as item}
-          <ItemButton
-            {item}
-            active={currentItem !== null && currentItem.id === item.id}
-            on:click={() => onSelectItem(item)}
-            on:mouseover={() => inspectedItem = item}
-            on:mouseout={() => inspectedItem = null}
-            on:focus={() => inspectedItem = item}
-            on:blur={() => { /* ffs svelte */ }}
-          />
+        {#each getItemGroups() as group}
+          {#await group then items}
+            {#each items as item}
+              <ItemButton
+                {item}
+                active={currentItem !== null && currentItem.id === item.id}
+                on:click={() => onSelectItem(item)}
+                on:mouseover={() => inspectedItem = item}
+                on:mouseout={() => inspectedItem = null}
+                on:focus={() => inspectedItem = item}
+                on:blur={() => { /* ffs svelte */ }}
+              />
+            {/each}
+          {/await}
         {/each}
         
       {:else}
@@ -288,9 +300,8 @@ header > button {
   position: relative;
   display: flex;
   align-content: flex-start;
-  justify-content: center;
   flex-wrap: wrap;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding: 0.4em;
   gap: 1.4%;
