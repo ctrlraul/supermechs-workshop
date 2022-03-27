@@ -5,17 +5,14 @@ import Logger from '../utils/Logger'
 
 // Init
 
-const runningLocally = (/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
+const production = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
 
-const serverURL = (
-  runningLocally
-  ? window.location.hostname + ':3000'
-  : 'https://supermechs-workshop-server.thearchives.repl.co'
+export const socket = Socket(
+  production
+  ? 'https://supermechs-workshop-server.thearchives.repl.co'
+  : window.location.hostname + ':3000'
 )
 
-export const socket = Socket(serverURL)
-
-const connectErrorStreakCountMax = runningLocally ? 1 : Infinity
 export let connectErrorStreakCount = 0
 export let lastError: Error = new Error('Server Offline')
 
@@ -24,17 +21,20 @@ const logger = new Logger()
 
 
 socket.on('connect', () => {
-  logger.log('Connected as', socket.id)
+  logger.log(`Connected as "${socket.id}"`)
   connectErrorStreakCount = 0
 })
 
 socket.on('connect_error', error => {
+
   lastError = error
   connectErrorStreakCount++
-  if (connectErrorStreakCount >= connectErrorStreakCountMax) {
+
+  if (!production) {
     socket.disconnect()
-    logger.log('Gave up on connecting')
+    logger.log('Disconnected the socket to avoid error spam in development')
   }
+
 })
 
 
@@ -67,7 +67,7 @@ export function emit (...args: Parameters<typeof socket['emit']>) {
 
 export function tryToConnectManually (): Promise<void> {
 
-  logger.log('Trying to connect manually.')
+  logger.log('Trying to connect manually...')
 
   return new Promise((resolve, reject) => {
 
