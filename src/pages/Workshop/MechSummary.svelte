@@ -23,7 +23,7 @@ export let text: string = 'Mech Summary'
         style="width: 1.5em; height: 1.5em;"
       />
 
-      {text}
+      <span>{text}</span>
 
     </div>
 
@@ -49,21 +49,27 @@ export let text: string = 'Mech Summary'
   padding-bottom: 0.2em;
 }
 
+
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
   max-width: 20em;
   width: 100%;
   padding: 0.5em;
 }
 
+
 .header {
   display: flex;
   justify-content: center;
-  gap: 0.5em;
   align-items: center;
+  margin-bottom: 0.5em;
 }
+
+.header span {
+  margin-left: 0.5em;
+}
+
 
 .blocks {
   position: relative;

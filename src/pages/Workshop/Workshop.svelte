@@ -344,7 +344,6 @@ main {
   flex-direction: column;
   right: 0;
   top: 0;
-  gap: 0.5em;
   grid-area: buttons;
   padding: 0.2em;
 }
@@ -353,6 +352,7 @@ main {
   width: 2.2em;
   height: 2.2em;
   padding: 0.3em;
+  margin-top: 0.5em;
 }
 
 .mech-container {
