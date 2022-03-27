@@ -8,8 +8,9 @@ export interface BattlePlayerArgs {
 
   id: string
   name: string
+  mechName: string
   ai?: boolean
-  
+
   position: number
 
   setup: number[]
@@ -23,6 +24,7 @@ export class BattlePlayer {
   // Meta
   id: string
   name: string
+  mechName: string
   ai: boolean
 
   // Items
@@ -59,6 +61,7 @@ export class BattlePlayer {
 
     this.id = args.id
     this.name = args.name
+    this.mechName = args.mechName
     this.ai = !!args.ai
 
 

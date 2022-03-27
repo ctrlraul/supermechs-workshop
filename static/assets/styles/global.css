@@ -41,6 +41,7 @@ body {
   background-color: var(--color-primary-dark);
   background-position: center;
   background-size: cover;
+  line-height: 1em;
 }
 
 

@@ -28,7 +28,7 @@ export interface ItemsPackData {
 
 // Utils
 
-const logger = new Logger('Stores')
+const logger = new Logger()
 
 
 

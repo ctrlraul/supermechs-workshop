@@ -77,6 +77,7 @@ span {
   -webkit-text-fill-color: #ffffff; */
   z-index: 2;
   direction: ltr;
+  font-weight: 600;
 }
 
 </style>

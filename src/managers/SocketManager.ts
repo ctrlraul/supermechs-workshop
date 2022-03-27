@@ -19,7 +19,7 @@ const connectErrorStreakCountMax = runningLocally ? 1 : Infinity
 export let connectErrorStreakCount = 0
 export let lastError: Error = new Error('Server Offline')
 
-const logger = new Logger('SocketManager')
+const logger = new Logger()
 
 
 
