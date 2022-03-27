@@ -382,4 +382,13 @@ main > .buttons > button {
 
 }
 
+
+@media (max-height: 300px) {
+
+  main {
+    font-size: 0.9em;
+  }
+
+}
+
 </style>
