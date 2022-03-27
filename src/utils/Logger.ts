@@ -23,7 +23,7 @@ export default class Logger {
 
     const match = stack[0].match(matchFileName)
 
-    this.name = match ? match[1] : 'unknown'
+    this.name = match ? match[1] : stack[0]
     this.hue = String(hue)
 
     hue += hueChange
