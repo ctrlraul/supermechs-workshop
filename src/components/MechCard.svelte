@@ -1,17 +1,17 @@
 <script lang="ts">
 
 import { saveMech } from '../mechs/MechsManager'
+import { currentMech, Orientations } from '../stores'
 import MechCanvas from './MechCanvas.svelte'
 
+
 import type Mech from '../mechs/Mech'
-import type { Orientations } from '../stores'
 
 
 export let active: boolean = false
 export let mech: Mech
 export let onSetActive: (mech: Mech) => void
 export let onDelete: (mechID: string) => void
-export let orientation: Orientations = 'landscape'
 export let onToggleSelected: null | ((mech: Mech) => void) = null
 export let selected = false
 
@@ -19,7 +19,21 @@ export let selected = false
 
 const MAX_MECH_NAME_LENGTH = 32
 
-$: saveMech(mech.toJSONModel())
+
+
+function onRename (e: Event): void {
+
+  const { value: newName } = e.target as HTMLInputElement
+
+  mech.name = newName
+
+  if ($currentMech !== null && mech.id === $currentMech.id) {
+    $currentMech.name = newName
+  }
+
+  saveMech(mech.toJSONModel())
+
+}
 
 </script>
 
@@ -38,18 +52,17 @@ $: saveMech(mech.toJSONModel())
 
     <input
       type="text"
-      placeholder="(no name)"
+      placeholder="Unnamed Mech"
       spellCheck="false"
       max={MAX_MECH_NAME_LENGTH}
-      bind:value={mech.name}
+      value={mech.name}
+      on:change={onRename}
     />
 
-    {#if orientation === 'portrait'}
-      <div class="buttons-container">
-        <button class="global-box" on:click={() => onDelete(mech.id)}>Delete</button>
-        <button class="global-box" on:click={() => onSetActive(mech)}>Equip</button>
-      </div>
-    {/if}
+    <div class="buttons-container">
+      <button class="global-box delete" on:click={() => onDelete(mech.id)}>Delete</button>
+      <button class="global-box select" on:click={() => onSetActive(mech)}>Select</button>
+    </div>
 
     {#if onToggleSelected}
       <input
@@ -75,14 +88,23 @@ $: saveMech(mech.toJSONModel())
   width: var(--size);
   cursor: pointer;
   background-color: var(--color-primary);
+  border: 0.15em solid var(--color-primary);
 
   /* Aspect Ratio Hack */
   height: 0;
   padding-top: var(--size);
+  transition: border-color 200ms;
 }
 
 .mech-card.active {
-  background: var(--color-accent);
+  transition: border-color 0ms;
+  border-color: var(--color-accent);
+  /* box-shadow: 0 0 0.3em var(--color-accent); */
+}
+
+
+.buttons-container {
+  display: none;
 }
 
 
@@ -94,6 +116,7 @@ $: saveMech(mech.toJSONModel())
   flex-direction: column;
   width: 100%;
   height: 100%;
+  padding: 0.3em;
 }
 
 
@@ -104,6 +127,7 @@ $: saveMech(mech.toJSONModel())
   align-items: flex-end;
   width: 100%;
   flex: 1;
+  border-radius: var(--ui-radius);
 }
 
 
@@ -112,10 +136,7 @@ input[type=text] {
   text-align: center;
   width: 100%;
   height: 1.5em;
-  color: inherit;
-  border-radius: 0;
-  font-family: inherit;
-  font-size: inherit;
+  margin-top: 0.5em;
 }
 
 
@@ -132,7 +153,7 @@ input[type=checkbox] {
 
   .mech-card {
     width: calc(50% - 0.25em);
-    padding-top: calc(50% - 0.25em);
+    padding-top: 60%;
   }
 
   .mech-container {
@@ -140,13 +161,13 @@ input[type=checkbox] {
   }
 
   .buttons-container {
-    position: absolute;
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     align-content: center;
-    gap: 0.5em;
     flex-wrap: wrap;
+    padding-top: 0.5em;
     left: 0;
     bottom: 0;
     width: 100%;
@@ -154,12 +175,21 @@ input[type=checkbox] {
   }
 
   .buttons-container > button {
-    width: calc(50% - 0.75rem);
-    height: calc(100% - 0.5rem);
+    width: calc(50% - 0.25em);
+    height: 100%;
+  }
+
+  .delete {
+    background-color: var(--color-error);
+  }
+
+  .select {
+    background-color: var(--color-accent);
   }
 
   input[type=checkbox] {
     bottom: calc(22%);
   }
+
 }
 </style>
