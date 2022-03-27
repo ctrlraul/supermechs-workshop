@@ -1,40 +1,35 @@
 <script lang="ts">
 
-
 import StatBlocks from './StatBlocks.svelte'
-// import SvgIcon from './SvgIcon/SvgIcon.svelte'
-// import { Tags } from '../items/ItemsManager'
+
 
 import type Item from '../items/Item'
 
 
 export let item: Item
 
-const colorForTag: Record<string, string> = {
-  custom: '#44eebb',
-  unreleased: '#ee44dd',
-  premium: '#eeaa44',
-  require_jump: '#ee5511',
-  melee: '#ae9aff',
-}
 
-// $: isPremium = item.tags.includes(Tags.PREMIUM)
+const hasAnyTag = Object.values(item.tags).includes(true)
+const displayTags: [keyof Item['tags'], string][] = [
+ ['custom', '#44eebb'],
+ ['premium', '#eeaa44'],
+ ['require_jump', '#ee5511']
+]
+
 
 </script>
 
 
 
-<div class="item-info global-box no-select {$$props.class}" style={$$props.style}>
+<div class="item-info global-box no-select" style={$$props.style}>
 
   <div>{item.name}</div>
   <span class="kind">({item.kind.replace(/_/g, ' ')})</span>
 
-  {#if item.tags.length}
+  {#if hasAnyTag}
     <div class="tags">
-      {#each item.tags as tag}
-        <span style="color: {colorForTag[tag] || 'inherit'}">
-          {tag.replace(/_/g, ' ')}
-        </span>
+      {#each displayTags as [tag, color]}
+        <span style="color: {color};">{tag.replace(/_/g, ' ')}</span>
       {/each}
     </div>
   {/if}
@@ -44,21 +39,6 @@ const colorForTag: Record<string, string> = {
   <div class="stats">
     <StatBlocks source={item.id} />
   </div>
-
-  <!-- {#if isPremium}
-    <SvgIcon
-      name="star"
-      style="
-        position: absolute;
-        right: 0.25em;
-        top: 0.25em;
-        z-index: 2;
-        width: 0.8em;
-        height: 0.8em;
-        fill: rgb(238, 170, 68);
-      "
-    />
-  {/if} -->
 
 </div>
 

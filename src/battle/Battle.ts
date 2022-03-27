@@ -475,8 +475,8 @@ export class Battle {
     
     /* Check if it's not a melee item and requires
      * jumping. Melee items force the mech to jump. */
-    if (item.tags.includes('require_jump') && !item.tags.includes('melee')) {
-      if (typeof attacker.legs.stats.jump === 'undefined') {
+    if (item.tags.require_jump) {
+      if (attacker.legs.stats.jump === undefined) {
         reasons.push('Require jumping')
       }
     }

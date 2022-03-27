@@ -1,14 +1,14 @@
-import { BattleItem, Tags } from '../items/ItemsManager'
 import Mech from '../mechs/Mech'
 import type { Battle } from './Battle'
 import type { BattlePlayer } from './BattlePlayer'
+import type { BattleItem } from '../items/ItemsManager'
 
 
 
 export function useWeapon (battle: Battle, attacker: BattlePlayer, weapon: BattleItem, damage: number): void {
 
   // Sword jump
-  if (weapon.tags.includes(Tags.SWORD)) {
+  if (weapon.tags.sword) {
     const dir = battle.getPositionalDirection(attacker.id)
     attacker.position = battle.defender.position - dir
   }

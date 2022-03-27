@@ -1,7 +1,6 @@
 import TWEEN from '@tweenjs/tween.js'
 import * as BR from '../BattleRenderer'
 import type { Battle } from './Battle'
-import { Tags } from '../items/ItemsManager'
 
 
 
@@ -110,7 +109,7 @@ export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer
        - newState.getPlayerForID(attacker.id).position
     )
 
-    if (attacker.legs.tags.includes(Tags.TAG_ROLLER)) {
+    if (attacker.legs.tags.roller) {
 
       // Rolling animation
       
@@ -311,7 +310,7 @@ export function useWeapon (oldState: Battle, newState: Battle, attacker: BattleP
   
     
     // Sword jump
-    } else if (weapon.tags.includes(Tags.SWORD) && oldDistance > 1) {
+    } else if (weapon.tags.sword && oldDistance > 1) {
 
       hitOpponent.onComplete(() => BR.nextAnimation())
 

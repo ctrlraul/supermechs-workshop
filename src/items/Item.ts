@@ -73,17 +73,25 @@ export default interface Item {
   // Meta
   name: string
   kind: string
-	unlockLevel: number
-	goldPrice: number
-	tokensPrice: number
+  unlockLevel: number
+  goldPrice: number
+  tokensPrice: number
   transformRange: string
 
   // Stats
   type: 'TORSO' | 'LEGS' | 'SIDE_WEAPON' | 'TOP_WEAPON' | 'DRONE' | 'CHARGE_ENGINE' | 'TELEPORTER' | 'GRAPPLING_HOOK' | 'MODULE'
-	element: 'PHYSICAL' | 'EXPLOSIVE' | 'ELECTRIC' | 'COMBINED'
+  element: 'PHYSICAL' | 'EXPLOSIVE' | 'ELECTRIC' | 'COMBINED'
   stats: Partial<ItemStats>
-  tags: string[]
-	
+  tags: {
+    premium: boolean
+    sword: boolean
+    melee: boolean
+    roller: boolean
+    legacy: boolean
+    require_jump: boolean
+    custom: boolean
+  }
+
   // Graphic
   width: number
   height: number

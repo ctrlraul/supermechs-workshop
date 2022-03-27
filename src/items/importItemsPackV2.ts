@@ -17,16 +17,16 @@ interface RawItemV2 {
   // Meta
   name: Item['name']
   transform_range: Item['transformRange']
-	unlock_level?: Item['unlockLevel']
-	gold_price?: Item['goldPrice']
-	tokens_price?: Item['tokensPrice']
+  unlock_level?: Item['unlockLevel']
+  gold_price?: Item['goldPrice']
+  tokens_price?: Item['tokensPrice']
 
   // Stats
   type: Item['type']
-	element: Item['element']
+  element: Item['element']
   stats: Item['stats']
-  tags?: Item['tags']
-	
+  tags?: (keyof Item['tags'])[]
+  
   // Graphic
   width?: number
   height?: number
@@ -36,11 +36,11 @@ interface RawItemV2 {
 
 export interface ItemsPackV2 {
   version: '2'
-	key: string
-	name: string
-	description: string
-	spritesSheet: string
-	spritesMap: Record<string, Rectangle>
+  key: string
+  name: string
+  description: string
+  spritesSheet: string
+  spritesMap: Record<string, Rectangle>
   items: RawItemV2[]
 }
 
@@ -143,26 +143,30 @@ function importItem (raw: RawItemV2, spritesMap: ItemsPackV2['spritesMap']): Ite
 
 function getItemTags (raw: RawItemV2): Item['tags'] {
 
-  const tags = raw.tags ? [...raw.tags] : []
-
-  if (tags.includes('legacy')) {
-    // Is legacy premium?
-    if (raw.transform_range[0] === 'M') {
-      tags.push('premium')
-    }
-  } else {
-    // Is reloaded premium? (Checks if starts as L or M)
-    if ('LM'.includes(raw.transform_range[0])) {
-      tags.push('premium')
-    }
+  const tags: Item['tags'] = {
+    legacy: false,
+    melee: false,
+    premium: false,
+    require_jump: false,
+    roller: false,
+    sword: false,
+    custom: false
   }
 
-  if (!tags.includes('melee')) {
-    // Is jumping weapon?
-    if (raw.stats.advance || raw.stats.retreat) {
-      tags.push('require_jump')
-    }
+  if (raw.tags !== undefined) {
+    tags.legacy = raw.tags.includes('legacy')
+    tags.melee = raw.tags.includes('melee')
+    tags.roller = raw.tags.includes('roller')
+    tags.sword = raw.tags.includes('sword')
   }
+
+  tags.premium = (
+    tags.legacy
+    ? raw.transform_range[0] === 'M' // Legacy premium
+    : 'LM'.includes(raw.transform_range[0]) // Reloaded premium
+  )
+
+  tags.require_jump = 'advance' in raw.stats || 'retreat' in raw.stats
 
   return tags
 
