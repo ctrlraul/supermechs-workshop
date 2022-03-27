@@ -3,11 +3,12 @@
 import * as router from 'svelte-spa-router'
 import MechGfx from '../../components/MechGfx.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import { getLastMech, getMechs, saveMech } from '../../mechs/MechsManager'
+import { getLastMech, getMechs } from '../../mechs/MechsManager'
 import * as SocketManager from '../../managers/SocketManager'
 import { items2ids, getItemsHash, matchItemsHash } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { currentMech, itemsPackData, battle } from '../../stores'
+import { userData } from '../../stores/userData'
 import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
 import Mech from '../../mechs/Mech'
@@ -29,7 +30,6 @@ interface MatchMaker_Validation {
 // State
 
 let mech: Mech | null = $currentMech ? new Mech($currentMech) : null
-let mechName = mech ? mech.name : ''
 let inMatchMaker = false
 let awaitingResponse = false
 let pickOpponentMech = false
@@ -47,14 +47,6 @@ $: {
   }
 }
 
-// Save mech name whenever edited
-$: {
-  if (mech) {
-    mech.name = mechName
-    $currentMech = mech.toJSONModel()
-    saveMech($currentMech!)
-  }
-}
 
 
 // Functions
@@ -198,7 +190,8 @@ async function onOnlineBattle (): Promise<void> {
     const setup = items2ids(mech.setup)
 
     SocketManager.emit('matchmaker.join', {
-      name: mech.name,
+      name: $userData.name,
+      mechName: mech.name,
       setup,
       itemsHash: getItemsHash(setup)
     })
@@ -257,6 +250,11 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
     return
   }
 
+  if (mech === null) {
+    showNoMechSelectedPopup()
+    return
+  }
+
   const [pos1, pos2] = getRandomStartingPositions()
   const playerID = 'player'
 
@@ -264,13 +262,15 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
     online: false,
     p1: {
       id: playerID,
-      name: mech!.name,
+      name: $userData.name,
+      mechName: mech.name,
       position: pos1,
-      setup: items2ids(mech!.setup)
+      setup: items2ids(mech.setup)
     },
     p2: {
       id: 'bot',
       name: 'Skynet',
+      mechName: opponentMech.name,
       position: pos2,
       setup: items2ids(opponentMech.setup),
       ai: true
@@ -398,14 +398,10 @@ onDestroy(() => socketAttachment.detach())
     </div>
 
     <label>
-      <span>Mech Name:</span>
-      <input
-        type="text"
-        class="name"
-        bind:value={mechName}
-      />
+      <span>Name:</span>
+      <input type="text" class="name" bind:value={$userData.name} />
     </label>
-  
+
   {:else}
 
     <div class="no-active-mech">

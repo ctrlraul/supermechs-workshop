@@ -77,7 +77,17 @@ function toggleItemsInspector (): void {
     <ItemImage item={torso} style="width: 100%; height: 100%;" />
   </div>
 
-  <div class="name">{player.name}</div>
+  <div class="names">
+    <span class="player-name">{player.name || 'Unnamed Pilot'}</span>
+    <span class="mech-name">
+      <SvgIcon
+        name="mech"
+        color="var(--color-accent)" 
+        style="width: 1em; height: 1em;"
+      />
+      {player.mechName || 'Unnamed Mech'}
+    </span>
+  </div>
 
 
   <!-- Stats -->
@@ -178,15 +188,14 @@ function toggleItemsInspector (): void {
 .panel {
   position: relative;
   display: grid;
-  grid-template-rows: 1.5em 1.5em 1.5em 2.5em;
+  grid-template-rows: 2.2em 1.4em 1.4em 2.5em;
   grid-template-columns: 5em 7em 7em;
   grid-template-areas:
-    'pfp name name'
+    'pfp names names'
     'pfp health health'
     'pfp energy heat'
     'turns res inspect';
   gap: 0.3em;
-  font-weight: 600;
 }
 
 .panel.rtl {
@@ -207,12 +216,27 @@ function toggleItemsInspector (): void {
 }
 
 
-.name {
+.names {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   width: 100%;
   padding: 0 0.5em;
-  margin: auto;
-  grid-area: name;
+  grid-area: names;
+}
+
+.player-name {
+  font-size: 1.1em;
+}
+
+.mech-name {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+  color: var(--color-accent);
+  gap: 0.4em;
 }
 
 
@@ -262,6 +286,7 @@ function toggleItemsInspector (): void {
 .resistances > div > .value {
   position: relative;
   direction: ltr;
+  font-weight: 600;
 }
 
 
