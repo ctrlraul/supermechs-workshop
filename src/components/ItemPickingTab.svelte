@@ -37,6 +37,7 @@ let inspectedItem: Item | null = null
 $: itemToDisplay = inspectedItem || currentItem
 let filter: Filter = { query: '', element: null }
 $: itemsFiltered = getFilteredItemsList(filter)
+$: itemGroups = getItemGroups(itemsFiltered)
 
 
 
@@ -106,8 +107,8 @@ function getFilteredItemsList (filter: Filter): Item[] {
 }
 
 
-function getItemGroups (): Promise<Item[]>[] {
-  return chunk(itemsFiltered, 10).map((group, i) => new Promise(resolve => {
+function getItemGroups (items: Item[]): Promise<Item[]>[] {
+  return chunk(items, 10).map((group, i) => new Promise(resolve => {
     setTimeout(() => resolve(group), i * 30)
   }))
 }
@@ -177,7 +178,7 @@ function getItemGroups (): Promise<Item[]>[] {
 
       {#if itemsFiltered.length}
 
-        {#each getItemGroups() as group}
+        {#each itemGroups as group}
           {#await group then items}
             {#each items as item}
               <ItemButton
