@@ -1,5 +1,5 @@
 
-const matchFileName = /([^/]+)\?/
+const matchFileName = /[^/]\/(([^/])+?)[:?]/
 const style = 'color: hsl(hue, 70%, 60%); background-color: #111111'
 
 const hueChange = 48
