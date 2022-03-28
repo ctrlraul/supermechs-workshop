@@ -68,7 +68,7 @@ function toggleItemsInspector (): void {
 
 
 
-<div style={$$props.style} class="panel {rtl ? 'rtl' : ''}">
+<div style={$$props.style} class="panel {player.admin ? 'admin' : ''} {rtl ? 'rtl' : ''}">
 
 
   <!-- Player Fnfo -->
@@ -78,7 +78,9 @@ function toggleItemsInspector (): void {
   </div>
 
   <div class="names">
-    <span class="player-name">{player.name || 'Unnamed Pilot'}</span>
+    <span class="player-name">
+      {player.name || 'Unnamed Pilot'}
+    </span>
     <span class="mech-name">
       <SvgIcon
         name="mech"
@@ -228,6 +230,10 @@ function toggleItemsInspector (): void {
 
 .player-name {
   font-size: 1.1em;
+}
+
+.admin .player-name {
+  color: #ff8800;
 }
 
 .mech-name {
