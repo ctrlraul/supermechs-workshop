@@ -98,6 +98,8 @@ export function get <T extends keyof LocalStorageData> (key: T): LocalStorageDat
 export function get <T extends keyof LocalStorageData> (key: T, optional?: LocalStorageData[T]): LocalStorageData[T]
 export function get <T extends keyof LocalStorageData> (key: T, optional?: LocalStorageData[T]): LocalStorageData[T] {
 
+  console.trace(key)
+
   if (!loaded) {
     throw new Error('You forgot to call loadLocalData.')
   }

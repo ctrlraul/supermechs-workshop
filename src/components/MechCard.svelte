@@ -1,18 +1,16 @@
 <script lang="ts">
 
-import { saveMech } from '../mechs/MechsManager'
-import { currentMech } from '../stores'
 import MechCanvas from './MechCanvas.svelte'
 import Mech from '../mechs/Mech'
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
+import useTooltip from './Tooltip/useTooltip'
+import { saveMech, setCurrentMechID } from '../managers/UserDataManager'
 
 
 export let active: boolean = false
 export let mech: Mech
 export let onSetActive: (mech: Mech) => void
 export let onDelete: (mechID: string) => void
-export let onToggleSelected: null | ((mech: Mech) => void) = null
-export let selected = false
 
 
 
@@ -22,7 +20,7 @@ const MAX_MECH_NAME_LENGTH = 32
 
 // Stat
 
-const setup = mech.toJSONModel().setup
+$: setup = mech.toJSONModel().setup
 
 
 
@@ -34,12 +32,15 @@ function onRename (e: Event): void {
 
   mech.name = newName
 
-  if ($currentMech !== null && mech.id === $currentMech.id) {
-    $currentMech.name = newName
-  }
+  saveMech(mech)
 
-  saveMech(mech.toJSONModel())
+}
 
+
+function duplicate (): void {
+  const newMech = Mech.from(mech)
+  saveMech(newMech)
+  setCurrentMechID(newMech.id)
 }
 
 </script>
@@ -74,13 +75,11 @@ function onRename (e: Event): void {
     <button class="global-box select" on:click={() => onSetActive(mech)}>Select</button>
   </div>
 
-  {#if onToggleSelected}
-    <input
-      type="checkbox"
-      checked={selected}
-      on:input={() => onToggleSelected && onToggleSelected(mech)}
-    />
-  {/if}
+
+  <!-- Diplicate Mech Button -->
+  <button class="duplicate" use:useTooltip={'Make a copy'} on:click={duplicate}>
+    <SvgIcon name="copy" />
+  </button>
 
 </button>
 
@@ -157,12 +156,21 @@ input[type=text] {
 }
 
 
-input[type=checkbox] {
+.duplicate {
   position: absolute;
+  left: 0.5em;
   top: 0.5em;
-  right: 0.5em;
   width: 1.5em;
   height: 1.5em;
+  background-color: unset;
+  fill: var(--color-text);
+  transition: fill 200ms;
+}
+
+.duplicate:hover,
+.duplicate:focus {
+  transition: fill 0ms;
+  fill: var(--color-accent);
 }
 
 </style>

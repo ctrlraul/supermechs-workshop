@@ -1,77 +1,49 @@
 <script lang="ts">
 
 import * as router from 'svelte-spa-router'
+import * as UserDataManager from '../managers/UserDataManager'
 import Header from '../components/Header.svelte'
 import MechCard from '../components/MechCard.svelte'
-import * as MechsManager from '../mechs/MechsManager'
-import { addPopup } from '../managers/PopupManager'
-import { itemsPackData, currentMech } from '../stores'
 import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
-import { onDestroy } from 'svelte'
 import MechSummary from '../components/MechSummary.svelte'
+import { addPopup } from '../managers/PopupManager'
+import { itemsPackData } from '../stores'
+import { currentMech, mechs } from '../stores/mechs'
+import { items2ids } from '../items/ItemsManager'
 
 
 
 // State
 
-let mechs = [] as Mech[]
 let selectedMechs = [] as Mech[]
-$: activeMech = $currentMech ? new Mech($currentMech) : null
-
-
-
-// Stores
-
-const unsubItemsPackData = itemsPackData.subscribe(value => {
-
-  if (value === null) {
-    mechs = []
-    $currentMech = null
-  } else {
-    mechs = MechsManager.getMechs().reverse().map(json => new Mech(json))
-    $currentMech = mechs.length ? MechsManager.getLastMech() : null
-  }
-
-})
 
 
 
 // Events
 
 function onSelectMech (mech: Mech): void {
-  MechsManager.setLastMech(mech.id)
-  $currentMech = mech.toJSONModel()
+  UserDataManager.setCurrentMechID(mech.id)
   router.pop()
 }
 
 
 function onDeleteMech (id: string): void {
-
-  MechsManager.deleteMech(id)
-
-  mechs = mechs.filter(mech => mech.id !== id)
-
-  if (activeMech && id === activeMech.id) {
-    if (mechs.length === 0) {
-      $currentMech = MechsManager.createMechForCurrentPack()
-      router.pop()
-    } else {
-      $currentMech = mechs[0].toJSONModel()
-    }
-  }
-
+  UserDataManager.deleteMechInCurrentPackByID(id)
 }
 
 
 function onCreateMech (): void {
-  const mech = new Mech(MechsManager.createMechForCurrentPack())
-  const json = mech.toJSONModel()
-  MechsManager.saveMech(json)
-  MechsManager.setLastMech(mech.id)
-  $currentMech = json
+
+  const mech = UserDataManager.createMechForCurrentPack(true)
+
+  UserDataManager.setCurrentMechID(mech.id)
+
+  // $currentMech = mech
+
   router.replace('/workshop')
+
 }
 
 
@@ -108,13 +80,12 @@ function onClickImportMechs (): void {
             return
           }
 
-          MechsManager.importMechs(data)
-          mechs = MechsManager.getMechs().map(json => new Mech(json))
+          UserDataManager.importMechs(data)
 
         }
       })
 
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file)
     }
   })
 
@@ -127,7 +98,7 @@ function onClickExportMechs (): void {
 
   if (selectedMechs.length) {
 
-    MechsManager.exportMechs(selectedMechs.map(mech => mech.toJSONModel()))
+    UserDataManager.exportMechs(selectedMechs)
     
   } else {
 
@@ -136,7 +107,7 @@ function onClickExportMechs (): void {
       message: 'No mechs selected, export all of them instead?',
       options: {
         Yes () {
-          MechsManager.exportMechs(MechsManager.getMechs())
+          UserDataManager.exportMechs($mechs)
           this.remove()
         },
         Cancel () {
@@ -164,16 +135,9 @@ function onSetActive (mech: Mech): void {
   if ($currentMech && mech.id === $currentMech.id) {
     onSelectMech(mech)
   } else {
-    activeMech = mech
-    $currentMech = mech.toJSONModel()
+    $currentMech = mech
   }
 }
-
-
-
-// Routine
-
-onDestroy(() => unsubItemsPackData())
 
 </script>
 
@@ -191,11 +155,11 @@ onDestroy(() => unsubItemsPackData())
 
     {#if $currentMech !== null}
 
-      {#if $currentMech.setup[Mech.TORSO_INDEX] !== 0}
+      {#if $currentMech.setup[Mech.TORSO_INDEX] !== null}
 
         <div class="mech-view-container">
           <MechCanvas
-            setup={$currentMech.setup}
+            setup={items2ids($currentMech.setup)}
             style="max-width: 90%; max-height: 100%"
           />
         </div>
@@ -210,7 +174,7 @@ onDestroy(() => unsubItemsPackData())
 
       {/if}
 
-      <MechSummary setup={$currentMech.setup} style="width: 100%" />
+      <MechSummary setup={items2ids($currentMech.setup)} style="width: 100%" />
 
     {:else}
 
@@ -224,7 +188,7 @@ onDestroy(() => unsubItemsPackData())
 
   <div class="pack-info">
     <div>Pack: {$itemsPackData !== null ? $itemsPackData.name : '[No Items Pack loaded!]'}</div>
-    <div>Mechs: {mechs.length}</div>
+    <div>Mechs: {$mechs.length}</div>
   </div>
 
 
@@ -247,8 +211,8 @@ onDestroy(() => unsubItemsPackData())
 
 
   <div class="mechs-list">
-    {#if mechs.length}
-      {#each mechs as mech}
+    {#if $mechs.length}
+      {#each $mechs as mech}
         <MechCard
           active={$currentMech !== null && mech.id === $currentMech.id}
           mech={mech}

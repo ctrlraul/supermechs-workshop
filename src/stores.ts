@@ -1,6 +1,5 @@
 import { writable } from 'svelte/store'
-import type { MechJSON } from './mechs/Mech'
-import * as MechsManager from './mechs/MechsManager'
+import * as UserDataManager from './managers/UserDataManager'
 import Logger from './utils/Logger'
 import { getURLQuery } from './utils/getURLQuery'
 import { addPopup } from './managers/PopupManager'
@@ -37,7 +36,6 @@ const logger = new Logger()
 export const orientation = writable<Orientations>(getOrientation())
 export const battle = writable<Battle | null>(null)
 export const itemsPackData = writable<ItemsPackData | null>(null)
-export const currentMech = writable<MechJSON | null>(null)
 export const tooltip = writable<TooltipData | null>(null)
 
 
@@ -53,20 +51,17 @@ itemsPackData.subscribe(value => {
   logger.log('Items Pack Data:', value)
 
 
-  MechsManager.loadMechsForCurrentPack()
-
   try {
 
     const query = getURLQuery()
-    const mech = MechsManager.importMechFromURLQuery(query)
+    const mech = UserDataManager.importMechFromURLQuery(query)
 
-    if (mech !== null && !MechsManager.hasMech(mech)) {
+    if (mech !== null && !UserDataManager.hasMech(mech)) {
 
-      MechsManager.saveMech(mech)
-      MechsManager.setLastMech(mech.id)
+      UserDataManager.saveMech(mech)
 
       const message = (
-        mech.pack_key === value.key
+        mech.packKey === value.key
         ? `Mech "${mech.name}" has been set as your current mech!`
         : `Mech "${mech.name}" uses a different items pack, ask it to who sent you the link!`
       )
@@ -94,8 +89,6 @@ itemsPackData.subscribe(value => {
 		})
 
   }
-
-  currentMech.set(MechsManager.getLastMech())
 
 })
 

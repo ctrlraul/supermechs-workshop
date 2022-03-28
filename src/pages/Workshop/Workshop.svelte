@@ -1,20 +1,21 @@
 <script lang="ts">
 
 import EquippedItemSlot from './EquippedItemSlot.svelte'
-import { saveMech } from '../../mechs/MechsManager'
 import ItemPickingTab from '../../components/ItemPickingTab.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import { push, location as routerLocation } from "svelte-spa-router"
-import { currentMech } from '../../stores'
-import * as LocalStorageHandler from '../../managers/LocalStorageHandler'
-import Mech from '../../mechs/Mech'
+import Mech, { MechJSON } from '../../mechs/Mech'
 import SLOTS from './slots'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
+import MechSummary from '../../components/MechSummary.svelte'
+import { push, location as routerLocation } from 'svelte-spa-router'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
-import MechSummary from '../../components/MechSummary.svelte'
+import { userData } from '../../stores/userData'
+import { currentMech } from '../../stores/mechs'
+import { getItemByID, items2ids } from '../../items/ItemsManager'
+import { saveMech } from '../../managers/UserDataManager'
 
 
 
@@ -28,11 +29,12 @@ import type Item from '../../items/Item'
 
 const PATREON_URL = 'https://www.patreon.com/ctrlraul'
 
-let arenaBuffs = LocalStorageHandler.get('settings').arena_buffs
 let focusedSlotInfo = null as null | { index: number, type: Item['type'] }
 
-$: mech = $currentMech ? new Mech($currentMech) : null
+$: mech = $currentMech
 $: hasItemsEquipped = mech && mech.setup.some(Boolean)
+
+// Update mech URL whenever $currentMech changes
 $: {
   if ($currentMech !== null) {
     updateMechURL()
@@ -54,11 +56,13 @@ function updateMechURL () {
     // Remove Non-ASCII characters, very useful to get rid of emojis
     const URLSafeName = $currentMech.name.replace(/[^\x00-\x7F]/g, '')
 
-    const ascii = btoa(JSON.stringify({
+    const mechData: Partial<MechJSON> = {
       name: URLSafeName || 'Mech Mc.Mecher',
-      pack_key: $currentMech.pack_key,
-      setup: $currentMech.setup
-    }))
+      pack_key: $currentMech.packKey,
+      setup: items2ids($currentMech.setup)
+    }
+
+    const ascii = btoa(JSON.stringify(mechData))
 
     query.set('mech', ascii)
 
@@ -80,9 +84,10 @@ function updateMechURL () {
 // Events
 
 function onClearSlot (index: number): void {
-  $currentMech!.setup[index] = 0
-  saveMech($currentMech!)
-  updateMechURL()
+  if ($currentMech) {
+    $currentMech.setup[index] = null
+    saveMech($currentMech)
+  }
 }
 
 
@@ -93,11 +98,12 @@ function onClickSlot (index: number, type: Item['type']): void {
 
 function onSelectItem (itemID: Item['id']): void {
 
-  if (focusedSlotInfo && $currentMech!.setup[focusedSlotInfo.index] !== itemID) {
-    $currentMech!.setup[focusedSlotInfo.index] = itemID
-    saveMech($currentMech!)
-    updateMechURL()
+  if ($currentMech === null || focusedSlotInfo === null) {
+    return
   }
+
+  $currentMech.setup[focusedSlotInfo.index] = getItemByID(itemID)
+  saveMech($currentMech)
 
   focusedSlotInfo = null
 
@@ -115,7 +121,7 @@ function onClickDismountMech (): void {
         Yes () {
           this.remove()
           if ($currentMech) {
-            $currentMech.setup = Array(20).fill(0)
+            $currentMech.setup = Array(20).fill(null)
             saveMech($currentMech)
             updateMechURL()
           }
@@ -129,17 +135,7 @@ function onClickDismountMech (): void {
 
 
 function toggleArenaBuffs (): void {
-
-  arenaBuffs = !arenaBuffs
-  mech = mech // This is just to trigger an UI update
-  
-  LocalStorageHandler.set('settings', 
-    Object.assign(
-      LocalStorageHandler.get('settings'),
-      { arena_buffs: arenaBuffs }
-    )
-  )
-
+  $userData.settings.arenaBuffs = !$userData.settings.arenaBuffs
 }
 
 
@@ -203,7 +199,7 @@ function onClickBattle (): void {
 
   <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
-      <MechCanvas setup={$currentMech.setup} style="max-width: 70%; max-height: 90%;" />
+      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 90%;" />
     {/if}
   </div>
 
@@ -252,7 +248,7 @@ function onClickBattle (): void {
   <div class="mech-summary-container">
     {#if $currentMech !== null}
       <MechSummary
-        setup={$currentMech.setup}
+        setup={items2ids($currentMech.setup)}
         text={$currentMech.name}
         style="flex: 1; max-width: 20em"
       />
@@ -261,8 +257,12 @@ function onClickBattle (): void {
 
   <div class="buttons">
 
-    <button class="global-box" on:click={toggleArenaBuffs} use:tooltip={'Arena Buffs: ' + (arenaBuffs ? 'ON' : 'OFF')}>
-      <SvgIcon name="arena_buffs" color={arenaBuffs ? 'var(--color-success)' : 'var(--color-text-dark)'} />
+    <button
+      class="global-box {$userData.settings.arenaBuffs ? 'arena-buffs-on' : ''}"
+      on:click={toggleArenaBuffs}
+      use:tooltip={'Toggle arena buffs'}
+    >
+      <SvgIcon name="arena_buffs" />
     </button>
 
     <button class="global-box" on:click={() => push('/mechs')} use:tooltip={'Mechs Manager'}>
@@ -371,6 +371,16 @@ main {
   height: 2.2em;
   padding: 0.3em;
   margin-top: 0.5em;
+  fill: var(--color-text-dark);
+}
+
+.buttons > button:hover,
+.buttons > button:focus {
+  fill: var(--color-primary);
+}
+
+.buttons > button.arena-buffs-on {
+  fill: var(--color-success);
 }
 
 .mech-container {

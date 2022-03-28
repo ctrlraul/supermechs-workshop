@@ -2,14 +2,14 @@
 
 import Router, { replace } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
-import { onMount } from 'svelte'
-import { importItemsPack } from './items/ItemsManager'
-import * as LocalStorageHandler from './managers/LocalStorageHandler'
-import { addPopup } from './managers/PopupManager'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'
+import { onMount } from 'svelte'
+import { importItemsPack } from './items/ItemsManager'
+import { addPopup } from './managers/PopupManager'
 import { battle, itemsPackData } from './stores'
 import { loadStatImages } from './stats/StatsManager'
+import { userData } from './stores/userData'
 
 
 
@@ -20,13 +20,13 @@ import Workshop from './pages/Workshop/Workshop.svelte'
 import Mechs from './pages/Mechs.svelte'
 import Lobby from './pages/Lobby/Lobby.svelte'
 import Battle from './pages/Battle/Battle.svelte'
+import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 
 
 
 // Types
 
 import type { RouteDefinition } from 'svelte-spa-router'
-import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 
 
 
@@ -35,7 +35,8 @@ import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 let didLoadStats = false
 
 
-LocalStorageHandler.loadLocalData();
+// LocalStorageHandler.loadLocalData()
+
 
 onMount(async () => {
 
@@ -53,9 +54,8 @@ function needsItemsPack (): boolean {
     return true
   }
 
-  const packURL = LocalStorageHandler.get('last-items-pack-url')
 
-  if (packURL) {
+  if ($userData.lastItemsPackURL !== null) {
 
     const popup = addPopup({
       title: 'Loading last items pack...',
@@ -64,7 +64,7 @@ function needsItemsPack (): boolean {
     })
 
 
-    importItemsPack(packURL, () => {})
+    importItemsPack($userData.lastItemsPackURL, () => {})
       .then(result => {
         popup.remove()
         itemsPackData.set(result.data)

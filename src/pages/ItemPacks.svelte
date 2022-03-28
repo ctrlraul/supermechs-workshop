@@ -1,13 +1,13 @@
 <script lang="ts">
+
 import * as router from 'svelte-spa-router'
-import { importItemsPack } from '../items/ItemsManager'
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
-import * as LocalStorageHandler from '../managers/LocalStorageHandler'
+import { importItemsPack } from '../items/ItemsManager'
 import { itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
-import { onMount } from 'svelte';
-import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage';
+import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
+import { userData } from '../stores/userData'
 
 
 
@@ -22,20 +22,6 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 // Data
 
 let loadingProgress = 0
-
-onMount(() => {
-
-  if ($itemsPackData !== null) {
-    return
-  }
-
-  const lastPackURL = LocalStorageHandler.get('last-items-pack-url')
-
-  if (lastPackURL) {
-    loadFromURL(lastPackURL)
-  }
-
-})
 
 
 
@@ -102,7 +88,7 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
     popup.remove()
 
     if (itemsPackData !== null && saveURL) {
-      LocalStorageHandler.set('last-items-pack-url', url)
+      $userData.lastItemsPackURL = url
     }
 
   }
@@ -116,7 +102,7 @@ function loadFromFile (e: Event): void {
 
   if (target && target.files) {
 
-    LocalStorageHandler.set('last-items-pack-url', '')
+    $userData.lastItemsPackURL = null
 
     const file = target.files[0]
 

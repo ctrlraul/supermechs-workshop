@@ -1,8 +1,9 @@
 import rawStatsData from './StatFormats'
 import { cloneDeep } from 'lodash'
-import * as LocalStorageHandler from '../managers/LocalStorageHandler'
 import { getItemByID, ids2items } from '../items/ItemsManager'
 import { getBlob } from '../utils/getImageData'
+import { userData } from '../stores/userData'
+import { get } from 'svelte/store'
 
 
 
@@ -28,7 +29,7 @@ const IMAGE_MISSING_URL = '/assets/images/texture-missing.png'
 const MAX_IMAGE_SIZE = 128
 
 const stats = {} as Record<keyof Item['stats'], StatInstructionWithImage>
-    
+
 const buffFunctions = {
   add: (x: number, amount: number) => x + amount,
   mul: (x: number, amount: number) => x * amount
@@ -169,8 +170,11 @@ export function getBuffedMechSummary (setup: number[]): Item['stats'] {
 
 /** Returns the item stats with arena buffs applied when enabled */
 export function getSmartMechSummary (setup: number[]): Item['stats'] {
-  const arenaBuffs = LocalStorageHandler.get('settings').arena_buffs
-  return arenaBuffs ? getBuffedMechSummary(setup) : getMechSummary(setup)
+  return (
+    get(userData).settings.arenaBuffs
+    ? getBuffedMechSummary(setup)
+    : getMechSummary(setup)
+  )
 }
 
 
@@ -194,8 +198,11 @@ export function getBuffedItemStats (id: Item['id']): Item['stats'] {
 
 /** Returns the item stats with arena buffs applied when enabled */
 export function getSmartItemStats (id: Item['id']): Item['stats'] {
-  const arenaBuffs = LocalStorageHandler.get('settings').arena_buffs
-  return arenaBuffs ? getBuffedItemStats(id) : getItemStats(id)
+  return (
+    get(userData).settings.arenaBuffs
+    ? getBuffedItemStats(id)
+    : getItemStats(id)
+  )
 }
 
 

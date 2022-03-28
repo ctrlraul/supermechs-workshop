@@ -3,11 +3,10 @@
 import * as router from 'svelte-spa-router'
 import MechGfx from '../../components/MechGfx.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import { getLastMech, getMechs } from '../../mechs/MechsManager'
 import * as SocketManager from '../../managers/SocketManager'
 import { items2ids, getItemsHash, matchItemsHash } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
-import { currentMech, itemsPackData, battle } from '../../stores'
+import { battle } from '../../stores'
 import { userData } from '../../stores/userData'
 import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
@@ -15,6 +14,7 @@ import Mech from '../../mechs/Mech'
 import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
+import { currentMech } from '../../stores/mechs'
 
 
 
@@ -29,23 +29,10 @@ interface MatchMaker_Validation {
 
 // State
 
-let mech: Mech | null = $currentMech ? new Mech($currentMech) : null
+let mech = $currentMech
 let inMatchMaker = false
 let awaitingResponse = false
 let pickOpponentMech = false
-
-
-
-// Stores
-
-// Update the mech when the items pack changes
-$: {
-  if ($itemsPackData && getMechs().length) {
-    mech = new Mech(getLastMech())
-  } else {
-    mech = null
-  }
-}
 
 
 

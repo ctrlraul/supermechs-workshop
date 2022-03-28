@@ -3,66 +3,19 @@
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import Mech from '../../mechs/Mech'
-import * as Stores from '../../stores'
 import { items2ids } from '../../items/ItemsManager'
-import { onMount } from 'svelte'
-import { createMechForCurrentPack, getMechs, saveMech, setLastMech } from '../../mechs/MechsManager'
 import { clickOutside } from '../../utils/useClickOutside'
+import { mechs } from '../../stores/mechs'
 
 export let onPickMech: (mech: Mech | null) => void
 export let title: string = 'Pick Mech'
-export let allowCreating: boolean = false
-
-
-$: mechs = [] as Mech[]
-let itemsPackData: Stores.ItemsPackData | null = null
 
 
 
-onMount(() => {
-  if (itemsPackData !== null) {
-    mechs = getFightableOpponentMechs()
-  }
+
+$: fightableMechs = $mechs.filter(mech => {
+  return mech.setup[Mech.TORSO_INDEX] && mech.setup[Mech.LEGS_INDEX]
 })
-
-
-Stores.itemsPackData.subscribe(value => {
-  
-  if (value !== null) {
-    mechs = getFightableOpponentMechs()
-  } else {
-    mechs = []
-  }
-
-  itemsPackData = value
-  
-})
-
-
-// Utils
-
-function getFightableOpponentMechs (): Mech[] {
-  return (
-    getMechs()
-      // So mechs recently created show up first
-      .reverse()
-      // Keep only mechs with torso and legs
-      .filter(mech => mech.setup[Mech.TORSO_INDEX] && mech.setup[Mech.LEGS_INDEX])
-      // Map to Mech instances
-      .map(mech => new Mech(mech))
-  )
-}
-
-
-
-// Events
-
-function onCreateNewMech (): void {
-  const mech = new Mech(createMechForCurrentPack())
-  setLastMech(mech.id)
-  saveMech(mech.toJSONModel())
-  onPickMech(mech)
-}
 
 </script>
 
@@ -73,18 +26,13 @@ function onCreateNewMech (): void {
 
     <header>
       {title}
-      {#if allowCreating}
-        <button class="create-new-mech" on:click={onCreateNewMech}>
-          Create New Mech
-        </button>
-      {/if}
       <button class="quit" on:click={() => onPickMech(null)}>
         <SvgIcon name="cross" />
       </button>
     </header>
 
     <div class="mechs-list">
-      {#each mechs as mech}
+      {#each fightableMechs as mech}
         <button class="mech-button" on:click={() => onPickMech(mech)}>
           <MechCanvas
             setup={items2ids(mech.setup)}
@@ -177,18 +125,6 @@ header {
   font-size: 0.84em;
 }
 
-
-.create-new-mech {
-  position: relative;
-  width: 8em;
-  height: 2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-background);
-  font-size: 0.85em;
-  border-radius: var(--ui-radius);
-}
 
 
 @media (orientation: portrait) {
