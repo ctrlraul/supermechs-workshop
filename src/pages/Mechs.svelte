@@ -5,9 +5,13 @@ import Header from '../components/Header.svelte'
 import MechCard from '../components/MechCard.svelte'
 import * as MechsManager from '../mechs/MechsManager'
 import { addPopup } from '../managers/PopupManager'
-import { itemsPackData, orientation, currentMech } from '../stores'
+import { itemsPackData, currentMech } from '../stores'
 import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
+import MechCanvas from '../components/MechCanvas.svelte'
+import { onDestroy } from 'svelte';
+import StatBlocks from '../components/StatBlocks.svelte'
+import MechSummary from '../components/MechSummary.svelte'
 
 
 
@@ -21,7 +25,7 @@ $: activeMech = $currentMech ? new Mech($currentMech) : null
 
 // Stores
 
-itemsPackData.subscribe(value => {
+const unsubItemsPackData = itemsPackData.subscribe(value => {
 
   if (value === null) {
     mechs = []
@@ -35,21 +39,29 @@ itemsPackData.subscribe(value => {
 
 
 
+// Functions
+
+function selectActiveMech (): void {
+  if (activeMech !== null) {
+    onSelectMech(activeMech)
+  }
+}
+
+
+function deleteActiveMech (): void {
+  if (activeMech !== null) {
+    onDeleteMech(activeMech.id)
+  }
+}
+
+
+
 // Events
 
 function onSelectMech (mech: Mech): void {
   MechsManager.setLastMech(mech.id)
   $currentMech = mech.toJSONModel()
   router.pop()
-}
-
-
-function onChangeName (mech: Mech, name: string): void {
-  mech.name = name.trim()
-  if ($currentMech && mech.id === $currentMech.id) {
-    $currentMech.name = name.trim()
-  }
-  MechsManager.saveMech(mech.toJSONModel())
 }
 
 
@@ -175,6 +187,12 @@ function onSetActive (mech: Mech): void {
   }
 }
 
+
+
+// Routine
+
+onDestroy(() => unsubItemsPackData())
+
 </script>
 
 
@@ -189,42 +207,33 @@ function onSetActive (mech: Mech): void {
 
   <div class="current-mech-view">
 
-    {#if activeMech}
+    {#if $currentMech !== null}
 
-      <MechCard
-        mech={activeMech}
-        scale={0.6}
-        onSetActive={onSelectMech}
-        onChangeName={onChangeName}
-        onDelete={onDeleteMech}
-        style="width:100%; flex:1; margin:0"
-      />
+      {#if $currentMech.setup[Mech.TORSO_INDEX] !== 0}
 
-      <div class="buttons-container">
-        <button
-          class="classic-box"
-          on:click={() => {
-            if (activeMech) {
-              onDeleteMech(activeMech.id)
-            }
-          }}>
-          Delete
-        </button>
-        <button
-          class="classic-box"
-          on:click={() => {
-            if (activeMech) {
-              onSelectMech(activeMech)
-            }
-          }}>
-          Select
-        </button>
-      </div>
+        <div class="mech-view-container">
+          <MechCanvas
+            setup={$currentMech.setup}
+            style="max-width: 90%; max-height: 100%"
+          />
+        </div>
+
+      {:else}
+
+        <SvgIcon
+          name="mech"
+          color="var(--color-secondary)"
+          style="max-width: 60%; max-height: 60%; margin: auto"
+        />
+
+      {/if}
+
+      <MechSummary setup={$currentMech.setup} style="width: 100%" />
 
     {:else}
 
       <div class="classic-box no-active-mech">
-        No active mech!
+        Select a mech!
       </div>
 
     {/if}
@@ -255,23 +264,16 @@ function onSetActive (mech: Mech): void {
   </div>
 
 
-  <div class="mechs-container">
+  <div class="mechs-list">
     {#if mechs.length}
       {#each mechs as mech}
         <MechCard
-          mech={mech}
-          scale={0.5}
           active={$currentMech !== null && mech.id === $currentMech.id}
-          selected={selectedMechs.includes(mech)}
-          onToggleSelected={onToggleSelected}
+          mech={mech}
           onSetActive={onSetActive}
-          onChangeName={onChangeName}
           onDelete={onDeleteMech}
-          style={
-            $orientation === 'portrait'
-            ? 'width: calc(50% - 0.25em); margin: 0;'
-            : ''
-          }
+          onToggleSelected={onToggleSelected}
+          selected={selectedMechs.includes(mech)}
         />
       {/each}
     {:else}
@@ -293,7 +295,7 @@ function onSetActive (mech: Mech): void {
 main {
   display: grid;
   grid-template-rows: 3em 1fr 3em 5em;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: 33% 67%;
   grid-template-areas:
     'header header'
     'current-mech mechs-list'
@@ -304,6 +306,7 @@ main {
   max-width: var(--content-width);
   max-height: var(--content-height);
 }
+
 
 .current-mech-view {
   display: flex;
@@ -316,26 +319,14 @@ main {
   grid-area: current-mech;
 }
 
-.current-mech-view > .buttons-container {
-  width: 100%;
-  height: 2em;
+
+.mech-view-container {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5em;
-}
-
-.current-mech-view > .buttons-container > button {
-  width: 50%;
-  height: 100%;
-}
-
-.current-mech-view > .buttons-container > button:first-of-type {
-  --color: var(--color-error);
-}
-
-.current-mech-view > .buttons-container > button:last-of-type {
-  --color: var(--color-success);
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  flex: 1;
 }
 
 
@@ -351,14 +342,15 @@ main {
 }
 
 
-.mechs-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+.mechs-list {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5em;
+  padding-bottom: 0.5em;
+  padding-right: 0.5em;
   overflow-x: hidden;
   overflow-y: scroll;
-  padding-bottom: 0.2em;
-  gap: 0.6em;
   grid-area: mechs-list;
 }
 
@@ -433,9 +425,9 @@ main {
       'buttons';
   }
 
-  .mechs-container {
-    padding: 0.5em;
-    gap: 0.5em;
+  .mechs-list {
+    grid-template-columns: 1fr 1fr;
+    padding-left: 0.5em;
   }
 
   .current-mech-view {

@@ -1,20 +1,20 @@
 <script lang="ts">
 
-import StatBlocks from '../../components/StatBlocks.svelte'
-import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
+import StatBlocks from './StatBlocks.svelte'
+import SvgIcon from './SvgIcon/SvgIcon.svelte'
 
 
 
 export let setup: number[]
-export let text: string = 'Mech Summary'
+export let text: string = ''
 
 </script>
 
 
 
-<div class="mech-summary no-select">
-  <div class="wrapper global-box">
+<div class="mech-summary no-select global-box" style={$$props.style}>
 
+  {#if text}
     <div class="header">
 
       <SvgIcon
@@ -26,12 +26,12 @@ export let text: string = 'Mech Summary'
       <span>{text}</span>
 
     </div>
+  {/if}
 
-    <div class="blocks">
-      <StatBlocks source={setup} />
-    </div>
-
+  <div class="blocks">
+    <StatBlocks source={setup} />
   </div>
+
 </div>
 
 
@@ -42,19 +42,7 @@ export let text: string = 'Mech Summary'
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  width: 100%;
-  height: 100%;
-  grid-area: summary;
-  padding-bottom: 0.2em;
-}
-
-
-.wrapper {
-  display: flex;
   flex-direction: column;
-  max-width: 20em;
-  width: 100%;
   padding: 0.5em;
 }
 
@@ -77,21 +65,6 @@ export let text: string = 'Mech Summary'
   grid-template-columns: 1fr 1fr 1fr;
   width: 100%;
   gap: 0.5em;
-}
-
-
-
-
-@media (orientation: portrait) {
-
-  .mech-summary {
-    position: absolute;
-    left: 0;
-    bottom: 30%;
-    width: 100%;
-    height: 6em;
-  }
-
 }
 
 </style>

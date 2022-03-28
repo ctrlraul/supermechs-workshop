@@ -1,11 +1,10 @@
 <script lang="ts">
 
 import { saveMech } from '../mechs/MechsManager'
-import { currentMech, Orientations } from '../stores'
+import { currentMech } from '../stores'
 import MechCanvas from './MechCanvas.svelte'
-
-
-import type Mech from '../mechs/Mech'
+import Mech from '../mechs/Mech'
+import SvgIcon from './SvgIcon/SvgIcon.svelte'
 
 
 export let active: boolean = false
@@ -20,6 +19,14 @@ export let selected = false
 const MAX_MECH_NAME_LENGTH = 32
 
 
+
+// Stat
+
+const setup = mech.toJSONModel().setup
+
+
+
+// Functions
 
 function onRename (e: Event): void {
 
@@ -41,38 +48,39 @@ function onRename (e: Event): void {
 
 <button class="mech-card {active ? 'active' : ''}" style={$$props.style}>
 
-  <div class="content">
-
-    <div class="mech-container" on:click={() => onSetActive(mech)}>
-      <MechCanvas
-        setup={mech.toJSONModel().setup}
-        style="width: 80%; max-height: 90%"
-      />
-    </div>
-
-    <input
-      type="text"
-      placeholder="Unnamed Mech"
-      spellCheck="false"
-      max={MAX_MECH_NAME_LENGTH}
-      value={mech.name}
-      on:change={onRename}
-    />
-
-    <div class="buttons-container">
-      <button class="global-box delete" on:click={() => onDelete(mech.id)}>Delete</button>
-      <button class="global-box select" on:click={() => onSetActive(mech)}>Select</button>
-    </div>
-
-    {#if onToggleSelected}
-      <input
-        type="checkbox"
-        checked={selected}
-        on:input={() => onToggleSelected && onToggleSelected(mech)}
+  <div class="mech-container" on:click={() => onSetActive(mech)}>
+    {#if setup[Mech.TORSO_INDEX] !== 0}
+      <MechCanvas {setup} style="width: 80%; max-height: 90%" />
+    {:else}
+      <SvgIcon
+        name="mech"
+        color="var(--color-secondary)"
+        style="max-width: 60%; max-height: 60%; margin: auto"
       />
     {/if}
-
   </div>
+
+  <input
+    type="text"
+    placeholder="Unnamed Mech"
+    spellCheck="false"
+    max={MAX_MECH_NAME_LENGTH}
+    value={mech.name}
+    on:change={onRename}
+  />
+
+  <div class="buttons-container">
+    <button class="global-box delete" on:click={() => onDelete(mech.id)}>Delete</button>
+    <button class="global-box select" on:click={() => onSetActive(mech)}>Select</button>
+  </div>
+
+  {#if onToggleSelected}
+    <input
+      type="checkbox"
+      checked={selected}
+      on:input={() => onToggleSelected && onToggleSelected(mech)}
+    />
+  {/if}
 
 </button>
 
@@ -81,18 +89,16 @@ function onRename (e: Event): void {
 <style>
 
 .mech-card {
-  --size: calc(100% / 3 - 0.4em);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 13em;
+  padding: 0.3em;
+
   border-radius: var(--ui-radius);
-  overflow: hidden;
-  width: var(--size);
-  cursor: pointer;
+  /* overflow: hidden; */
   background-color: var(--color-primary);
   border: 0.15em solid var(--color-primary);
-
-  /* Aspect Ratio Hack */
-  height: 0;
-  padding-top: var(--size);
   transition: border-color 200ms;
 }
 
@@ -104,19 +110,30 @@ function onRename (e: Event): void {
 
 
 .buttons-container {
-  display: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-content: center;
+  flex-wrap: wrap;
+  padding-top: 0.5em;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 20%;
 }
 
-
-.content {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+.buttons-container > button {
+  width: calc(50% - 0.25em);
   height: 100%;
-  padding: 0.3em;
+}
+
+.delete {
+  background-color: var(--color-error);
+}
+
+.select {
+  background-color: var(--color-accent);
 }
 
 
@@ -148,48 +165,4 @@ input[type=checkbox] {
   height: 1.5em;
 }
 
-
-@media (orientation: portrait) and (max-width: 767px) {
-
-  .mech-card {
-    width: calc(50% - 0.25em);
-    padding-top: 60%;
-  }
-
-  .mech-container {
-    height: 80%;
-  }
-
-  .buttons-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    align-content: center;
-    flex-wrap: wrap;
-    padding-top: 0.5em;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 20%;
-  }
-
-  .buttons-container > button {
-    width: calc(50% - 0.25em);
-    height: 100%;
-  }
-
-  .delete {
-    background-color: var(--color-error);
-  }
-
-  .select {
-    background-color: var(--color-accent);
-  }
-
-  input[type=checkbox] {
-    bottom: calc(22%);
-  }
-
-}
 </style>

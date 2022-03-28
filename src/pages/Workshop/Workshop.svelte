@@ -14,7 +14,7 @@ import MechCanvas from '../../components/MechCanvas.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
-import MechSummary from './MechSummary.svelte'
+import MechSummary from '../../components/MechSummary.svelte'
 
 
 
@@ -249,9 +249,15 @@ function onClickBattle (): void {
     </div>
   </div>
 
-  {#if $currentMech !== null}
-    <MechSummary setup={$currentMech.setup} text={$currentMech.name} />
-  {/if}
+  <div class="mech-summary-container">
+    {#if $currentMech !== null}
+      <MechSummary
+        setup={$currentMech.setup}
+        text={$currentMech.name}
+        style="flex: 1; max-width: 20em"
+      />
+    {/if}
+  </div>
 
   <div class="buttons">
 
@@ -309,6 +315,18 @@ main {
   height: 100%;
   grid-area: slots;
 }
+
+
+.mech-summary-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  grid-area: summary;
+}
+
 
 .part-slots {
   position: relative;
@@ -382,6 +400,16 @@ main {
     background-color: var(--color-front-dark);
   }
 
+
+  .mech-summary-container {
+    position: absolute;
+    left: 0;
+    align-items: flex-end;
+    bottom: 30.5%;
+    height: unset;
+  }
+
+
   .part-slots {
     position: absolute;
     grid-template-areas:
@@ -414,9 +442,11 @@ main {
     padding: 0.2em;
   }
 
+
   .mech-container {
     position: absolute;
     bottom: calc(30% + 8.25em);
+    height: 50%;
   }
 
 }
