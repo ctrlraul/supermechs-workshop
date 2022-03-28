@@ -212,7 +212,7 @@ function onSetActive (mech: Mech): void {
 
   <div class="mechs-list">
     {#if $mechs.length}
-      {#each $mechs as mech}
+      {#each [...$mechs].reverse() as mech}
         <MechCard
           active={$currentMech !== null && mech.id === $currentMech.id}
           mech={mech}
