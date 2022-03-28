@@ -4,17 +4,19 @@ import Mech from '../mechs/Mech'
 
 
 
-// Functions
+// Methods
 
-export function think (battle: Battle, AIPLayerID: string): BattleAction {
+export function think (battle: Battle, actorID: string): BattleAction {
 
-  const actorID = AIPLayerID
-  const { attacker, defender } = battle
+  const attacker = battle.getPlayerForID(actorID)
+  const defender = battle.getOpponentForPlayerID(actorID)
+
 
   // Drone
   if (attacker.drone && !attacker.droneActive) {
     return { actorID, name: 'toggleDrone' }
   }
+
 
   { // Weapons
     const usableWeapons = battle.getFirableWeapons()
@@ -24,6 +26,7 @@ export function think (battle: Battle, AIPLayerID: string): BattleAction {
       return { actorID, name: 'useWeapon', itemIndex: pick.index }
     }
   }
+
 
   // Stomp
   {
@@ -35,11 +38,11 @@ export function think (battle: Battle, AIPLayerID: string): BattleAction {
     }
   }
 
+
   // Can't stomp or use any weapon, time to
   // check if it can use any weapon by moving
 
-  if (battle.actionPoints > 1) {
-
+  {
     const weapons = battle.getFirableWeapons(['Out of range'])
 
     if (weapons.length) {
@@ -136,11 +139,3 @@ export function think (battle: Battle, AIPLayerID: string): BattleAction {
   return { actorID, name: 'cooldown' }
 
 }
-
-
-
-// Exports
-
-const BattleAI = { think }
-
-export default BattleAI
