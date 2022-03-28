@@ -32,7 +32,7 @@ $: fightableMechs = $mechs.filter(mech => {
     </header>
 
     <div class="mechs-list">
-      {#each fightableMechs as mech}
+      {#each [...fightableMechs].reverse() as mech}
         <button class="mech-button" on:click={() => onPickMech(mech)}>
           <MechCanvas
             setup={items2ids(mech.setup)}
