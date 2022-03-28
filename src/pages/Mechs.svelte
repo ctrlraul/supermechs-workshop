@@ -39,23 +39,6 @@ const unsubItemsPackData = itemsPackData.subscribe(value => {
 
 
 
-// Functions
-
-function selectActiveMech (): void {
-  if (activeMech !== null) {
-    onSelectMech(activeMech)
-  }
-}
-
-
-function deleteActiveMech (): void {
-  if (activeMech !== null) {
-    onDeleteMech(activeMech.id)
-  }
-}
-
-
-
 // Events
 
 function onSelectMech (mech: Mech): void {
