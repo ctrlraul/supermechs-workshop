@@ -9,8 +9,7 @@ import { itemsPackData, currentMech } from '../stores'
 import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
-import { onDestroy } from 'svelte';
-import StatBlocks from '../components/StatBlocks.svelte'
+import { onDestroy } from 'svelte'
 import MechSummary from '../components/MechSummary.svelte'
 
 
