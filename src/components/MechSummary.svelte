@@ -2,11 +2,29 @@
 
 import StatBlocks from './StatBlocks.svelte'
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
+import { saveMech } from '../managers/UserDataManager'
+import { items2ids } from '../items/ItemsManager'
+
+
+import type Mech from '../mechs/Mech'
+
+
+export let mech: Mech
+export let showName = true
 
 
 
-export let setup: number[]
-export let text: string = ''
+// Functions
+
+function onRename (e: Event): void {
+
+  const { value } = e.target as HTMLInputElement
+
+  mech.name = value
+
+  saveMech(mech)
+
+}
 
 </script>
 
@@ -14,7 +32,7 @@ export let text: string = ''
 
 <div class="mech-summary no-select global-box" style={$$props.style}>
 
-  {#if text}
+  {#if showName}
     <div class="header">
 
       <SvgIcon
@@ -23,13 +41,18 @@ export let text: string = ''
         style="width: 1.5em; height: 1.5em;"
       />
 
-      <span>{text}</span>
+      <input
+        type="text"
+        value={mech.name}
+        on:change={onRename}
+        placeholder="(Unnamed Mech)"
+      />
 
     </div>
   {/if}
 
   <div class="blocks">
-    <StatBlocks source={setup} />
+    <StatBlocks source={items2ids(mech.setup)} />
   </div>
 
 </div>
@@ -50,12 +73,13 @@ export let text: string = ''
 .header {
   display: flex;
   justify-content: center;
-  align-items: center;
   margin-bottom: 0.5em;
 }
 
-.header span {
+.header input[type=text] {
+  flex: 1;
   margin-left: 0.5em;
+  padding: 0 0.2em;
 }
 
 

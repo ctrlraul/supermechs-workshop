@@ -247,11 +247,7 @@ function onClickBattle (): void {
 
   <div class="mech-summary-container">
     {#if $currentMech !== null}
-      <MechSummary
-        setup={items2ids($currentMech.setup)}
-        text={$currentMech.name}
-        style="flex: 1; max-width: 20em"
-      />
+      <MechSummary mech={$currentMech} style="flex: 1; max-width: 20em" />
     {/if}
   </div>
 

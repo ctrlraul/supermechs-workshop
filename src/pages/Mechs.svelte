@@ -170,7 +170,11 @@ function onSetActive (mech: Mech): void {
 
       {/if}
 
-      <MechSummary setup={items2ids($currentMech.setup)} style="width: 100%" />
+      <MechSummary
+        mech={$currentMech}
+        showName={false}
+        style="width: 100%" 
+      />
 
     {:else}
 
