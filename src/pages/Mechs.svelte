@@ -40,10 +40,6 @@ function onCreateMech (): void {
 
   UserDataManager.setCurrentMechID(mech.id)
 
-  // $currentMech = mech
-
-  router.replace('/workshop')
-
 }
 
 
