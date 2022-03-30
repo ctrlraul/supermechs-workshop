@@ -42,14 +42,16 @@ export function deleteMechInCurrentPackByID (mechID: string): void {
   userDataStore.update(userData => {
 
     if (mechID in userData.mechs[itemsPackData.key]) {
+
       delete userData.mechs[itemsPackData.key][mechID]
+
+      // If there are no more mechs with this pack key, delete the pack data
+      if (Object.keys(userData.mechs[itemsPackData.key]).length === 0) {
+        delete userData.mechs[itemsPackData.key]
+      }
+
     } else {
       throw new Error(`No mech in current pack with id "${mechID}"`)
-    }
-
-    // If there are no more mechs with this pack key, delete the pack data
-    if (Object.keys(userData.mechs[itemsPackData.key]).length === 0) {
-      delete userData.mechs[itemsPackData.key]
     }
 
     if (mechID === userData.currentMechID) {
