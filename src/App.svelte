@@ -1,6 +1,6 @@
 <script lang="ts">
 
-import Router, { replace } from 'svelte-spa-router'
+import Router, { replace, push, location } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'
@@ -35,64 +35,6 @@ import type { RouteDefinition } from 'svelte-spa-router'
 let didLoadStats = false
 
 
-// LocalStorageHandler.loadLocalData()
-
-
-onMount(async () => {
-
-  // This doesn't really fail as of now
-  await loadStatImages()
-  didLoadStats = true
-
-})
-
-
-
-function needsItemsPack (): boolean {
-
-  if ($itemsPackData !== null) {
-    return true
-  }
-
-
-  if ($userData.lastItemsPackURL !== null) {
-
-    const popup = addPopup({
-      title: 'Loading last items pack...',
-      hideOnOffclick: false,
-      spinner: true
-    })
-
-
-    importItemsPack($userData.lastItemsPackURL, () => {})
-      .then(result => {
-        popup.remove()
-        itemsPackData.set(result.data)
-      })
-      .catch(err => {
-
-        popup.replace({
-          title: 'Failed to load items pack!',
-          message: err.message,
-          mode: 'error',
-          options: {
-            Ok () { this.remove() }
-          }
-        })
-
-        replace('/')
-
-      })
-
-    return true
-
-  }
-
-  return false
-
-}
-
-
 const routes: RouteDefinition = {
 
   '/': ItemPacks,
@@ -122,6 +64,80 @@ const routes: RouteDefinition = {
     component: Workshop,
     conditions: needsItemsPack,
   }),
+
+}
+
+
+// LocalStorageHandler.loadLocalData()
+
+
+onMount(async () => {
+
+  // This doesn't really fail as of now
+  await loadStatImages()
+  didLoadStats = true
+
+  tryToImportLastItemsPack()
+
+})
+
+
+
+function needsItemsPack (): boolean {
+
+  if ($itemsPackData !== null) {
+    return true
+  }
+
+  return false
+
+}
+
+
+async function tryToImportLastItemsPack (): Promise<void> {
+
+  if ($userData.lastItemsPackURL === null) {
+    return
+  }
+
+  const popup = addPopup({
+    title: 'Importing last items pack...',
+    hideOnOffclick: false,
+    spinner: true
+  })
+
+
+  try {
+
+    const result = await importItemsPack($userData.lastItemsPackURL, () => {})
+
+    itemsPackData.set(result.data)
+
+    // TODO: stay in the same route unless it's the packs route
+    push('/workshop')
+
+    popup.remove()
+
+  } catch (err: any) {
+
+    popup.replace({
+      title: 'Failed to import last items pack!',
+      message: err.message,
+      hideOnOffclick: false,
+      mode: 'error',
+      options: {
+        Ok () {
+          replace('/')
+          this.remove()
+        },
+        Retry () {
+          tryToImportLastItemsPack()
+          this.remove()
+        }
+      }
+    })
+
+  }
 
 }
 

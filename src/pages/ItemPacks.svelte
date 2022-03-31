@@ -51,8 +51,6 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
     itemsPackData.set(result.data)
 
-    router.push('/workshop')
-
   } catch (err: any) {
 
     console.error(err)
