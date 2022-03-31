@@ -366,7 +366,15 @@ const socketAttachment = SocketManager.createAttachment({
 })
 
 onMount(() => socketAttachment.attach())
-onDestroy(() => socketAttachment.detach())
+onDestroy(() => {
+
+  socketAttachment.detach()
+
+  if (inMatchMaker) {
+    SocketManager.emit('matchmaker.quit')
+  }
+
+})
 
 </script>
 
