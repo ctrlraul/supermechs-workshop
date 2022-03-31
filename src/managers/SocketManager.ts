@@ -1,5 +1,7 @@
 import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
+import { get } from 'svelte/store'
+import { userData } from '../stores/userData'
 import type { BattleAction } from '../battle/Battle'
 
 
@@ -11,7 +13,12 @@ const production = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostna
 export const socket = Socket(
   production
   ? 'https://supermechs-workshop-server.thearchives.repl.co'
-  : window.location.hostname + ':3000'
+  : window.location.hostname + ':3000',
+  {
+    query: {
+      name: get(userData).name
+    }
+  }
 )
 
 export let connectErrorStreakCount = 0
@@ -114,4 +121,17 @@ export function battleQuit (): void {
 
 export function battleAction (action: BattleAction): void {
   socket.emit('battle.event', action)
+}
+
+
+
+// Statistics
+
+export function playersOnlineListen (): void {
+  socket.emit('playersonline.listen')
+}
+
+
+export function playersOnlineIgnore (): void {
+  socket.emit('playersonline.ignore')
 }

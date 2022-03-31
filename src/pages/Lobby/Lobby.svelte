@@ -33,6 +33,8 @@ let mech = $currentMech
 let inMatchMaker = false
 let awaitingResponse = false
 let pickOpponentMech = false
+let playersOnline: number | null = null
+let isConnected = SocketManager.socket.connected
 
 
 
@@ -273,12 +275,12 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
 
 const socketAttachment = SocketManager.createAttachment({
 
-  'matchmaker.join.success': () => {
+  'matchmaker.join.success' (): void {
     awaitingResponse = false
     inMatchMaker = true
   },
 
-  'matchmaker.join.error': (err: any) => {
+  'matchmaker.join.error' (err: any): void {
 
     awaitingResponse = false
 
@@ -305,23 +307,23 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
 
-  'matchmaker.quit.success': () => {
+  'matchmaker.quit.success' (): void {
     awaitingResponse = false
     inMatchMaker = false
   },
 
-  'matchmaker.quit.error': (_err: any) => {
+  'matchmaker.quit.error' (_err: any): void {
     awaitingResponse = false
     inMatchMaker = false
   },
 
-  'matchmaker.validation': (data: MatchMaker_Validation) => {
+  'matchmaker.validation' (data: MatchMaker_Validation): void {
     const valid = matchItemsHash(data.setup, data.itemsHash)
     SocketManager.matchMakerValidation(valid)
   },
 
 
-  'battle.start': (battleJSON: any) => {
+  'battle.start' (battleJSON: any): void {
     
     awaitingResponse = true
     inMatchMaker = false
@@ -340,7 +342,20 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
 
-  'disconnect': () => {
+  // Statistics
+
+  'playersonline' (data: { count: number }): void {
+    playersOnline = data.count
+  },
+
+
+  // Connection
+
+  'disconnect' (): void {
+
+    playersOnline = null
+    isConnected = false
+
     if (inMatchMaker) {
       
       inMatchMaker = false
@@ -354,14 +369,32 @@ const socketAttachment = SocketManager.createAttachment({
       })
 
     }
+  },
+
+  'connect' (): void {
+    SocketManager.playersOnlineListen()
+    isConnected = true
   }
 
 })
 
-onMount(() => socketAttachment.attach())
+onMount(() => {
+
+  socketAttachment.attach()
+
+  if (SocketManager.socket.connected) {
+    SocketManager.playersOnlineListen()
+  }
+
+})
+
 onDestroy(() => {
 
   socketAttachment.detach()
+
+  if (SocketManager.socket.connected) {
+    SocketManager.playersOnlineIgnore()
+  }
 
   if (inMatchMaker) {
     SocketManager.matchMakerQuit()
@@ -374,6 +407,21 @@ onDestroy(() => {
 
 
 <main>
+
+  <div class="players-online">
+  {#if isConnected}
+
+    <span>Players online:</span>
+    {#if playersOnline !== null}
+      {playersOnline}
+    {:else}
+      <SvgIcon name="aim" class="spinner" style="width: 1em; height: 1em" />
+    {/if}
+
+  {:else}
+    (Disconnected)
+  {/if}
+</div>
 
   <button class="back-button" on:mousedown={onGoBack}>
     <SvgIcon name="cross" color="var(--color-text)" />
@@ -460,6 +508,20 @@ main {
   max-height: var(--content-height);
   padding: 0.5em;
 }
+
+
+.players-online {
+  position: absolute;
+  left: 0.5em;
+  top: 0.5em;
+  display: flex;
+  align-items: center;
+}
+
+.players-online span {
+  margin-right: 0.3em;
+}
+
 
 .back-button {
   position: relative;
