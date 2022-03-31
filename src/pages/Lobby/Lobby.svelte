@@ -170,18 +170,14 @@ async function onOnlineBattle (): Promise<void> {
 
   if (inMatchMaker) {
 
-    SocketManager.emit('matchmaker.quit')
+    SocketManager.matchMakerQuit()
 
   } else {
 
     const setup = items2ids(mech.setup)
+    const itemsHash = getItemsHash(setup)
 
-    SocketManager.emit('matchmaker.join', {
-      name: $userData.name,
-      mechName: mech.name,
-      setup,
-      itemsHash: getItemsHash(setup)
-    })
+    SocketManager.matchMakerJoin($userData.name, mech.name, setup, itemsHash)
 
   }
 
@@ -320,11 +316,8 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
   'matchmaker.validation': (data: MatchMaker_Validation) => {
-
-    const result = matchItemsHash(data.setup, data.itemsHash)
-
-    SocketManager.emit('matchmaker.validation', { result })
-
+    const valid = matchItemsHash(data.setup, data.itemsHash)
+    SocketManager.matchMakerValidation(valid)
   },
 
 
@@ -371,7 +364,7 @@ onDestroy(() => {
   socketAttachment.detach()
 
   if (inMatchMaker) {
-    SocketManager.emit('matchmaker.quit')
+    SocketManager.matchMakerQuit()
   }
 
 })

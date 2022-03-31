@@ -126,7 +126,7 @@ onDestroy(() => {
   socketAttachment.detach()
 
   if ($battle!.online) {
-    SocketManager.emit('battle.quit')
+    SocketManager.battleQuit()
   }
 
   $battle = null
@@ -156,8 +156,7 @@ async function handleBattleEvent (action: BattleAction): Promise<void> {
 
     try {
 
-      // action.damageDealt = BattleUtils.getRandomDamageForEvent($battle, event)
-      SocketManager.emit('battle.event', action)
+      SocketManager.battleAction(action)
 
     } catch (err: any) {
 

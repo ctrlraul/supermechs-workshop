@@ -1,5 +1,6 @@
 import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
+import type { BattleAction } from '../battle/Battle'
 
 
 
@@ -39,7 +40,7 @@ socket.on('connect_error', error => {
 
 
 
-// Functions
+// Common connection-related methods
 
 export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
@@ -57,11 +58,6 @@ export function createAttachment (listeners: Record<string, (data: any) => void>
 
   return { attach, detach }
 
-}
-
-
-export function emit (...args: Parameters<typeof socket['emit']>) {
-  return socket.emit(...args)
 }
 
 
@@ -87,4 +83,35 @@ export function tryToConnectManually (): Promise<void> {
     socket.connect()
 
   })
+}
+
+
+
+// Match Maker methods
+
+export function matchMakerJoin (name: string, mechName: string, setup: number[], itemsHash: string): void {
+  socket.emit('matchmaker.join', { name, mechName, setup, itemsHash })
+}
+
+
+export function matchMakerQuit (): void {
+  socket.emit('matchmaker.quit')
+}
+
+
+export function matchMakerValidation (valid: boolean): void {
+  socket.emit('matchmaker.validation', { result: valid })
+}
+
+
+
+// Battle methods
+
+export function battleQuit (): void {
+  socket.emit('battle.quit')
+}
+
+
+export function battleAction (action: BattleAction): void {
+  socket.emit('battle.event', action)
 }
