@@ -1,14 +1,17 @@
 <script lang="ts">
 
-import { getStatInstruction } from '../../stats/StatsManager'
 import ProgressBar from '../../components/ProgressBar.svelte'
-import { BattleItem, getItemByID } from '../../items/ItemsManager'
 import ItemImage from '../../components/ItemImage.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import ControlItemButton from './ControlItemButton.svelte'
+import ItemButton from './Controls/ItemButton.svelte'
 import { getPlayerGfx } from '../../BattleRenderer'
+import { getStatInstruction } from '../../stats/StatsManager'
+import { BattleItem, getItemByID } from '../../items/ItemsManager'
 
+
+
+// Props
 
 export let player: BattlePlayer
 export let battle: Battle
@@ -159,14 +162,15 @@ function toggleItemsInspector (): void {
   {#if showItemsInspector}
     <div class="items-inspector">
       {#each inspectableItems as item}
-        <ControlItemButton
+        <ItemButton
           {item}
           {battle}
           style="font-size: 0.7em; cursor: unset"
-          onHoverIn={() => focusedItem = item}
-          onHoverOut={() => {
+          setFocusedItem={item => {
             if (focusedItem === item) {
               focusedItem = null
+            } else {
+              focusedItem = item
             }
           }}
         />

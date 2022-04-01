@@ -8,7 +8,7 @@
 import * as router from 'svelte-spa-router'
 import { battle } from '../../stores'
 import PlayerBattlePanel from './PlayerBattlePanel.svelte'
-import BattleControls from './BattleControls.svelte'
+import Controls from './Controls/Controls.svelte'
 import * as SocketManager from '../../managers/SocketManager'
 import Logs from './Logs.svelte'
 import { onDestroy, onMount } from 'svelte'
@@ -230,7 +230,7 @@ function onQuit (): void {
     </div>
   
   
-    <BattleControls
+    <Controls
       player={player}
       handleBattleEvent={handleBattleEvent}
       blocked={awaitingMove}
@@ -308,6 +308,7 @@ main > .buttons > button {
   width: 100%;
   flex: 1;
   overflow: hidden;
+  z-index: 1;
 }
 
 .mechs-container.reverse {
