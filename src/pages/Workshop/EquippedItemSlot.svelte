@@ -30,7 +30,11 @@ function onClickClear (): void {
 
 <div class="slot" style={$$props.style}>
 
-  <button class="img-container global-box" on:click={onSelect} use:tooltip={item}>
+  <button
+    class="img-container global-box {item ? item.element : ''}"
+    on:click={onSelect}
+    use:tooltip={item}
+  >
 
     {#if item}
 
@@ -85,6 +89,7 @@ function onClickClear (): void {
   height: 100%;
 }
 
+
 .img-container {
   position: relative;
   display: flex;
@@ -93,17 +98,46 @@ function onClickClear (): void {
   width: calc(100% - 0.4em);
   height: calc(100% - 0.4em);
   z-index: 1;
-  border: none;
+  transition: border-color 200ms;
 }
+
+.img-container:hover, 
+.img-container:focus {
+  transition: border-color 0ms;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0.3em var(--color-accent);
+}
+
+
+.PHYSICAL,
+.EXPLOSIVE,
+.ELECTRIC,
+.COMBINED {
+  border: 0.15em solid #ffffff20;
+  background-image: radial-gradient(#000000, #151515)
+}
+
+.PHYSICAL { 
+  background-image: radial-gradient(#000000, #301500)
+}
+
+.EXPLOSIVE { 
+  background-image: radial-gradient(#000000, #440000)
+}
+
+.ELECTRIC { 
+  background-image: radial-gradient(#000000, #001530)
+}
+
 
 .clear {
   position: absolute;
-  right: 0.2em;
-  top: 0.2em;
+  right: 0.35em;
+  top: 0.35em;
   width: 1em;
   height: 1em;
-  border-radius: 0 var(--ui-radius) 0 var(--ui-radius);
-  background-color: var(--color-primary-dark);
+  border-radius: 0 0 0 var(--ui-radius);
+  background-color: #ffffff20;
   stroke: var(--color-error);
   z-index: 2;
   /* opacity: 0.5; */
