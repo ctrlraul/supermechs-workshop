@@ -23,9 +23,9 @@ export function fireDrone (battle: Battle, attacker: BattlePlayer, damage: numbe
 
 	const oldState = cloneDeep(battle)
 
-	battle.dealDamagesAndTakeBackfire(drone, damage)
-	battle.updatePositions(drone)
-	battle.countItemUsage(drone)
+	battle.dealDamagesAndTakeBackfire(attacker, drone, damage)
+	battle.updatePositions(attacker, drone)
+	battle.countItemUsage(attacker, drone)
 
 	if (drone.stats.uses && drone.timesUsed === drone.stats.uses) {
 		// Uses are refilled when the drone is
