@@ -9,14 +9,8 @@ import StatBlocks from '../StatBlocks.svelte'
 
 // State
 
-/* Most mobile browsers have the 'window'
- * locked to theleft hand side. So if this
- * isn't zero, likely to be a desktop browser window.
- */
 const probablyDesktop = window.screenX === 0 && window.innerWidth > window.innerHeight
-
-/** Distance from tooltip to cursor */
-const padding = 16
+const padding = 16 // Distance from tooltip to cursor in pixels
 
 let element: HTMLElement
 let x = 0
