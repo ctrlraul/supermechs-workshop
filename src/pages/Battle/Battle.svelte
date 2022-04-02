@@ -308,7 +308,6 @@ main > .buttons > button {
   width: 100%;
   flex: 1;
   overflow: hidden;
-  z-index: 1;
 }
 
 .mechs-container.reverse {
