@@ -396,19 +396,18 @@ main {
 
 .buttons {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  right: 0;
-  top: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5em;
+  right: 0.5em;
+  top: 0.5em;
   grid-area: buttons;
-  padding: 0.2em;
 }
 
 .buttons > button {
   width: 2.2em;
   height: 2.2em;
   padding: 0.3em;
-  margin-top: 0.5em;
   fill: var(--color-text-dark);
 }
 
