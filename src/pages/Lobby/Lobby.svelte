@@ -536,6 +536,7 @@ main {
   justify-content: center;
   align-items: flex-end;
   height: 70%;
+  width: 100%;
 }
 
 .name {
