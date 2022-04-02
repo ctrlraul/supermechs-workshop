@@ -429,8 +429,7 @@ onDestroy(() => {
   {#if $currentMech !== null}
 
     <div class="mech-gfx-container">
-      <MechCanvas setup={$currentMech.toJSONModel().setup} scale={0.6} />
-      <!-- <MechGfx setup={$currentMech.setup} scale={0.8} /> -->
+      <MechCanvas setup={$currentMech.toJSONModel().setup} />
     </div>
 
     <label>
