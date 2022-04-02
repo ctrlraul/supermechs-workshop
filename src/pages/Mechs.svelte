@@ -374,13 +374,18 @@ main {
       'buttons';
   }
 
+  .current-mech-view {
+    display: none;
+  }
+
+}
+
+
+@media (max-width: 40em) {
+
   .mechs-list {
     grid-template-columns: 1fr 1fr;
     padding-left: 0.5em;
-  }
-
-  .current-mech-view {
-    display: none;
   }
 
 }
