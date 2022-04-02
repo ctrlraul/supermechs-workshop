@@ -4,7 +4,7 @@ import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
 import { isInMatchMaker } from '../stores/isInMatchMaker'
 import type { BattleAction } from '../battle/Battle'
-import { addPopup } from './PopupManager'
+import { addPopup, PopupData } from './PopupManager'
 
 
 
@@ -18,7 +18,8 @@ export const socket = Socket(
   : window.location.hostname + ':3000',
   {
     query: {
-      name: get(userData).name
+      name: get(userData).name,
+      clientVersion: '1'
     }
   }
 )
@@ -44,6 +45,37 @@ socket.on('connect_error', error => {
     socket.disconnect()
     logger.log('Disconnected the socket to avoid error spam in development')
   }
+
+})
+
+socket.on('server.error', (error: any) => {
+
+  let title: PopupData['title'] = 'Unknown Error'
+  let message: PopupData['message'] = ''
+  const options: PopupData['options'] = {
+    Ok () {
+      this.remove()
+    }
+  }
+
+  switch (error.code) {
+
+    case 'OUTDATED_CLIENT':
+      title = 'Outdated client!'
+      message = 'Please reload the page'
+      options.Reload = function () {
+        location.reload()
+      }
+      break
+
+  }
+
+  addPopup({
+    title,
+    message,
+    options,
+    mode: error
+  })
 
 })
 
