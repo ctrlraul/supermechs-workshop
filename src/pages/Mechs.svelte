@@ -324,7 +324,9 @@ main {
 
 
 .no-mechs {
-  position: relative;
+  position: absolute;
+  left: 0;
+  top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -342,7 +344,6 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-background-dark);
   width: 4em;
   height: 4em;
   border-radius: inherit;
