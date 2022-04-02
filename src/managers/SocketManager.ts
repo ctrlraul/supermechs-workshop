@@ -2,7 +2,9 @@ import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
 import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
+import { isInMatchMaker } from '../stores/isInMatchMaker'
 import type { BattleAction } from '../battle/Battle'
+import { addPopup } from './PopupManager'
 
 
 
@@ -52,18 +54,22 @@ socket.on('connect_error', error => {
 export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
   const attach = () => {
+    attachment.attached = true
     for (const name in listeners) {
       socket.on(name, listeners[name])
     }
   }
 
   const detach = () => {
+    attachment.attached = false
     for (const name in listeners) {
       socket.off(name, listeners[name])
     }
   }
 
-  return { attach, detach }
+  const attachment = { attach, detach, attached: false }
+
+  return attachment
 
 }
 
@@ -97,12 +103,55 @@ export function tryToConnectManually (): Promise<void> {
 // Match Maker methods
 
 export function matchMakerJoin (name: string, mechName: string, setup: number[], itemsHash: string): void {
-  socket.emit('matchmaker.join', { name, mechName, setup, itemsHash })
+
+  interface Result {
+    error: { message: string } | null
+  }
+
+  const data = { name, mechName, setup, itemsHash }
+
+  socket.emit('matchmaker.join', data, (result: Result) => {
+    
+    if (result.error !== null && result.error.message !== 'Already match-making') {
+
+      addPopup({
+        title: 'Failed to join match maker!',
+        message: result.error.message,
+        hideOnOffclick: true,
+        mode: 'error',
+        options: {
+          Ok () { this.remove() }
+        }
+      })
+
+      return
+
+    }
+
+    isInMatchMaker.set(true)
+
+  })
+
 }
 
 
 export function matchMakerQuit (): void {
-  socket.emit('matchmaker.quit')
+
+  interface Result {
+    error: { message: string } | null
+  }
+
+  socket.emit('matchmaker.quit', {}, (result: Result) => {
+
+    // Regardless of result set it to false
+    isInMatchMaker.set(false)
+
+    if (result.error !== null) {
+      logger.error(result.error.message)
+    }
+
+  })
+
 }
 
 

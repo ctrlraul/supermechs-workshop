@@ -8,10 +8,12 @@ import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
 import MechSummary from '../components/MechSummary.svelte'
+import MatchMakingPopup from '../components/MatchMakingPopup.svelte'
 import { addPopup } from '../managers/PopupManager'
 import { itemsPackData } from '../stores'
 import { currentMech, mechs } from '../stores/mechs'
 import { items2ids } from '../items/ItemsManager'
+import { isInMatchMaker } from '../stores/isInMatchMaker'
 
 
 
@@ -147,6 +149,7 @@ function onSetActive (mech: Mech): void {
     style="grid-area: header"
   />
 
+
   <div class="current-mech-view">
 
     {#if $currentMech !== null}
@@ -185,6 +188,14 @@ function onSetActive (mech: Mech): void {
     {/if}
 
   </div>
+
+
+  <div class="match-making-popup-container">
+    {#if $isInMatchMaker}
+      <MatchMakingPopup style="justify-content: space-between;" />
+    {/if}
+  </div>
+
 
   <div class="pack-info">
     <div>Pack: {$itemsPackData !== null ? $itemsPackData.name : '[No Items Pack loaded!]'}</div>
@@ -239,6 +250,7 @@ function onSetActive (mech: Mech): void {
 <style>
 
 main {
+  position: relative;
   display: grid;
   grid-template-rows: 3em 1fr 3em 5em;
   grid-template-columns: 33% 67%;
@@ -263,6 +275,14 @@ main {
   padding-top: 0;
   gap: 0.5em;
   grid-area: current-mech;
+}
+
+
+.match-making-popup-container {
+  position: absolute;
+  left: 0.5em;
+  top: 0.5em;
+  font-size: 0.9em;
 }
 
 
@@ -374,8 +394,16 @@ main {
       'buttons';
   }
 
+
   .current-mech-view {
     display: none;
+  }
+
+
+  .match-making-popup-container {
+    position: relative;
+    left: unset;
+    top: unset;
   }
 
 }

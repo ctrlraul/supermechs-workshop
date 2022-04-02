@@ -8,14 +8,17 @@ import SLOTS from './slots'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import MechSummary from '../../components/MechSummary.svelte'
+import MatchMakingPopup from '../../components/MatchMakingPopup.svelte'
 import { push, location as routerLocation } from 'svelte-spa-router'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
 import { userData } from '../../stores/userData'
 import { currentMech } from '../../stores/mechs'
+import { isInMatchMaker } from '../../stores/isInMatchMaker'
 import { getItemByID, items2ids } from '../../items/ItemsManager'
 import { saveMech } from '../../managers/UserDataManager'
+import { matchMakerQuit } from '../../managers/SocketManager'
 
 
 
@@ -183,6 +186,35 @@ function onClickBattle (): void {
 
 }
 
+
+function onClickChangeItemsPack (): void {
+
+  if ($isInMatchMaker) {
+
+    addPopup({
+      title: 'Wait a second!',
+      message: `You can't change the items pack while searching for a battle!`,
+      mode: 'error',
+      options: {
+        'Ok' () {
+          this.remove()
+        },
+        'Quit Matchmaker' () {
+          matchMakerQuit()
+          push('/')
+          this.remove()
+        }
+      }
+    })
+
+    return 
+
+  }
+
+  push('/')
+
+}
+
 </script>
 
 
@@ -199,7 +231,7 @@ function onClickBattle (): void {
 
   <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
-      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 90%;" />
+      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 85%;" />
     {/if}
   </div>
 
@@ -273,7 +305,11 @@ function onClickBattle (): void {
       <SvgIcon name="trash" color="var(--color-error)" />
     </button>
 
-    <button class="global-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
+    <button
+      class="global-box {$isInMatchMaker ? 'global-disabled' : ''}"
+      on:click={onClickChangeItemsPack}
+      use:tooltip={'Change Items Pack'}
+    >
       <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 
@@ -282,6 +318,12 @@ function onClickBattle (): void {
     </button>
 
   </div>
+
+  {#if $isInMatchMaker}
+    <div class="match-making-popup-container">
+      <MatchMakingPopup />
+    </div>
+  {/if}
 
 </main>
 
@@ -390,6 +432,14 @@ main {
 }
 
 
+.match-making-popup-container {
+  position: absolute;
+  left: 54%;
+  top: 0.5em;
+  font-size: 0.8em;
+}
+
+
 
 @media (orientation: portrait) {
 
@@ -453,6 +503,12 @@ main {
     position: absolute;
     bottom: calc(30% + 8.25em);
     height: 50%;
+  }
+
+
+  .match-making-popup-container {
+    left: 0.5em;
+    font-size: 1em;
   }
 
 }
