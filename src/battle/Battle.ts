@@ -69,8 +69,6 @@ export class Battle {
   povPlayerID: BattlePlayer['id']
 
   actionPoints: number = 1
-  actionsStack: BattleAction[] = []
-  idle: boolean = true
 
   online: boolean
 
@@ -105,7 +103,7 @@ export class Battle {
 
   // Methods
 
-  async pushAction (action: BattleAction) {
+  pushAction (action: BattleAction) {
 
     // Sanity Checks
 
@@ -131,11 +129,7 @@ export class Battle {
     }
 
 
-    if (this.idle) {
-      this.proccessAction(action)
-    } else {
-      this.actionsStack.push(action)
-    }
+    this.proccessAction(action)
 
   }
 
@@ -518,8 +512,6 @@ export class Battle {
 
   private proccessAction (action: BattleAction) {
 
-    this.idle = false
-
     try {
 
       if (!this.online || action.fromServer) {
@@ -750,7 +742,6 @@ export class Battle {
     this.pushLog(`${this.getPlayerForID(winnerID).name} won!`)
     this.onUpdate(this)
     this.actionPoints = 0
-    this.actionsStack = []
   }
 
 
@@ -797,21 +788,10 @@ export class Battle {
 
 
   private onIdle () {
-
-    this.idle = true
-
-    if (this.actionsStack.length) {
-
-      this.proccessAction(this.actionsStack.shift() as BattleAction)
-
-    } else if (this.attacker.ai && this.actionPoints > 0) {
-
+    if (this.attacker.ai && this.actionPoints > 0) {
       const action = think(this, this.attacker.id)
-
       this.pushAction(action)
-
     }
-
   }
 
 }
