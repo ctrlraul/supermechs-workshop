@@ -19,7 +19,7 @@ export const socket = Socket(
   {
     query: {
       name: get(userData).name,
-      clientVersion: '1'
+      clientVersion: '2'
     }
   }
 )
@@ -51,7 +51,7 @@ socket.on('connect_error', error => {
 socket.on('server.error', (error: any) => {
 
   let title: PopupData['title'] = 'Unknown Error'
-  let message: PopupData['message'] = ''
+  let message: PopupData['message'] = error.message
   const options: PopupData['options'] = {
     Ok () {
       this.remove()
@@ -63,6 +63,14 @@ socket.on('server.error', (error: any) => {
     case 'OUTDATED_CLIENT':
       title = 'Outdated client!'
       message = 'Please reload the page'
+      options.Reload = function () {
+        location.reload()
+      }
+      break
+
+    case 'MISSING_CALLBACK':
+      title = 'Missing Callback'
+      message = `Your client might be outdated, please reload the page.\nExpected callback for event "${error.message}".`
       options.Reload = function () {
         location.reload()
       }
@@ -83,7 +91,7 @@ socket.on('server.error', (error: any) => {
 
 // Common connection-related methods
 
-export function createAttachment (listeners: Record<string, (data: any) => void>) {
+export function createAttachment (listeners: Record<string, (data: any, callback: (data: any) => void) => void>) {
 
   const attach = () => {
     attachment.attached = true
@@ -209,7 +217,7 @@ export function battleAction (action: BattleAction): void {
 // Statistics
 
 export function playersOnlineListen (): void {
-  socket.emit('playersonline.listen')
+  socket.emit('playersonline.listen', null)
 }
 
 
