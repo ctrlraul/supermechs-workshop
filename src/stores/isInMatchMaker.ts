@@ -43,9 +43,15 @@ const socketAttachment = SocketManager.createAttachment({
 
 
   'matchmaker.validation' (data: MatchMakerValidationData, callback): void {
-    callback({
+
+    const response = {
       valid: matchItemsHash(data.setup, data.itemsHash)
-    })
+    }
+
+    console.log(response)
+
+    callback(response)
+
   },
 
 
