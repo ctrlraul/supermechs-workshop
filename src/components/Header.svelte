@@ -1,22 +1,23 @@
 <script lang="ts">
+
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
+import { pop } from 'svelte-spa-router'
 
 
 export let title: string
-export let onGoBack: () => any
+export let onGoBack: () => any = pop
+
 </script>
 
 
 
 <header style={$$props.style}>
 
-	<div class="title">{title}</div>
+  <div class="title">{title}</div>
 
-	{#if onGoBack}
-		<button class="global-box" on:click={onGoBack}>
-			<SvgIcon name="cross" color="var(--color-text)" />
-		</button>
-	{/if}
+  <button class="global-box" on:click={onGoBack}>
+    <SvgIcon name="cross" color="var(--color-text)" />
+  </button>
 
 </header>
 

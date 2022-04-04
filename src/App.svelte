@@ -4,6 +4,7 @@ import Router, { replace, push } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'
+import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 import { onMount } from 'svelte'
 import { importItemsPack } from './items/ItemsManager'
 import { addPopup } from './managers/PopupManager'
@@ -20,7 +21,7 @@ import Workshop from './pages/Workshop/Workshop.svelte'
 import Mechs from './pages/Mechs.svelte'
 import Lobby from './pages/Lobby/Lobby.svelte'
 import Battle from './pages/Battle/Battle.svelte'
-import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
+import Settings from './pages/Settings.svelte'
 
 
 
@@ -58,6 +59,8 @@ const routes: RouteDefinition = {
     component: Battle,
     conditions: () => needsItemsPack() && $battle !== null,
   }),
+
+  '/settings': Settings,
 
   // Redirect 404 to workshop
   '*': wrap({

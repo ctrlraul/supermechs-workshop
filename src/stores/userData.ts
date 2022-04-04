@@ -37,6 +37,21 @@ interface UserDataV2 {
   lastItemsPackURL: string | null
 }
 
+interface UserDataV3 {
+  version: '2'
+  name: string
+  mechs: {
+    [pack_key: string]: {
+      [mech_id: string]: MechJSON
+    }
+  }
+  settings: {
+    arenaBuffs: boolean,
+  }
+  currentMechID: string | null
+  lastItemsPackURL: string | null
+}
+
 type UserDataAnyVersion = UserDataV1 | UserDataV2
 
 /** Typed with the latest version of the user data */
