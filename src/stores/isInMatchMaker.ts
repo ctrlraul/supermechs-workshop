@@ -42,17 +42,9 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
 
-  'matchmaker.validation' (data: MatchMakerValidationData, callback): void {
-
-    const response = {
-      valid: matchItemsHash(data.setup, data.itemsHash)
-    }
-
-    console.log(response)
-
-    SocketManager.socket.emit('foo', 'bar')
-    callback(response)
-
+  'matchmaker.validation' (data: MatchMakerValidationData): void {
+    const valid = matchItemsHash(data.setup, data.itemsHash)
+    SocketManager.matchMakerValidation(valid)
   },
 
 
