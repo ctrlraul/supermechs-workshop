@@ -50,6 +50,7 @@ const socketAttachment = SocketManager.createAttachment({
 
     console.log(response)
 
+    SocketManager.socket.emit('foo', 'bar')
     callback(response)
 
   },
