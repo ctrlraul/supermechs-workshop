@@ -8,7 +8,6 @@ import { itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
 import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
 import { userData } from '../stores/userData'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
 
 
 
@@ -144,26 +143,24 @@ function loadFromFile (e: Event): void {
 
     <div class="buttons">
 
-      {#if !$isInMatchMaker}
-        <WideButton
-          text="Default"
-          span="(Recommended)"
-          on:click={loadDefaultPack}
-        />
+      <WideButton
+        text="Default"
+        span="(Recommended)"
+        on:click={loadDefaultPack}
+      />
 
-        <WideButton
-          text="Import From URL"
-          on:click={() => loadFromURL(prompt('URL to Items Pack JSON') || '')}
-        />
+      <WideButton
+        text="Import From URL"
+        on:click={() => loadFromURL(prompt('URL to Items Pack JSON') || '')}
+      />
 
-        <WideButton text="Import From File">
-          <input
-            class="file-input-on-button"
-            type="file"
-            on:change={loadFromFile}
-          />
-        </WideButton>
-      {/if}
+      <WideButton text="Import From File">
+        <input
+          class="file-input-on-button"
+          type="file"
+          on:change={loadFromFile}
+        />
+      </WideButton>
 
       {#if $itemsPackData !== null}
         <WideButton text="Cancel" on:click={() => router.pop()} />

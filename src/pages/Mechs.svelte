@@ -8,12 +8,10 @@ import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
 import MechSummary from '../components/MechSummary.svelte'
-import MatchMakingPopup from '../components/MatchMakingPopup.svelte'
 import { addPopup } from '../managers/PopupManager'
 import { itemsPackData } from '../stores'
 import { currentMech, mechs } from '../stores/mechs'
 import { items2ids } from '../items/ItemsManager'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
 
 
 
@@ -149,7 +147,6 @@ function onSetActive (mech: Mech): void {
     style="grid-area: header"
   />
 
-
   <div class="current-mech-view">
 
     {#if $currentMech !== null}
@@ -188,14 +185,6 @@ function onSetActive (mech: Mech): void {
     {/if}
 
   </div>
-
-
-  <div class="match-making-popup-container">
-    {#if $isInMatchMaker}
-      <MatchMakingPopup style="justify-content: space-between;" />
-    {/if}
-  </div>
-
 
   <div class="pack-info">
     <div>Pack: {$itemsPackData !== null ? $itemsPackData.name : '[No Items Pack loaded!]'}</div>
@@ -250,7 +239,6 @@ function onSetActive (mech: Mech): void {
 <style>
 
 main {
-  position: relative;
   display: grid;
   grid-template-rows: 3em 1fr 3em 5em;
   grid-template-columns: 33% 67%;
@@ -275,14 +263,6 @@ main {
   padding-top: 0;
   gap: 0.5em;
   grid-area: current-mech;
-}
-
-
-.match-making-popup-container {
-  position: absolute;
-  left: 0.5em;
-  top: 0.5em;
-  font-size: 0.9em;
 }
 
 
@@ -313,14 +293,12 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5em;
-  align-content: start;
   padding-bottom: 0.5em;
   padding-right: 0.5em;
   overflow-x: hidden;
   overflow-y: scroll;
   grid-area: mechs-list;
 }
-
 
 .extra-buttons {
   display: flex;
@@ -344,9 +322,7 @@ main {
 
 
 .no-mechs {
-  position: absolute;
-  left: 0;
-  top: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -364,6 +340,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--color-background-dark);
   width: 4em;
   height: 4em;
   border-radius: inherit;
@@ -394,26 +371,13 @@ main {
       'buttons';
   }
 
-
-  .current-mech-view {
-    display: none;
-  }
-
-
-  .match-making-popup-container {
-    position: relative;
-    left: unset;
-    top: unset;
-  }
-
-}
-
-
-@media (max-width: 40em) {
-
   .mechs-list {
     grid-template-columns: 1fr 1fr;
     padding-left: 0.5em;
+  }
+
+  .current-mech-view {
+    display: none;
   }
 
 }

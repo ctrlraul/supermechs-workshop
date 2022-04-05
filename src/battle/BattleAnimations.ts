@@ -33,6 +33,56 @@ const CHARGE_DURATION = 600
 
 // Methods
 
+export function jump (oldState: Battle, newState: Battle, attacker: BattlePlayer): void {
+
+  BR.pushAnimation(() => {
+
+    const defender = newState.getOpponentForPlayerID(attacker.id)
+
+    const attackerGfx = BR.getPlayerGfx(attacker.id)
+    const newAttackerVisualX = BR.getVisualX(newState.attacker.position)
+    const defenderGfx = BR.getPlayerGfx(defender.id)
+    const newDefenderVisualX = BR.getVisualX(newState.defender.position)
+
+
+    // Reset positions before running animation
+
+    attackerGfx.x = BR.getVisualX(oldState.attacker.position)
+    attackerGfx.y = 0
+  
+
+    // Move horizontally
+    new TWEEN.Tween(attackerGfx)
+      .to({ x: newAttackerVisualX }, JUMP_DURATION * 2)
+      .start()
+      .onUpdate(() => {
+        const dir = (attackerGfx.x > newDefenderVisualX ? -1 : 1)
+        attackerGfx.scaleX = Math.abs(attackerGfx.scaleX) * dir
+        defenderGfx.scaleX = attackerGfx.scaleX * -1
+      })
+
+    // Jump
+    new TWEEN.Tween(attackerGfx)
+      .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .start()
+      .onComplete(() => {
+
+        // Fall
+        new TWEEN.Tween(attackerGfx)
+          .to({ y: 0 }, JUMP_DURATION)
+          .easing(TWEEN.Easing.Quadratic.In)
+          .start()
+          .onComplete(() => BR.nextAnimation())
+
+      })
+
+  })
+  
+}
+
+
+
 export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer): void {
   
   BR.pushAnimation(() => {
@@ -248,13 +298,14 @@ export function useWeapon (oldState: Battle, newState: Battle, attacker: BattleP
       new TWEEN.Tween(attackerGfx)
         .to({ y: -JUMP_HEIGHT }, JUMP_DURATION)
         .easing(TWEEN.Easing.Quadratic.Out)
+        .chain(fall)
         .start()
   
       // Fly
       new TWEEN.Tween(attackerGfx)
         .to({ x: newAttackerVisualX }, FLIGHT_DURATION)
         .easing(TWEEN.Easing.Sinusoidal.Out)
-        .chain(hitOpponent, fall)
+        .chain(hitOpponent)
         .start()
   
     
