@@ -293,12 +293,14 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5em;
+  align-content: start;
   padding-bottom: 0.5em;
   padding-right: 0.5em;
   overflow-x: hidden;
   overflow-y: scroll;
   grid-area: mechs-list;
 }
+
 
 .extra-buttons {
   display: flex;
