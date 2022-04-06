@@ -19,6 +19,8 @@ const probablyDesktop = window.screenX === 0 && window.innerWidth > window.inner
 const padding = 16
 
 let element: HTMLElement
+let x = 0
+let y = 0
 
 
 
@@ -26,9 +28,6 @@ let element: HTMLElement
 
 function updatePosition (e: MouseEvent): void {
   if ($tooltip && element) {
-
-    let x = 0
-    let y = 0
 
     if (e.clientX > window.innerWidth * 0.5) {
       x = e.clientX - padding - element.offsetWidth
@@ -41,9 +40,6 @@ function updatePosition (e: MouseEvent): void {
     } else {
       y = e.clientY + padding
     }
-
-    element.style.left = x + 'px'
-    element.style.top = y + 'px'
 
   }
 }
@@ -64,19 +60,31 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
   
   {#if typeof $tooltip === 'string'}
 
-    <div class="global-box tooltip text no-select" bind:this={element}>
+    <div
+      class="global-box tooltip text no-select"
+      style="left: {x}px; top: {y}px;"
+      bind:this={element}
+    >
       {@html $tooltip.replace(/\n/g, '<br/>')}
     </div>
 
   {:else if 'summary' in $tooltip}
 
-    <div class="global-box tooltip summary no-select" bind:this={element}>
+    <div
+      class="global-box tooltip summary no-select"
+      style="left: {x}px; top: {y}px;"
+      bind:this={element}
+    >
       <StatBlocks source={$tooltip.summary} style="width: 50%" />
     </div>
 
   {:else}
 
-    <div class="global-box tooltip no-select" bind:this={element} style="width: 15em">
+    <div
+      class="global-box tooltip no-select"
+      style="left: {x}px; top: {y}px; width: 15em;"
+      bind:this={element}
+    >
       <ItemInfo item={$tooltip} style="background-color: unset; box-shadow: unset;" />
     </div>
 
