@@ -13,9 +13,9 @@ export function useWeapon (battle: Battle, attacker: BattlePlayer, weapon: Battl
     attacker.position = battle.defender.position - dir
   }
 
-  battle.dealDamagesAndTakeBackfire(attacker, weapon, damage)
-  battle.updatePositions(attacker, weapon)
-  battle.countItemUsage(attacker, weapon)
+  battle.dealDamagesAndTakeBackfire(weapon, damage)
+  battle.updatePositions(weapon)
+  battle.countItemUsage(weapon)
 
   battle.pushLog(`*${attacker.name}* used *${weapon.name}*! (${damage} damage)`, 'action')
 
@@ -49,34 +49,36 @@ export function walk (battle: Battle, attacker: BattlePlayer, position: number):
 }
 
 
-export function stomp (battle: Battle, attacker: BattlePlayer, damage: number): void {
+export function stomp (battle: Battle, damage: number): void {
 
-  battle.dealDamagesAndTakeBackfire(attacker, attacker.legs, damage)
-  battle.updatePositions(attacker, attacker.legs)
-  battle.countItemUsage(attacker, attacker.legs)
+  const legs = battle.attacker.legs
 
-  battle.pushLog(`*${attacker.name}* *stomped*! (${damage} damage)`, 'action')
+  battle.dealDamagesAndTakeBackfire(legs, damage)
+  battle.updatePositions(legs)
+  battle.countItemUsage(legs)
+
+  battle.pushLog(`*${battle.attacker.name}* *stomped*! (${damage} damage)`, 'action')
 
 }
 
 
-export function toggleDrone (battle: Battle, attacker: BattlePlayer): void {
+export function toggleDrone (battle: Battle): void {
 
-  if (attacker.drone === null) {
-    const message = `${attacker.name} tried to toggle drone, but didn't equip one`
+  if (battle.attacker.drone === null) {
+    const message = `${battle.attacker.name} tried to toggle drone, but didn't equip one`
     battle.pushLog(message, 'error')
     throw new Error(message)
   }
 
 
-  attacker.droneActive = !attacker.droneActive
+  battle.attacker.droneActive = !battle.attacker.droneActive
   
   // Refill uses
-  if (attacker.droneActive && attacker.drone.stats.uses) {
-    attacker.drone.timesUsed = 0
+  if (battle.attacker.droneActive && battle.attacker.drone.stats.uses) {
+    battle.attacker.drone.timesUsed = 0
   }
 
-  battle.pushLog(`*${attacker.name}* ${attacker.droneActive ? 'enabled' : 'disabled'} the drone`, 'action')
+  battle.pushLog(`*${battle.attacker.name}* ${battle.attacker.droneActive ? 'enabled' : 'disabled'} the drone`, 'action')
 
 }
 
@@ -86,7 +88,7 @@ export function charge (battle: Battle, attacker: BattlePlayer, damage: number):
   const charge = attacker.items[Mech.CHARGE_INDEX]
 
   if (charge === null) {
-    const message = `${attacker.name} tried to use charge engine, but didn't equip one`
+    const message = `${battle.attacker.name} tried to use charge engine, but didn't equip one`
     battle.pushLog(message, 'error')
     throw new Error(message)
   }
@@ -96,28 +98,29 @@ export function charge (battle: Battle, attacker: BattlePlayer, damage: number):
 
   attacker.position = defender.position - dir
 
-  battle.dealDamagesAndTakeBackfire(attacker, charge, damage)
-  battle.countItemUsage(attacker, charge)
-  battle.updatePositions(attacker, charge)
+  battle.dealDamagesAndTakeBackfire(charge, damage)
+  battle.countItemUsage(charge)
+  battle.updatePositions(charge)
 
   battle.pushLog(`*${attacker.name}* used *${charge.name}*! (${damage} damage)`, 'action')
 
 }
 
 
-export function hook (battle: Battle, attacker: BattlePlayer, damage: number): void {
+export function hook (battle: Battle, damage: number): void {
 
-  const defender = battle.getOpponentForPlayerID(attacker.id)
+  const { attacker, defender } = battle
+
   const hook = attacker.items[Mech.HOOK_INDEX]
 
   if (hook === null) {
-    const message = `${attacker.name} tried to use grappling hook, but didn't equip one`
+    const message = `${battle.attacker.name} tried to use grappling hook, but didn't equip one`
     battle.pushLog(message, 'error')
     throw new Error(message)
   }
 
-  battle.dealDamagesAndTakeBackfire(attacker, hook, damage)
-  battle.countItemUsage(attacker, hook)
+  battle.dealDamagesAndTakeBackfire(hook, damage)
+  battle.countItemUsage(hook)
 
 
   // We manually update the positions here
@@ -133,32 +136,33 @@ export function hook (battle: Battle, attacker: BattlePlayer, damage: number): v
 
 
 /** @returns The amount of damage dealt */
-export function teleport (battle: Battle, attacker: BattlePlayer, damage: number, position: number): number {
+export function teleport (battle: Battle, damage: number, position: number): number {
 
-  const defender = battle.getOpponentForPlayerID(attacker.id)
+  const { attacker, defender } = battle
+
   const tele = attacker.items[Mech.TELEPORTER_INDEX]
   const previousPosition = attacker.position
 
   if (tele === null) {
-    const message = `${attacker.name} tried to use teleporter, but didn't equip one`
+    const message = `${battle.attacker.name} tried to use teleporter, but didn't equip one`
     battle.pushLog(message, 'error')
     throw new Error(message)
   }
   
   // Only deals damage if teleported to opponent's side
   if (Math.abs(position - defender.position) === 1) {
-    battle.dealDamagesAndTakeBackfire(attacker, tele, damage)
+    battle.dealDamagesAndTakeBackfire(tele, damage)
   } else {
     damage = 0
   }
   
-  battle.countItemUsage(attacker, tele)
+  battle.countItemUsage(tele)
 
   // We update the position of the attacker manually
   // here but still call battle.updatePositions ase it's
   // a teleporter with knockback or something (lol)
   attacker.position = position
-  battle.updatePositions(attacker, tele)
+  battle.updatePositions(tele)
 
 
   battle.pushLog(`*${attacker.name} teleported* from position *${previousPosition}* to position *${attacker.position}* (${damage} damage)`, 'action')

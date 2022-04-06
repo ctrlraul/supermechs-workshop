@@ -2,9 +2,7 @@ import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
 import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
 import type { BattleAction } from '../battle/Battle'
-import { addPopup, PopupData } from './PopupManager'
 
 
 
@@ -18,8 +16,7 @@ export const socket = Socket(
   : window.location.hostname + ':3000',
   {
     query: {
-      name: get(userData).name,
-      clientVersion: '1'
+      name: get(userData).name
     }
   }
 )
@@ -48,37 +45,6 @@ socket.on('connect_error', error => {
 
 })
 
-socket.on('server.error', (error: any) => {
-
-  let title: PopupData['title'] = 'Unknown Error'
-  let message: PopupData['message'] = ''
-  const options: PopupData['options'] = {
-    Ok () {
-      this.remove()
-    }
-  }
-
-  switch (error.code) {
-
-    case 'OUTDATED_CLIENT':
-      title = 'Outdated client!'
-      message = 'Please reload the page'
-      options.Reload = function () {
-        location.reload()
-      }
-      break
-
-  }
-
-  addPopup({
-    title,
-    message,
-    options,
-    mode: error
-  })
-
-})
-
 
 
 // Common connection-related methods
@@ -86,22 +52,18 @@ socket.on('server.error', (error: any) => {
 export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
   const attach = () => {
-    attachment.attached = true
     for (const name in listeners) {
       socket.on(name, listeners[name])
     }
   }
 
   const detach = () => {
-    attachment.attached = false
     for (const name in listeners) {
       socket.off(name, listeners[name])
     }
   }
 
-  const attachment = { attach, detach, attached: false }
-
-  return attachment
+  return { attach, detach }
 
 }
 
@@ -135,55 +97,12 @@ export function tryToConnectManually (): Promise<void> {
 // Match Maker methods
 
 export function matchMakerJoin (name: string, mechName: string, setup: number[], itemsHash: string): void {
-
-  interface Result {
-    error: { message: string } | null
-  }
-
-  const data = { name, mechName, setup, itemsHash }
-
-  socket.emit('matchmaker.join', data, (result: Result) => {
-    
-    if (result.error !== null && result.error.message !== 'Already match-making') {
-
-      addPopup({
-        title: 'Failed to join match maker!',
-        message: result.error.message,
-        hideOnOffclick: true,
-        mode: 'error',
-        options: {
-          Ok () { this.remove() }
-        }
-      })
-
-      return
-
-    }
-
-    isInMatchMaker.set(true)
-
-  })
-
+  socket.emit('matchmaker.join', { name, mechName, setup, itemsHash })
 }
 
 
 export function matchMakerQuit (): void {
-
-  interface Result {
-    error: { message: string } | null
-  }
-
-  socket.emit('matchmaker.quit', {}, (result: Result) => {
-
-    // Regardless of result set it to false
-    isInMatchMaker.set(false)
-
-    if (result.error !== null) {
-      logger.error(result.error.message)
-    }
-
-  })
-
+  socket.emit('matchmaker.quit')
 }
 
 

@@ -69,6 +69,8 @@ export class Battle {
   povPlayerID: BattlePlayer['id']
 
   actionPoints: number = 1
+  actionsStack: BattleAction[] = []
+  idle: boolean = true
 
   online: boolean
 
@@ -103,7 +105,7 @@ export class Battle {
 
   // Methods
 
-  pushAction (action: BattleAction) {
+  async pushAction (action: BattleAction) {
 
     // Sanity Checks
 
@@ -129,7 +131,11 @@ export class Battle {
     }
 
 
-    this.proccessAction(action)
+    if (this.idle) {
+      this.proccessAction(action)
+    } else {
+      this.actionsStack.push(action)
+    }
 
   }
 
@@ -153,77 +159,80 @@ export class Battle {
   /** To be used by BattleActionsHandler and BattleEffectsHandler.
    * Returns the damage dealt.
    */
-  dealDamagesAndTakeBackfire (attacker: BattlePlayer, item: BattleItem, damage: number): number {
+  dealDamagesAndTakeBackfire (item: BattleItem, damage: number): number {
 
-    const defender = this.getOpponentForPlayerID(attacker.id)
+    const { attacker, defender } = this
+  
     const statElement = item.element.substring(0, 3).toLowerCase()
-    const resStatKey = statElement + 'Res' as 'phyRes' | 'expRes' | 'eleRes'
-    const resStatDmgKey = resStatKey + 'Dmg' as 'phyResDmg' | 'expResDmg' | 'eleResDmg'
+    
+    const resStatKey = statElement + 'Res' as 'phyRes' | 'expRes' | 'eleRes';
+    const resStatDmgKey = resStatKey + 'Dmg' as 'phyResDmg' | 'expResDmg' | 'eleResDmg';
   
   
     /// Effects on attacker
-    attacker.stats.health -= item.stats.backfire || 0
-    attacker.stats.heat += item.stats.heaCost || 0
-    attacker.stats.energy -= item.stats.eneCost || 0
+    attacker.stats.health -= item.stats.backfire || 0;
+    attacker.stats.heat += item.stats.heaCost || 0;
+    attacker.stats.energy -= item.stats.eneCost || 0;
   
   
     /// Effects on defender
   
-    defender.stats.health -= damage
-    defender.stats.heat += item.stats.heaDmg || 0
-    defender.stats[resStatKey] -= item.stats[resStatDmgKey] || 0
+    defender.stats.health -= damage;
+    defender.stats.heat += item.stats.heaDmg || 0;
+    defender.stats[resStatKey] -= item.stats[resStatDmgKey] || 0;
   
     // Heat capacity damage
     if (item.stats.heaCapDmg) {
-      defender.stats.heaCap = Math.max(1, defender.stats.heaCap - item.stats.heaCapDmg)
+      defender.stats.heaCap = Math.max(1, defender.stats.heaCap - item.stats.heaCapDmg);
     }
   
     // Heat cooling damage
     if (item.stats.heaColDmg) {
-      defender.stats.heaCol = Math.max(1, defender.stats.heaCol! - item.stats.heaColDmg)
+      defender.stats.heaCol = Math.max(1, defender.stats.heaCol! - item.stats.heaColDmg);
     }
   
     // energy damage
     if (item.stats.eneDmg) {
-      defender.stats.energy = Math.max(0, defender.stats.energy - item.stats.eneDmg || 0)
+      defender.stats.energy = Math.max(0, defender.stats.energy - item.stats.eneDmg || 0);
     }
   
     // energy capacity damage
     if (item.stats.eneCapDmg) {
-      defender.stats.eneCap = Math.max(1, defender.stats.eneCap - item.stats.eneCapDmg)
-      defender.stats.energy = Math.min(defender.stats.eneCap, defender.stats.energy)
+      defender.stats.eneCap = Math.max(1, defender.stats.eneCap - item.stats.eneCapDmg);
+      defender.stats.energy = Math.min(defender.stats.eneCap, defender.stats.energy);
     }
   
     // energy regeneration damage
     if (item.stats.eneRegDmg) {
-      defender.stats.eneReg = Math.max(1, defender.stats.eneReg - item.stats.eneRegDmg)
+      defender.stats.eneReg = Math.max(1, defender.stats.eneReg - item.stats.eneRegDmg);
     }
   
-    return damage
+    return damage;
   }
 
 
   /** To be used by BattleActionsHandler and BattleEffectsHandler. */
-  countItemUsage (attacker: BattlePlayer, item: BattleItem): void {
+  countItemUsage (item: BattleItem): void {
     item.timesUsed++
-    attacker.itemsAlreadyUsed.push(item)
+    this.attacker.itemsAlreadyUsed.push(item)
   }
   
   
   /** To be used by BattleActionsHandler and BattleEffectsHandler. */
-  updatePositions (attacker: BattlePlayer, item: BattleItem): void {
+  updatePositions (item: BattleItem): void {
   
-    const defender = this.getOpponentForPlayerID(attacker.id)
+    const { attacker, defender } = this
+  
     const dir = this.getPositionalDirection(attacker.id)
   
     // Movements on attacker
   
     if (item.stats.recoil) {
-      attacker.position = Math.max(0, Math.min(9, attacker.position - item.stats.recoil * dir))
+      attacker.position = Math.max(0, Math.min(9, attacker.position - item.stats.recoil * dir));
     }
   
     if (item.stats.retreat) {
-      attacker.position -= item.stats.retreat * dir
+      attacker.position -= item.stats.retreat * dir;
     }
   
     if (item.stats.advance) {
@@ -231,13 +240,13 @@ export class Battle {
         attacker.position * dir + item.stats.advance < defender.position * dir
         ? attacker.position + item.stats.advance * dir
         : defender.position - dir
-      )
+      );
     }
   
     // Movements on defender
   
     if (item.stats.push) {
-      defender.position = Math.max(0, Math.min(9, defender.position + item.stats.push * dir))
+      defender.position = Math.max(0, Math.min(9, defender.position + item.stats.push * dir));
     }
   
     if (item.stats.pull) {
@@ -245,7 +254,7 @@ export class Battle {
         defender.position * dir - item.stats.pull > attacker.position * dir
         ? defender.position - item.stats.pull * dir
         : attacker.position + dir
-      )
+      );
     }
   }
 
@@ -512,6 +521,8 @@ export class Battle {
 
   private proccessAction (action: BattleAction) {
 
+    this.idle = false
+
     try {
 
       if (!this.online || action.fromServer) {
@@ -628,7 +639,7 @@ export class Battle {
         const damageScale = action.damageScale || Math.random()
         const damage = this.getDamageForItemAtIndex(Mech.LEGS_INDEX, damageScale)
 
-        BattleActionsHandler.stomp(this, attacker, damage)
+        BattleActionsHandler.stomp(this, damage)
 
         const newState = cloneDeep(this)
 
@@ -665,7 +676,7 @@ export class Battle {
 
 
       case 'toggleDrone': {
-        BattleActionsHandler.toggleDrone(this, attacker)
+        BattleActionsHandler.toggleDrone(this)
         BattleAnimations.toggleDrone(attacker)
         break
       }
@@ -695,9 +706,7 @@ export class Battle {
         const damageScale = action.damageScale || Math.random()
         const damageBase = this.getDamageForItemAtIndex(Mech.TELEPORTER_INDEX, damageScale)
 
-        const damageDealt = BattleActionsHandler.teleport(
-          this, attacker, damageBase, action.position
-        )
+        const damageDealt = BattleActionsHandler.teleport(this, damageBase, action.position)
 
         const newState = cloneDeep(this)
 
@@ -713,7 +722,7 @@ export class Battle {
         const damageScale = action.damageScale || Math.random()
         const damage = this.getDamageForItemAtIndex(Mech.HOOK_INDEX, damageScale)
 
-        BattleActionsHandler.hook(this, attacker,  damage)
+        BattleActionsHandler.hook(this, damage)
 
         const newState = cloneDeep(this)
 
@@ -742,6 +751,7 @@ export class Battle {
     this.pushLog(`${this.getPlayerForID(winnerID).name} won!`)
     this.onUpdate(this)
     this.actionPoints = 0
+    this.actionsStack = []
   }
 
 
@@ -788,10 +798,21 @@ export class Battle {
 
 
   private onIdle () {
-    if (this.attacker.ai && this.actionPoints > 0) {
+
+    this.idle = true
+
+    if (this.actionsStack.length) {
+
+      this.proccessAction(this.actionsStack.shift() as BattleAction)
+
+    } else if (this.attacker.ai && this.actionPoints > 0) {
+
       const action = think(this, this.attacker.id)
+
       this.pushAction(action)
+
     }
+
   }
 
 }

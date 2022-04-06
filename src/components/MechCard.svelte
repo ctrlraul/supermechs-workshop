@@ -51,12 +51,12 @@ function duplicate (): void {
 
   <div class="mech-container" on:click={() => onSetActive(mech)}>
     {#if setup[Mech.TORSO_INDEX] !== 0}
-      <MechCanvas {setup} outline={!false} style="width: 80%; max-height: 90%" />
+      <MechCanvas {setup} style="width: 80%; max-height: 90%" />
     {:else}
       <SvgIcon
         name="mech"
         color="var(--color-secondary)"
-        style="position: absolute; max-width: 80%; max-height: 80%;"
+        style="max-width: 60%; max-height: 60%; margin: auto"
       />
     {/if}
   </div>

@@ -221,10 +221,3 @@ input[type="text"]:focus {
     font-size: 90%;
   }
 }
-
-@media (max-width: 900px) and (max-height: 900px) {
-  body {
-    --content-width: 100%;
-    --content-height: 100%;
-  }
-}
