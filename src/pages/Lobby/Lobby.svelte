@@ -1,8 +1,10 @@
 <script lang=ts>
 
-import * as router from 'svelte-spa-router'
-import MechGfx from '../../components/MechGfx.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
+import MechCanvas from '../../components/MechCanvas.svelte'
+import MechPicker from './MechPicker.svelte'
+import Mech from '../../mechs/Mech'
+import * as router from 'svelte-spa-router'
 import * as SocketManager from '../../managers/SocketManager'
 import { items2ids, getItemsHash, matchItemsHash } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
@@ -10,8 +12,6 @@ import { battle } from '../../stores'
 import { userData } from '../../stores/userData'
 import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
-import Mech from '../../mechs/Mech'
-import MechPicker from './MechPicker.svelte'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
 import { currentMech } from '../../stores/mechs'
@@ -29,7 +29,6 @@ interface MatchMaker_Validation {
 
 // State
 
-let mech = $currentMech
 let inMatchMaker = false
 let awaitingResponse = false
 let pickOpponentMech = false
@@ -63,7 +62,7 @@ async function onOnlineBattle (): Promise<void> {
 
   // Make sure we're using a mech
 
-  if (mech === null) {
+  if ($currentMech === null) {
     showNoMechSelectedPopup()
     return
   }
@@ -73,7 +72,7 @@ async function onOnlineBattle (): Promise<void> {
 
   try {
 
-    checkSetup(mech.setup)
+    checkSetup($currentMech.setup)
 
   } catch (err: any) {
 
@@ -176,10 +175,10 @@ async function onOnlineBattle (): Promise<void> {
 
   } else {
 
-    const setup = items2ids(mech.setup)
+    const setup = items2ids($currentMech.setup)
     const itemsHash = getItemsHash(setup)
 
-    SocketManager.matchMakerJoin($userData.name, mech.name, setup, itemsHash)
+    SocketManager.matchMakerJoin($userData.name, $currentMech.name, setup, itemsHash)
 
   }
 
@@ -190,14 +189,14 @@ function onOfflineBattle (): void {
 
   let issue = ''
 
-  if (mech === null) {
+  if ($currentMech === null) {
     showNoMechSelectedPopup()
     return
   }
   
-  if (mech.setup[Mech.TORSO_INDEX] === null) {
+  if ($currentMech.setup[Mech.TORSO_INDEX] === null) {
     issue = 'a torso!'
-  } else if (mech.setup[Mech.LEGS_INDEX] === null) {
+  } else if ($currentMech.setup[Mech.LEGS_INDEX] === null) {
     issue = 'legs!'
   }
 
@@ -230,13 +229,13 @@ function onGoBack (): void {
 
 function onPickOpponentMech (opponentMech: Mech | null): void {
 
-  if (opponentMech === null) {
-    pickOpponentMech = false
+  if ($currentMech === null) {
+    showNoMechSelectedPopup()
     return
   }
 
-  if (mech === null) {
-    showNoMechSelectedPopup()
+  if (opponentMech === null) {
+    pickOpponentMech = false
     return
   }
 
@@ -248,9 +247,9 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
     p1: {
       id: playerID,
       name: $userData.name,
-      mechName: mech.name,
+      mechName: $currentMech.name,
       position: pos1,
-      setup: items2ids(mech.setup)
+      setup: items2ids($currentMech.setup)
     },
     p2: {
       id: 'bot',
@@ -427,10 +426,10 @@ onDestroy(() => {
     <SvgIcon name="cross" color="var(--color-text)" />
   </button>
 
-  {#if mech}
+  {#if $currentMech}
 
     <div class="mech-gfx-container">
-      <MechGfx setup={mech.setup} scale={0.8} />
+      <MechCanvas setup={$currentMech.toJSONModel().setup} />
     </div>
 
     <label>
@@ -536,6 +535,7 @@ main {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  width: 80%;
   height: 70%;
 }
 
