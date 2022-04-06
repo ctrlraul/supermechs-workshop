@@ -73,11 +73,11 @@ const socketAttachment = SocketManager.createAttachment({
 
 isInMatchMaker.subscribe(is => {
   if (is) {
-    if (!socketAttachment.attached) {
+    if (!socketAttachment.isAttached()) {
       socketAttachment.attach()
     }
   } else {
-    if (socketAttachment.attached) {
+    if (socketAttachment.isAttached()) {
       socketAttachment.detach()
     }
   }

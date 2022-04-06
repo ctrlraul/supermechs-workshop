@@ -51,19 +51,27 @@ socket.on('connect_error', error => {
 
 export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
+  let attached = false
+
   const attach = () => {
+    attached = true
     for (const name in listeners) {
       socket.on(name, listeners[name])
     }
   }
 
   const detach = () => {
+    attached = false
     for (const name in listeners) {
       socket.off(name, listeners[name])
     }
   }
 
-  return { attach, detach }
+  const isAttached = () => {
+    return attached
+  }
+
+  return { attach, detach, isAttached }
 
 }
 
