@@ -8,7 +8,7 @@
 import * as router from 'svelte-spa-router'
 import { battle } from '../../stores'
 import PlayerBattlePanel from './PlayerBattlePanel.svelte'
-import BattleControls from './BattleControls.svelte'
+import Controls from './Controls/Controls.svelte'
 import * as SocketManager from '../../managers/SocketManager'
 import Logs from './Logs.svelte'
 import { onDestroy, onMount } from 'svelte'
@@ -137,7 +137,7 @@ onDestroy(() => {
 
 // Functions
 
-async function handleBattleEvent (action: BattleAction): Promise<void> {
+async function callBattleAction (action: BattleAction): Promise<void> {
 
   if ($battle === null) {
     throw new Error('Attempt to handle event but there is no battle')
@@ -230,11 +230,11 @@ function onQuit (): void {
     </div>
   
   
-    <BattleControls
-      player={player}
-      handleBattleEvent={handleBattleEvent}
+    <Controls
+      {player}
+      {callBattleAction}
       blocked={awaitingMove}
-      reverse={reverse}
+      {reverse}
     />
   
   

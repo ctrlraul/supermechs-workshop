@@ -18,7 +18,7 @@ import type { BattlePlayer } from '../../../battle/BattlePlayer'
 // Props
 
 export let player: BattlePlayer
-export let handleBattleEvent: (event: BattleAction) => any
+export let callBattleAction: (event: BattleAction) => any
 export let blocked: boolean
 export let reverse: boolean
 
@@ -48,7 +48,7 @@ function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, 
 
     positions = battle.getWalkablePositions()
     color = '#00cc00'
-    onClick = position => handleBattleEvent({
+    onClick = position => callBattleAction({
       actorID: player.id,
       name: 'walk',
       position
@@ -63,7 +63,7 @@ function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, 
 
     positions = battle.getTeleportablePositions()
     color = '#3dc8c8'
-    onClick = position => handleBattleEvent({
+    onClick = position => callBattleAction({
       actorID: player.id,
       name: 'teleport',
       position
@@ -120,7 +120,7 @@ function useUtil (type: BattleItem['type']): void {
     throw new Error(`Item type "${type}" is not an util type`)
   }
 
-  handleBattleEvent({
+  callBattleAction({
     actorID: player.id,
     name: actionName
   })
@@ -146,7 +146,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
       configs = items.map(item => {
         return {
           item,
-          onUse: () => handleBattleEvent({
+          onUse: () => callBattleAction({
             actorID: player.id,
             name:'useWeapon',
             itemIndex: item.index
@@ -193,7 +193,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
       <MainSection
         {battle}
         {player}
-        callBattleAction={handleBattleEvent}
+        {callBattleAction}
         {setFocusedItem}
         {setSection}
       />
