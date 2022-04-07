@@ -38,7 +38,7 @@ interface UserDataV2 {
 }
 
 interface UserDataV3 {
-  version: '2'
+  version: '3'
   name: string
   mechs: {
     [pack_key: string]: {
@@ -46,16 +46,17 @@ interface UserDataV3 {
     }
   }
   settings: {
-    arenaBuffs: boolean,
+    arenaBuffs: boolean
+    advancedDamageDisplay: boolean
   }
   currentMechID: string | null
   lastItemsPackURL: string | null
 }
 
-type UserDataAnyVersion = UserDataV1 | UserDataV2
+type UserDataAnyVersion = UserDataV1 | UserDataV2 | UserDataV3
 
 /** Typed with the latest version of the user data */
-export type UserData = UserDataV2
+export type UserData = UserDataV3
 
 
 
@@ -135,6 +136,21 @@ function updateUserData (data: UserDataAnyVersion): UserData {
     }
 
     case '2':
+
+      logger.log('Updating user data from v2 to v3')
+
+      const v3: UserDataV3 = {
+        ...data,
+        version: '3',
+        settings: {
+          ...data.settings,
+          advancedDamageDisplay: false
+        }
+      }
+
+      return updateUserData(v3)
+
+    case '3':
       logger.log('User data is up to date')
       return data
 
@@ -148,11 +164,12 @@ function updateUserData (data: UserDataAnyVersion): UserData {
 
 const LOCAL_STORAGE_KEY = 'superMechsWorkshop-userData'
 const DEFAULT_USER_DATA: UserData = {
-  version: '2',
+  version: '3',
   name: 'Unnamed Pilot',
   mechs: {},
   settings: {
-    arenaBuffs: false
+    arenaBuffs: false,
+    advancedDamageDisplay: false
   },
   currentMechID: null,
   lastItemsPackURL: null

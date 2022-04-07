@@ -273,7 +273,7 @@ function onClickBattle (): void {
       <SvgIcon name="trash" color="var(--color-error)" />
     </button>
 
-    <button class="global-box" on:click={() => push('/')} use:tooltip={'Change Items Pack'}>
+    <button class="global-box" on:click={() => push('/settings')} use:tooltip={'Settings'}>
       <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 

@@ -2,6 +2,7 @@
 
 import separateDecimals from '../utils/separateDecimals'
 import tooltip from './Tooltip/useTooltip'
+// import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import * as StatsManager from '../stats/StatsManager'
 import { userData } from '../stores/userData'
 
@@ -64,6 +65,21 @@ function getStats (statsSource: typeof source, arenaBuffs: boolean): Item['stats
 
 }
 
+
+function getDamageAverage (value: number[]): number {
+  return Math.round(value[0] + (value[1] - value[0]) * 0.5)
+}
+
+
+function getRandomnessScale (value: number[]): string {
+  return ((1 - value[0] / value[1]) * 100).toFixed(0) + '%'
+}
+
+
+function isDamageType (key: StatKey): boolean {
+  return ['phyDmg', 'expDmg', 'eleDmg'].includes(key)
+}
+
 </script>
 
 
@@ -77,11 +93,19 @@ function getStats (statsSource: typeof source, arenaBuffs: boolean): Item['stats
     <img src={instructions[i].imageURL} alt={key} />
 
     <output style="color: {key === 'weight' ? getColorForWeight(value) : ''}">
-      {
-        Array.isArray(value)
-        ? value.map(separateDecimals).join('-')
-        : separateDecimals(value)
-      }
+      {#if Array.isArray(value)}
+
+        {#if $userData.settings.advancedDamageDisplay && isDamageType(key)}
+          <span>{separateDecimals(getDamageAverage(value))}~</span>
+          <span class="smol" style="color: hsl({value[0] / value[1] * 115}, 100%, 70%);">{getRandomnessScale(value)}</span>
+          <!-- <SvgIcon name="graph" color="var(--color-text)" /> -->
+        {:else}
+          {value.map(separateDecimals).join('-')}
+        {/if}
+
+      {:else}
+        {separateDecimals(value)}
+      {/if}
     </output>
 
   </div>
@@ -109,6 +133,17 @@ function getStats (statsSource: typeof source, arenaBuffs: boolean): Item['stats
   margin-right: 0.5rem;
   object-fit: contain;
   image-rendering: -webkit-optimize-contrast;
+}
+
+
+output {
+  display: flex;
+  align-items: center;
+}
+
+.smol {
+  font-size: 0.8em;
+  margin-left: 0.5em;
 }
 
 </style>

@@ -21,7 +21,7 @@ import Workshop from './pages/Workshop/Workshop.svelte'
 import Mechs from './pages/Mechs.svelte'
 import Lobby from './pages/Lobby/Lobby.svelte'
 import Battle from './pages/Battle/Battle.svelte'
-import Settings from './pages/Settings.svelte'
+import Settings from './pages/Settings/Settings.svelte'
 
 
 
