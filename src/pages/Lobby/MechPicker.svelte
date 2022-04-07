@@ -36,6 +36,7 @@ $: fightableMechs = $mechs.filter(mech => {
         <button class="mech-button" on:click={() => onPickMech(mech)}>
           <MechCanvas
             setup={items2ids(mech.setup)}
+            outlineThickness={0}
             style="
               position: absolute;
               width: 90%;
