@@ -2,7 +2,6 @@
 
 import separateDecimals from '../utils/separateDecimals'
 import tooltip from './Tooltip/useTooltip'
-// import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import * as StatsManager from '../stats/StatsManager'
 import { userData } from '../stores/userData'
 
@@ -98,7 +97,6 @@ function isDamageType (key: StatKey): boolean {
         {#if $userData.settings.advancedDamageDisplay && isDamageType(key)}
           <span>{separateDecimals(getDamageAverage(value))}~</span>
           <span class="smol" style="color: hsl({value[0] / value[1] * 115}, 100%, 70%);">{getRandomnessScale(value)}</span>
-          <!-- <SvgIcon name="graph" color="var(--color-text)" /> -->
         {:else}
           {value.map(separateDecimals).join('-')}
         {/if}
