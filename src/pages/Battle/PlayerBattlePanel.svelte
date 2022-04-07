@@ -6,7 +6,7 @@ import { BattleItem, getItemByID } from '../../items/ItemsManager'
 import ItemImage from '../../components/ItemImage.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import ControlItemButton from './ControlItemButton.svelte'
+import ItemButton from './Controls/ItemButton.svelte'
 import { getPlayerGfx } from '../../BattleRenderer'
 
 
@@ -159,16 +159,11 @@ function toggleItemsInspector (): void {
   {#if showItemsInspector}
     <div class="items-inspector">
       {#each inspectableItems as item}
-        <ControlItemButton
+        <ItemButton
           {item}
           {battle}
           style="font-size: 0.7em; cursor: unset"
-          onHoverIn={() => focusedItem = item}
-          onHoverOut={() => {
-            if (focusedItem === item) {
-              focusedItem = null
-            }
-          }}
+          setFocusedItem={item => focusedItem = item}
         />
       {/each}
     </div>
