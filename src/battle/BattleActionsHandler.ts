@@ -13,9 +13,9 @@ export function useWeapon (battle: Battle, attacker: BattlePlayer, weapon: Battl
     attacker.position = battle.defender.position - dir
   }
 
-  battle.dealDamagesAndTakeBackfire(weapon, damage)
-  battle.updatePositions(weapon)
-  battle.countItemUsage(weapon)
+  battle.dealDamagesAndTakeBackfire(attacker, weapon, damage)
+  battle.updatePositions(attacker, weapon)
+  battle.countItemUsage(attacker, weapon)
 
   battle.pushLog(`*${attacker.name}* used *${weapon.name}*! (${damage} damage)`, 'action')
 
@@ -49,13 +49,13 @@ export function walk (battle: Battle, attacker: BattlePlayer, position: number):
 }
 
 
-export function stomp (battle: Battle, damage: number): void {
+export function stomp (battle: Battle, attacker: BattlePlayer, damage: number): void {
 
   const legs = battle.attacker.legs
 
-  battle.dealDamagesAndTakeBackfire(legs, damage)
-  battle.updatePositions(legs)
-  battle.countItemUsage(legs)
+  battle.dealDamagesAndTakeBackfire(attacker, legs, damage)
+  battle.updatePositions(attacker, legs)
+  battle.countItemUsage(attacker, legs)
 
   battle.pushLog(`*${battle.attacker.name}* *stomped*! (${damage} damage)`, 'action')
 
@@ -98,9 +98,9 @@ export function charge (battle: Battle, attacker: BattlePlayer, damage: number):
 
   attacker.position = defender.position - dir
 
-  battle.dealDamagesAndTakeBackfire(charge, damage)
-  battle.countItemUsage(charge)
-  battle.updatePositions(charge)
+  battle.dealDamagesAndTakeBackfire(attacker, charge, damage)
+  battle.updatePositions(attacker, charge)
+  battle.countItemUsage(attacker, charge)
 
   battle.pushLog(`*${attacker.name}* used *${charge.name}*! (${damage} damage)`, 'action')
 
@@ -119,8 +119,8 @@ export function hook (battle: Battle, damage: number): void {
     throw new Error(message)
   }
 
-  battle.dealDamagesAndTakeBackfire(hook, damage)
-  battle.countItemUsage(hook)
+  battle.dealDamagesAndTakeBackfire(attacker, hook, damage)
+  battle.countItemUsage(attacker, hook)
 
 
   // We manually update the positions here
@@ -148,21 +148,21 @@ export function teleport (battle: Battle, damage: number, position: number): num
     battle.pushLog(message, 'error')
     throw new Error(message)
   }
-  
+
   // Only deals damage if teleported to opponent's side
   if (Math.abs(position - defender.position) === 1) {
-    battle.dealDamagesAndTakeBackfire(tele, damage)
+    battle.dealDamagesAndTakeBackfire(attacker, tele, damage)
   } else {
     damage = 0
   }
-  
-  battle.countItemUsage(tele)
+
+  battle.countItemUsage(attacker, tele)
 
   // We update the position of the attacker manually
-  // here but still call battle.updatePositions ase it's
+  // here but still call battle.updatePositions attacker, ase it's
   // a teleporter with knockback or something (lol)
   attacker.position = position
-  battle.updatePositions(tele)
+  battle.updatePositions(attacker, tele)
 
 
   battle.pushLog(`*${attacker.name} teleported* from position *${previousPosition}* to position *${attacker.position}* (${damage} damage)`, 'action')
