@@ -5,6 +5,8 @@ import tooltip from '../../components/Tooltip/useTooltip'
 import Toggle from './Toggle.svelte'
 import { UserData, userData } from '../../stores/userData'
 import { push } from 'svelte-spa-router'
+import { isInMatchMaker, isWaitingResponse } from '../../stores/isInMatchMaker'
+import { addPopup } from '../../managers/PopupManager'
 
 
 const togglesConfig = [{
@@ -16,6 +18,28 @@ const togglesConfig = [{
   key: 'advancedDamageDisplay' as keyof UserData['settings'],
   tooltip: 'Show average damage and randomness percentage instead of raw item damage'
 }]
+
+
+
+// Functions
+
+function onClickChangeItemsPack (): void {
+
+  if (!$isInMatchMaker && !$isWaitingResponse) {
+    push('/')
+    return
+  }
+
+  addPopup({
+    title: 'Hold on!',
+    message: "Can't change items pack while searching for a battle!",
+    mode: 'error',
+    options: {
+      Ok () { this.remove() },
+    }
+  })
+
+}
 
 </script>
 
@@ -40,10 +64,8 @@ const togglesConfig = [{
       </li>
     {/each}
 
-    <li class="global-box" on:click={() => push('/')}>
-      <button>
-        Change Items Pack
-      </button>
+    <li class="global-box" on:click={onClickChangeItemsPack}>
+      <button>Change Items Pack</button>
     </li>
 
   </ul>

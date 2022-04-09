@@ -1,14 +1,7 @@
 <script lang="ts">
 
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
-import { matchMakerQuit } from '../managers/SocketManager'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
-
-
-
-// Props
-
-export let cancelButton = true
+import { isInMatchMaker, matchMakerQuit } from '../stores/isInMatchMaker'
 
 
 
@@ -23,44 +16,29 @@ function quitMatchMaker (): void {
 
 
 
-<div class="match-maker-notification global-box" style={$$props.style}>
-
-  <span>
-    <SvgIcon
-      name="aim"
-      class="spinner"
-      style="width: 1em; height: 1em; margin-right: 0.5em;"
-    />
-    Searching for battle
-  </span>
-
-  {#if cancelButton}
-    <button class="global-box" on:click={quitMatchMaker}>
-      Cancel
-    </button>
-  {/if}
-
+<div class="global-box searching-for-battle" style={$$props.style}>
+  <SvgIcon name="aim" class="spinner" />
+  <span>Searching for battle...</span>
+  <button on:click={matchMakerQuit}>Cancel</button>
 </div>
 
 
 
 <style>
 
-.match-maker-notification {
+.searching-for-battle {
   position: relative;
   display: flex;
   padding: 0.5em;
 }
 
-.match-maker-notification span {
-  display: flex;
-  align-items: center;
+.searching-for-battle span {
+  margin: 0 0.5em;
 }
 
-.match-maker-notification button {
+.searching-for-battle button {
   background-color: var(--color-error);
-  padding: 0.1em 0.3em;
-  margin-left: 1em;
+  padding: 0 0.5em;
 }
 
 </style>

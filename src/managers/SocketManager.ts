@@ -2,8 +2,14 @@ import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
 import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
-import type { BattleAction } from '../battle/Battle'
+import { isInMatchMaker } from '../stores/isInMatchMaker'
+import { addPopup, PopupData } from './PopupManager'
 
+
+
+// Types
+
+import type { BattleAction } from '../battle/Battle'
 
 
 // Init
@@ -16,7 +22,8 @@ export const socket = Socket(
   : window.location.hostname + ':3000',
   {
     query: {
-      name: get(userData).name
+      name: get(userData).name,
+      clientVersion: 'flabbergasted!!!' // Arbitraty value, just has to match the server
     }
   }
 )
@@ -45,6 +52,35 @@ socket.on('connect_error', error => {
 
 })
 
+socket.on('server.message', data => {
+
+  switch (data.code) {
+
+    case 'OUTDATED_CLIENT':
+      addPopup({
+        title: 'Outdated client!',
+        message: 'Your client is outdated! Please reload the page.',
+        mode: 'error',
+        options: {
+          Later () { this.remove() },
+          Reload () { location.reload() }
+        }
+      })
+      break
+
+    default:
+      addPopup({
+        title: data.code,
+        message: data.message || JSON.stringify(data),
+        mode: 'error',
+        options: {
+          Ok () { this.remove() }
+        }
+      })
+
+  }
+
+})
 
 
 // Common connection-related methods
@@ -98,24 +134,6 @@ export function tryToConnectManually (): Promise<void> {
     socket.connect()
 
   })
-}
-
-
-
-// Match Maker methods
-
-export function matchMakerJoin (name: string, mechName: string, setup: number[], itemsHash: string): void {
-  socket.emit('matchmaker.join', { name, mechName, setup, itemsHash })
-}
-
-
-export function matchMakerQuit (): void {
-  socket.emit('matchmaker.quit')
-}
-
-
-export function matchMakerValidation (valid: boolean): void {
-  socket.emit('matchmaker.validation', { result: valid })
 }
 
 

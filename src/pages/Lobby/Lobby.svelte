@@ -6,7 +6,7 @@ import MechPicker from './MechPicker.svelte'
 import Mech from '../../mechs/Mech'
 import * as router from 'svelte-spa-router'
 import * as SocketManager from '../../managers/SocketManager'
-import { items2ids, getItemsHash, matchItemsHash } from '../../items/ItemsManager'
+import { items2ids, getItemsHash } from '../../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { battle } from '../../stores'
 import { userData } from '../../stores/userData'
@@ -15,25 +15,16 @@ import { getRandomStartingPositions } from '../../battle/utils'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
 import { currentMech } from '../../stores/mechs'
-
-
-
-// Types
-
-interface MatchMaker_Validation {
-  setup: number[]
-  itemsHash: string
-}
+import { isInMatchMaker, isWaitingResponse, matchMakerJoin, matchMakerQuit } from '../../stores/isInMatchMaker'
 
 
 
 // State
 
-let inMatchMaker = false
-let awaitingResponse = false
 let pickOpponentMech = false
 let playersOnline: number | null = null
 let isConnected = SocketManager.socket.connected
+$: canOfflineBattle = !$isInMatchMaker && !$isWaitingResponse
 
 
 
@@ -162,23 +153,18 @@ async function onOnlineBattle (): Promise<void> {
   }
 
 
-  // Show overlay
-
-  awaitingResponse = true
-
-
   // Resolve action
 
-  if (inMatchMaker) {
+  if ($isInMatchMaker) {
 
-    SocketManager.matchMakerQuit()
+    matchMakerQuit()
 
   } else {
 
     const setup = items2ids($currentMech.setup)
     const itemsHash = getItemsHash(setup)
 
-    SocketManager.matchMakerJoin($userData.name, $currentMech.name, setup, itemsHash)
+    matchMakerJoin($userData.name, $currentMech.name, setup, itemsHash)
 
   }
 
@@ -186,6 +172,22 @@ async function onOnlineBattle (): Promise<void> {
 
 
 function onOfflineBattle (): void {
+
+  if (!canOfflineBattle) {
+
+    addPopup({
+      title: 'Hold on!',
+      message: "Can't play offline battles while searching for an online battle!",
+      mode: 'error',
+      options: {
+        Ok () { this.remove() },
+      }
+    })
+
+    return
+
+  }
+
 
   let issue = ''
 
@@ -274,73 +276,6 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
 
 const socketAttachment = SocketManager.createAttachment({
 
-  'matchmaker.join.success' (): void {
-    awaitingResponse = false
-    inMatchMaker = true
-  },
-
-  'matchmaker.join.error' (err: any): void {
-
-    awaitingResponse = false
-
-    if (err.message === 'Already match-making') {
-
-      inMatchMaker = true
-
-    } else {
-
-      inMatchMaker = false
-
-      addPopup({
-        title: 'Failed to join match maker!',
-        message: err.message,
-        hideOnOffclick: true,
-        mode: 'error',
-        options: {
-          Ok () { this.remove() }
-        }
-      })
-
-    }
-
-  },
-
-
-  'matchmaker.quit.success' (): void {
-    awaitingResponse = false
-    inMatchMaker = false
-  },
-
-  'matchmaker.quit.error' (_err: any): void {
-    awaitingResponse = false
-    inMatchMaker = false
-  },
-
-  'matchmaker.validation' (data: MatchMaker_Validation): void {
-    const valid = matchItemsHash(data.setup, data.itemsHash)
-    SocketManager.matchMakerValidation(valid)
-  },
-
-
-  'battle.start' (battleJSON: any): void {
-    
-    awaitingResponse = true
-    inMatchMaker = false
-
-    $battle = new Battle({
-      online: true,
-      starterID: battleJSON.starterID,
-      p1: battleJSON.p1,
-      p2: battleJSON.p2,
-      onUpdate: value => $battle = value,
-      povPlayerID: SocketManager.socket.id
-    })
-
-    router.push('/battle')
-
-  },
-
-
   // Statistics
 
   'playersonline' (data: { count: number }): void {
@@ -351,23 +286,8 @@ const socketAttachment = SocketManager.createAttachment({
   // Connection
 
   'disconnect' (): void {
-
     playersOnline = null
     isConnected = false
-
-    if (inMatchMaker) {
-      
-      inMatchMaker = false
-
-      addPopup({
-        title: 'Lost connection!',
-        message: `The server stopped vibing`,
-        options: {
-          Ok () { this.remove() }
-        }
-      })
-
-    }
   },
 
   'connect' (): void {
@@ -376,6 +296,7 @@ const socketAttachment = SocketManager.createAttachment({
   }
 
 })
+
 
 onMount(() => {
 
@@ -395,10 +316,6 @@ onDestroy(() => {
     SocketManager.playersOnlineIgnore()
   }
 
-  if (inMatchMaker) {
-    SocketManager.matchMakerQuit()
-  }
-
 })
 
 </script>
@@ -408,19 +325,19 @@ onDestroy(() => {
 <main>
 
   <div class="players-online">
-  {#if isConnected}
+    {#if isConnected}
 
-    <span>Players online:</span>
-    {#if playersOnline !== null}
-      {playersOnline}
+      <span>Players online:</span>
+      {#if playersOnline !== null}
+        {playersOnline}
+      {:else}
+        <SvgIcon name="aim" class="spinner" style="width: 1em; height: 1em" />
+      {/if}
+
     {:else}
-      <SvgIcon name="aim" class="spinner" style="width: 1em; height: 1em" />
+      (Disconnected)
     {/if}
-
-  {:else}
-    (Disconnected)
-  {/if}
-</div>
+  </div>
 
   <button class="back-button" on:mousedown={onGoBack}>
     <SvgIcon name="cross" color="var(--color-text)" />
@@ -447,42 +364,28 @@ onDestroy(() => {
 
   <div class="buttons">
 
-    <button class="global-box" on:mousedown={onOfflineBattle}>
+    <button
+      class="global-box {canOfflineBattle ? '' : 'global-disabled'}"
+      on:mousedown={onOfflineBattle}
+    >
       Battle VS Computer
     </button>
 
-    <button class="global-box" on:mousedown={onOnlineBattle}>
-      Online Battle
+    <button
+      class="global-box {$isInMatchMaker ? 'cancel' : ''} {$isWaitingResponse ? 'global-disabled' : ''}"
+      on:mousedown={onOnlineBattle}
+    >
+
+      {#if $isInMatchMaker}
+        <span>Searching for battle</span>
+        <SvgIcon name="aim" class="spinner" style="margin-left: 0.5em"/>
+      {:else}
+        Online Battle
+      {/if}
+
     </button>
     
   </div>
-
-  {#if inMatchMaker && !awaitingResponse}
-    <div class="searching-for-battle">
-
-      <div class="global-box contents">
-        <div class="spinner-container">
-          Searching for battle...
-          <div class="spinner">
-            <SvgIcon name="aim" />
-          </div>
-        </div>
-  
-        <button class="global-box" on:mousedown={onOnlineBattle}>
-          Cancel
-        </button>
-      </div>
-      
-    </div>
-  {/if}
-
-  {#if awaitingResponse}
-    <div class="awaiting-response-overlay">
-      <div class="spinner">
-        <SvgIcon name="aim" />
-      </div>
-    </div>
-  {/if}
 
 
   {#if pickOpponentMech}
@@ -566,58 +469,12 @@ main {
   height: 2.5em;
 }
 
-
-.searching-for-battle {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1em;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000a0;
-}
-
-.searching-for-battle > .contents {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1em;
-  gap: 1em;
-}
-
-.searching-for-battle > .contents > .spinner-container {
-  position: relative;
-  display: flex;
-  gap: 0.3em;
-  font-size: 1.1em;
-}
-
-.searching-for-battle > .contents > button {
-  width: 8em;
-  height: 2em;
+.buttons > button.cancel {
   background-color: var(--color-error);
 }
 
-
-.awaiting-response-overlay {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000a0;
-  font-size: 2.4em;
-
+.buttons > button.cancel span {
+  font-size: 0.9em;
 }
 
 

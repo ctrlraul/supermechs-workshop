@@ -2,6 +2,7 @@
 
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import { pop } from 'svelte-spa-router'
+import { isInMatchMaker, matchMakerQuit } from '../stores/isInMatchMaker'
 
 
 export let title: string
@@ -12,6 +13,14 @@ export let onGoBack: () => any = pop
 
 
 <header style={$$props.style}>
+
+  {#if $isInMatchMaker}
+    <div class="global-box searching-for-battle">
+      <SvgIcon name="aim" class="spinner" />
+      <span>Searching for battle...</span>
+      <button on:click={matchMakerQuit}>Cancel</button>
+    </div>
+  {/if}
 
   <div class="title">{title}</div>
 
@@ -43,6 +52,26 @@ header > button {
   right: 0.2em;
   width: 2em;
   height: 2em;
+}
+
+
+.searching-for-battle {
+  position: absolute;
+  left: 0.5em;
+  top: 0.5em;
+  display: flex;
+  align-items: center;
+  height: 2em;
+  padding: 0 0.5em;
+}
+
+.searching-for-battle span {
+  margin: 0 0.5em;
+}
+
+.searching-for-battle button {
+  background-color: var(--color-error);
+  padding: 0 0.5em;
 }
 
 </style>

@@ -8,6 +8,7 @@ import SLOTS from './slots'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import MechSummary from '../../components/MechSummary.svelte'
+import MatchMakingPopup from '../../components/MatchMakingPopup.svelte'
 import { push, location as routerLocation } from 'svelte-spa-router'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
@@ -16,6 +17,7 @@ import { userData } from '../../stores/userData'
 import { currentMech } from '../../stores/mechs'
 import { getItemByID, items2ids } from '../../items/ItemsManager'
 import { saveMech } from '../../managers/UserDataManager'
+import { isInMatchMaker } from '../../stores/isInMatchMaker'
 
 
 
@@ -199,7 +201,7 @@ function onClickBattle (): void {
 
   <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
-      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 90%;" />
+      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 85%;" />
     {/if}
   </div>
 
@@ -217,7 +219,7 @@ function onClickBattle (): void {
         />
       {/each}
     </div>
-  
+
     <div class="util-slots">
       <!-- "i + 9" on index because of the 9 slots that come before -->
       {#each SLOTS.utils as slot, i}
@@ -230,7 +232,7 @@ function onClickBattle (): void {
         />
       {/each}
     </div>
-  
+
     <div class="module-slots">
       <!-- "i + 12" on index because of the 12 slots that come before -->
       {#each Array(8) as _, i}
@@ -282,6 +284,14 @@ function onClickBattle (): void {
     </button>
 
   </div>
+
+
+  {#if $isInMatchMaker}
+    <div class="match-making-popup-container">
+      <MatchMakingPopup />
+    </div>
+  {/if}
+
 
 </main>
 
@@ -390,6 +400,13 @@ main {
 }
 
 
+.match-making-popup-container {
+  position: absolute;
+  left: 54%;
+  top: 0.5em;
+  font-size: 0.8em;
+}
+
 
 @media (orientation: portrait) {
 
@@ -453,6 +470,11 @@ main {
     position: absolute;
     bottom: calc(30% + 8.25em);
     height: 50%;
+  }
+
+  .match-making-popup-container {
+    left: 0.5em;
+    font-size: 1em;
   }
 
 }
