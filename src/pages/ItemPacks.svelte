@@ -23,6 +23,17 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 // Data
 
 let loadingProgress = 0
+/** To prevent the client from instantly redirecting to workshop
+ * screen if they come to this page with a pack already loaded */
+let justLoadedPack = false
+/** To force redirect whenever a pack is loaded from this screen */
+let alreadyHasPack = $itemsPackData !== null
+
+$: {
+  if ($itemsPackData !== null && (!alreadyHasPack || justLoadedPack)) {
+    router.push('/workshop')
+  }
+}
 
 
 
@@ -49,6 +60,8 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
   try {
   
     const result = await importItemsPack(url, progress => loadingProgress = progress)
+
+    justLoadedPack = true
 
     itemsPackData.set(result.data)
 
@@ -169,7 +182,7 @@ function loadFromFile (e: Event): void {
 
       {#if $itemsPackData !== null}
         <WideButton text="Cancel" on:click={() => router.pop()} />
-      {:else}
+      {:else if $isInMatchMaker}
         How did we get there?
       {/if}
 

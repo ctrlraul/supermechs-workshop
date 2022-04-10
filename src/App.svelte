@@ -116,9 +116,6 @@ async function tryToImportLastItemsPack (): Promise<void> {
 
     itemsPackData.set(result.data)
 
-    // TODO: stay in the same route unless it's the packs route
-    push('/workshop')
-
     popup.remove()
 
   } catch (err: any) {
