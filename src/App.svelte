@@ -1,6 +1,6 @@
 <script lang="ts">
 
-import Router, { replace, push } from 'svelte-spa-router'
+import Router, { replace } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'

@@ -18,9 +18,9 @@ interface PopupArgs {
 
 export interface PopupData {
   title: string
-  message: string | string[]
+  message: string[]
   hideOnOffclick: boolean
-  options: Record<string, () => void>
+  options: Map<string, () => void>
   mode: 'info' | 'error' | 'warn' | 'success'
   spinner: boolean
   replace: (args: PopupArgs) => void
@@ -114,13 +114,33 @@ function createReplacer (id: number): PopupData['replace'] {
 }
 
 
+function getMessageLines (message: PopupArgs['message']): string[] {
+
+  if (message === undefined) {
+    return []
+  }
+
+  if (Array.isArray(message)) {
+    return message
+  }
+
+  return (
+    message
+      .trim() // Necesary in case the message starts with a new line
+      .split('\n')
+      .map(line => line.trim())
+  )
+
+}
+
+
 function createPopupData (id: number, args: PopupArgs): PopupData {
 
   const data: PopupData = {
     title: args.title,
-    message: args.message || '',
+    message: getMessageLines(args.message),
     hideOnOffclick: !!args.hideOnOffclick,
-    options: args.options || {},
+    options: new Map(Object.entries(args.options || {})),
     mode: args.mode || 'info',
     spinner: !!args.spinner,
     remove: createRemover(id),

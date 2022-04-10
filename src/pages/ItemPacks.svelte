@@ -77,18 +77,18 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
     addPopup({
       title: 'Could not load this pack!',
-      message: [
-        `Error:`,
-        ...errMessage,
-        '',
-        'If you\'re having trouble contact me:',
-        `Discord: ${discordTag}`,
-        `Forum: ${forumProfile}`,
-        '',
-        '(Make sure to screenshot or copy this error message)',
-        '',
-        'Raul.'
-      ],
+      message: `
+        Error:
+        ${errMessage.join('\n')}
+
+        If you\'re having trouble contact me:
+        Discord: ${discordTag}
+        Forum: ${forumProfile}
+
+        (Make sure to screenshot or copy this error message)
+
+        Raul
+      `,
       options: {
         Ok () { this.remove() }
       }
