@@ -1,6 +1,5 @@
 import Logger from '../utils/Logger'
 import * as router from 'svelte-spa-router'
-import * as SocketManager from '../managers/SocketManager'
 import { socket } from '../managers/SocketManager'
 import { matchItemsHash } from '../items/ItemsManager'
 import { get, writable } from 'svelte/store'

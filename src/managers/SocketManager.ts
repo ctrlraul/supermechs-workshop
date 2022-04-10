@@ -2,8 +2,7 @@ import Socket from 'socket.io-client'
 import Logger from '../utils/Logger'
 import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
-import { addPopup, PopupData } from './PopupManager'
+import { addPopup } from './PopupManager'
 
 
 

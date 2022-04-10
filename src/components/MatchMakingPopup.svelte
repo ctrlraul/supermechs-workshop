@@ -1,16 +1,7 @@
 <script lang="ts">
 
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
-import { isInMatchMaker, matchMakerQuit } from '../stores/isInMatchMaker'
-
-
-
-// Functions
-
-function quitMatchMaker (): void {
-  matchMakerQuit()
-  $isInMatchMaker = false
-}
+import { matchMakerQuit } from '../stores/isInMatchMaker'
 
 </script>
 
