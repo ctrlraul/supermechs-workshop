@@ -44,8 +44,8 @@ function onClickClear (): void {
           position: absolute;
           left: auto;
           top: auto;
-          max-width: 86%;
-          max-height: 86%;
+          max-width: 87%;
+          max-height: 87%;
         "
       />
 
@@ -97,13 +97,14 @@ function onClickClear (): void {
   justify-content: center;
   width: calc(100% - 0.4em);
   height: calc(100% - 0.4em);
+  border: 0.15em solid var(--color-primary);
   z-index: 1;
-  transition: border-color 200ms;
+  transition: background-color 200ms, border-color 200ms;
 }
 
 .img-container:hover, 
 .img-container:focus {
-  transition: border-color 0ms;
+  transition: unset;
   border-color: var(--color-accent);
   box-shadow: 0 0 0.3em var(--color-accent);
 }
@@ -113,7 +114,7 @@ function onClickClear (): void {
 .EXPLOSIVE,
 .ELECTRIC,
 .COMBINED {
-  border: 0.15em solid #ffffff20;
+  border-color: #ffffff20;
   background-image: radial-gradient(#000000, #151515)
 }
 .PHYSICAL { 
