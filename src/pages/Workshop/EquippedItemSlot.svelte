@@ -1,27 +1,35 @@
 <script lang="ts">
-import type Item from '../../items/Item'
+
 import ItemImage from '../../components/ItemImage.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 
 
+
+// Types
+
+import type Item from '../../items/Item'
+import type { SlotConfig } from './slotsConfig'
+
+
+
+// Props
+
+export let config: SlotConfig
 export let item: Item | null
-export let index: number
-export let type: Item['type']
-export let rtl = false
-export let onClear: (index: number) => void
-export let onClick: (index: number, type: Item['type']) => void
+export let onClear: (config: SlotConfig) => void
+export let onClick: (config: SlotConfig) => void
 
 
 
 // Functions
 
 function onSelect (): void {
-  onClick(index, type)
+  onClick(config)
 }
 
 function onClickClear (): void {
-  onClear(index)
+  onClear(config)
 }
 
 </script>
@@ -52,7 +60,7 @@ function onClickClear (): void {
     {:else}
 
       <SvgIcon
-        name={type}
+        name={config.type}
         color="var(--color-text)"
         style="
           position: absolute;
@@ -60,7 +68,7 @@ function onClickClear (): void {
           top: auto;
           width: 90%;
           height: 90%;
-          {rtl ? 'transform: scaleX(-1);' : ''}
+          {config.rtl ? 'transform: scaleX(-1);' : ''}
         "
       />
       
@@ -95,8 +103,8 @@ function onClickClear (): void {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: calc(100% - 0.4em);
-  height: calc(100% - 0.4em);
+  width: 100%;
+  height: 100%;
   border: 0.15em solid var(--color-primary);
   z-index: 1;
   transition: background-color 200ms, border-color 200ms;

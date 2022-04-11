@@ -1,6 +1,7 @@
 <script lang="ts">
 
 import Mech from '../mechs/Mech'
+import Logger from '../utils/Logger'
 import { ids2items, renderItem } from '../items/ItemsManager'
 
 
@@ -33,32 +34,42 @@ export let outlineThickness = 2
 
 
 
-// State
+// Data
 
-let canvas: HTMLCanvasElement
-$: render(canvas, setup)
+const logger = new Logger('MechCanvas')
+
+let canvas: HTMLCanvasElement | null = null
+let errorMessage = ''
+
+$: ctx = canvas ? canvas.getContext('2d')! : null
+$: tryToRender(canvas, ctx, setup)
 
 
 
 // Functions
 
-function render (element: HTMLCanvasElement, itemIDs: number[]): void {
+function tryToRender (canvas: HTMLCanvasElement | null, ctx: CanvasRenderingContext2D | null, itemIDs: number[]): void {
 
-  if (!element) {
+  if (!canvas) {
     return
   }
 
-  canvas = element
-
-  const ctx = canvas.getContext('2d')
-
-
-  // Is canvas 2d rendering even supported in this browser?
-
-  if (ctx === null) {
+  if (!ctx) {
+    logger.error('Canvas rendering context 2D is not supported in this browser!')
     return
   }
 
+  try {
+    render(canvas, ctx, itemIDs)
+  } catch (err: any) {
+    logger.error('Failed to render mech:', err)
+    errorMessage = 'Failed to render mech: ' + err.message
+  }
+
+}
+
+
+function render (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, itemIDs: number[]): void {
 
   // Clear the canvas
 
@@ -270,9 +281,15 @@ function getImageFormation (parts: ReturnType<typeof createParts>) {
 
 
 
-<canvas use:render={setup} style={$$props.style}>
-  Can't render mech! Your browser does not support canvas.
-</canvas>
+{#if errorMessage}
+  <div style={$$props.style}>
+    {errorMessage}
+  </div>
+{:else}
+  <canvas bind:this={canvas} style={$$props.style}>
+    Can't render mech! Your browser does not support canvas.
+  </canvas>
+{/if}
 
 
 
@@ -284,6 +301,18 @@ canvas {
   object-fit: contain;
   max-height: 100%;
   max-width: 100%;
+}
+
+div {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-error);
+  max-height: 80%;
+  max-width: 80%;
+  height: 100%;
+  width: 100%;
 }
 
 </style>

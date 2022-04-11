@@ -3,12 +3,12 @@
 import EquippedItemSlot from './EquippedItemSlot.svelte'
 import ItemPickingTab from '../../components/ItemPickingTab.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import Mech, { MechJSON } from '../../mechs/Mech'
-import SLOTS from './slots'
+import Mech, { MechJSON, SlotName } from '../../mechs/Mech'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import MechSummary from '../../components/MechSummary.svelte'
 import MatchMakingPopup from '../../components/MatchMakingPopup.svelte'
+import { SlotConfig, SLOTS_CONFIG } from './slotsConfig'
 import { push, location as routerLocation } from 'svelte-spa-router'
 import { addPopup } from '../../managers/PopupManager'
 import { getURLQuery } from '../../utils/getURLQuery'
@@ -30,8 +30,9 @@ import type Item from '../../items/Item'
 // State
 
 const PATREON_URL = 'https://www.patreon.com/ctrlraul'
+const slotAreas = 'abcdefghijklmnopqrst'
 
-let focusedSlotInfo = null as null | { index: number, type: Item['type'] }
+let focusedSlotConfig: SlotConfig | null = null
 
 $: mech = $currentMech
 $: hasItemsEquipped = mech && mech.setup.some(Boolean)
@@ -85,29 +86,29 @@ function updateMechURL () {
 
 // Events
 
-function onClearSlot (index: number): void {
+function onClearSlot (config: SlotConfig): void {
   if ($currentMech) {
-    $currentMech.setup[index] = null
+    $currentMech.slots[config.name].item = null
     saveMech($currentMech)
   }
 }
 
 
-function onClickSlot (index: number, type: Item['type']): void {
-  focusedSlotInfo = { index, type }
+function onClickSlot (config: SlotConfig): void {
+  focusedSlotConfig = config
 }
 
 
 function onSelectItem (itemID: Item['id']): void {
 
-  if ($currentMech === null || focusedSlotInfo === null) {
+  if (!$currentMech || !focusedSlotConfig) {
     return
   }
 
-  $currentMech.setup[focusedSlotInfo.index] = getItemByID(itemID)
-  saveMech($currentMech)
+  $currentMech.setItemAtSlot(focusedSlotConfig.name, getItemByID(itemID))
+  focusedSlotConfig = null
 
-  focusedSlotInfo = null
+  saveMech($currentMech)
 
 }
 
@@ -123,7 +124,8 @@ function onClickDismountMech (): void {
         Yes () {
           this.remove()
           if ($currentMech) {
-            $currentMech.setup = Array(20).fill(null)
+            $currentMech.clearSlots()
+            $currentMech = $currentMech
             saveMech($currentMech)
             updateMechURL()
           }
@@ -189,15 +191,15 @@ function onClickBattle (): void {
 
 
 
-{#if mech && focusedSlotInfo}
+{#if mech && focusedSlotConfig}
   <ItemPickingTab
-    type={focusedSlotInfo.type}
-    currentItem={mech.setup[focusedSlotInfo.index]}
+    type={focusedSlotConfig.type}
+    currentItem={mech.slots[focusedSlotConfig.name].item}
     selectItem={onSelectItem}
   />
 {/if}
 
-<main class={focusedSlotInfo ? 'blur' : ''}>
+<main class={focusedSlotConfig ? 'blur' : ''}>
 
   <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
@@ -205,46 +207,16 @@ function onClickBattle (): void {
     {/if}
   </div>
 
-  <div class="slots-container">
-    <div class="part-slots">
-      {#each SLOTS.parts as slot, i}
-        <EquippedItemSlot
-          type={slot.type}
-          rtl={slot.rtl}
-          style="grid-area: {slot.grid}"
-          index={i}
-          item={mech ? mech.setup[i] : null}
-          onClear={onClearSlot}
-          onClick={onClickSlot}
-        />
-      {/each}
-    </div>
-
-    <div class="util-slots">
-      <!-- "i + 9" on index because of the 9 slots that come before -->
-      {#each SLOTS.utils as slot, i}
-        <EquippedItemSlot
-          type={slot.type}
-          index={i + 9}
-          item={mech ? mech.setup[i + 9] : null}
-          onClear={onClearSlot}
-          onClick={onClickSlot}
-        />
-      {/each}
-    </div>
-
-    <div class="module-slots">
-      <!-- "i + 12" on index because of the 12 slots that come before -->
-      {#each Array(8) as _, i}
-        <EquippedItemSlot
-          type="MODULE"
-          index={i + 12}
-          item={mech ? mech.setup[i + 12] : null}
-          onClear={onClearSlot}
-          onClick={onClickSlot}
-        />
-      {/each}
-    </div>
+  <div class="slots">
+    {#each SLOTS_CONFIG as config, i}
+      <EquippedItemSlot
+        {config}
+        item={mech ? mech.slots[config.name].item : null}
+        onClear={onClearSlot}
+        onClick={onClickSlot}
+        style="grid-area: {slotAreas[i]}"
+      />
+    {/each}
   </div>
 
   <div class="mech-summary-container">
@@ -313,12 +285,23 @@ main {
   width: 100%;
 }
 
-.slots-container {
+
+.slots {
   position: relative;
   display: grid;
-  grid-template-rows: 16fr 4fr 8fr;
+  grid-template-rows: 3fr 3fr 3fr 2fr 2fr 2fr;
+  grid-template-columns: 25fr 8fr 17fr 17fr 8fr 25fr;
+  grid-template-areas:
+    'a a b b c c'
+    'd d e e f f'
+    'g g h h i i'
+    'j j k k l l'
+    'm n n o o p'
+    'q r r s s t';
+  gap: 0.5em;
   width: 100%;
   height: 100%;
+  padding: 0.5em;
   grid-area: slots;
 }
 
@@ -332,34 +315,6 @@ main {
   height: 100%;
   padding: 0 0.5em;
   grid-area: summary;
-}
-
-
-.part-slots {
-  position: relative;
-  display: grid;
-  width: 100%;
-  height: 100%;
-  grid-template-areas:
-    'top-1 drone top-2'
-    'side-1 torso side-2'
-    'side-3 legs side-4';
-}
-
-.util-slots {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.module-slots {
-  position: relative;
-  display: grid;
-  grid-template-areas: '. . . .' '. . . .';
-  width: 100%;
-  height: 100%;
 }
 
 
@@ -414,13 +369,17 @@ main {
     display: block;
   }
 
-  .slots-container {
+
+  .slots {
     position: absolute;
-    display: block;
     bottom: 0;
-    left: 0;
     height: 30%;
-    background-color: var(--color-front-dark);
+    grid-template-rows: 3fr 3fr 2fr;
+    grid-template-columns: 25fr 8fr 17fr 17fr 8fr 25fr 25fr 8fr 17fr 17fr 8fr 25fr;
+    grid-template-areas:
+      'a a b b c c d d e e f f'
+      'g g h h i i j j k k l l'
+      'm n n o o p q r r s s t';
   }
 
 
@@ -432,34 +391,6 @@ main {
     height: unset;
   }
 
-
-  .part-slots {
-    position: absolute;
-    grid-template-areas:
-      'side-1 torso side-2 top-1 drone top-2'
-      'side-3 legs side-4 . . .';
-    left: 0;
-    top: 0;
-    height: 75%;
-    width: 100%;
-  }
-
-  .util-slots {
-    position: absolute;
-    right: 0;
-    top: 37.5%;
-    width: 50%;
-    height: 37.5%;
-  }
-
-  .module-slots {
-    position: absolute;
-    display: flex;
-    left: 0;
-    top: 75%;
-    width: 100%;
-    height: 25%;
-  }
 
   .buttons > button {
     padding: 0.2em;

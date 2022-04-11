@@ -13,17 +13,26 @@ export default class Logger {
   private name: string
   private hue: string
 
-  constructor () {
+  constructor (name?: string) {
 
-    const dummy = new Error()
-    const stack = dummy.stack!.split('\n')
-    
-    stack.shift() // Remove error name
-    stack.shift() // Remove this constructor call
+    if (name) {
 
-    const match = stack[0].match(matchFileName)
+      this.name = name
 
-    this.name = match ? match[1] : stack[0]
+    } else {
+
+      const dummy = new Error()
+      const stack = dummy.stack!.split('\n')
+      
+      stack.shift() // Remove error name
+      stack.shift() // Remove this constructor call
+  
+      const match = stack[0].match(matchFileName)
+  
+      this.name = match ? match[1] : stack[0]
+
+    }
+
     this.hue = String(hue)
 
     hue += hueChange
