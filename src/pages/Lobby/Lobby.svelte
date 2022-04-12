@@ -260,7 +260,7 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
       name: 'Skynet',
       mech: opponentMech,
       position: pos2,
-      ai: true
+      ai: !$userData.settings.controlOfflineOpponent
     },
     starterID: playerID,
     onUpdate: value => $battle = value,

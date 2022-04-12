@@ -7,7 +7,7 @@ import ControlItemButton from './ItemButton.svelte'
 
 // Types
 
-import type { Battle, BattleAction } from '../../../battle/Battle'
+import type { Battle, ActorlessBattleAction } from '../../../battle/Battle'
 import type { BattlePlayer } from '../../../battle/BattlePlayer'
 import type { BattleItem } from '../../../items/ItemsManager'
 
@@ -19,12 +19,13 @@ export let battle: Battle
 export let player: BattlePlayer
 export let setSection: (section: string) => void
 export let setFocusedItem: (item: BattleItem | null) => void
-export let callBattleAction: (action: BattleAction) => void
+export let callBattleAction: (action: ActorlessBattleAction) => void
 
 
 
 // State
 
+$: player = battle.attacker
 $: legs = player.slots.legs!
 $: canMove = 'walk' in legs.stats || 'jump' in legs.stats
 $: hasWeapons = player.weapons.some(item => item !== null)
@@ -56,18 +57,12 @@ function onClickUtils (): void {
 
 
 function onClickStomp (): void {
-  callBattleAction({
-    actorID: player.id, 
-    name: 'stomp'
-  })
+  callBattleAction({ name: 'stomp' })
 }
 
 
 function onClickCooldown (): void {
-  callBattleAction({
-    actorID: player.id, 
-    name: 'cooldown'
-  })
+  callBattleAction({ name: 'cooldown' })
 }
 
 </script>
@@ -110,10 +105,12 @@ button {
   height: 4em;
   padding: 0.4em;
   border-radius: var(--ui-radius);
+  background-color: #ffffff30;
 }
 
 .disabled {
   filter: brightness(0.5);
+  background-color: #00000080;
 }
 
 </style>

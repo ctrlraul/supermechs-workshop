@@ -10,13 +10,17 @@ import { addPopup } from '../../managers/PopupManager'
 
 
 const togglesConfig = [{
-  label: 'Arena Buffs',
+  label: 'Arena buffs',
   key: 'arenaBuffs' as keyof UserData['settings'],
-  tooltip: 'Apply arena buffs to items and mechs.\nNote: This is always on in battle'
+  description: 'Apply arena buffs to items and mechs.\nNote: This is always active in battle'
 }, {
-  label: 'Advanced Damage Display',
+  label: 'Advanced damage display',
   key: 'advancedDamageDisplay' as keyof UserData['settings'],
-  tooltip: 'Show average damage and randomness percentage instead of raw item damage'
+  description: 'Show average damage and randomness percentage instead of raw item damage'
+}, {
+  label: 'Control Offline Opponent',
+  key: 'controlOfflineOpponent' as keyof UserData['settings'],
+  description: 'Control both mechs in computer battles'
 }]
 
 
@@ -52,7 +56,7 @@ function onClickChangeItemsPack (): void {
   <ul>
 
     {#each togglesConfig as config}
-      <li class="global-box" use:tooltip={config.tooltip}>
+      <li class="global-box" use:tooltip={config.description}>
 
         <Toggle
           value={$userData.settings[config.key]}

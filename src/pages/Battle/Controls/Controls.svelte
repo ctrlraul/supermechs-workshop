@@ -3,8 +3,9 @@
 import SvgIcon from '../../../components/SvgIcon/SvgIcon.svelte'
 import ItemButton from './ItemButton.svelte'
 import MainSection from './MainSection.svelte'
-import { Battle, BattleAction } from '../../../battle/Battle'
+import { ActorlessBattleAction, Battle, BattleAction } from '../../../battle/Battle'
 import { battle as battleStore } from '../../../stores'
+import { userData } from '../../../stores/userData'
 
 
 
@@ -18,7 +19,7 @@ import type { BattlePlayer } from '../../../battle/BattlePlayer'
 // Props
 
 export let player: BattlePlayer
-export let callBattleAction: (event: BattleAction) => any
+export let callBattleAction: (event: ActorlessBattleAction) => any
 export let blocked: boolean
 export let reverse: boolean
 
@@ -31,9 +32,31 @@ let focusedItem: BattleItem | null = null
 let teleporting = false
 
 $: battle = $battleStore!
-$: showControls = battle.attacker.id === player.id && battle.completion === null && battle.actionPoints > 0
 $: spotlights = getSpotlights(teleporting, focusedItem, section, player)
+$: showControls = (
 
+  // Battle is not complete
+  battle.completion === null
+
+  // Has turns left
+  && battle.actionPoints > 0
+
+  // Is player's turn or (battle is offline and player can control both mechs)
+  && (
+    battle.attacker.id === player.id ||
+    (!battle.online && $userData.settings.controlOfflineOpponent)
+  )
+
+)
+$: backgroundColor = (
+  $userData.settings.controlOfflineOpponent && !battle.online
+  ? (
+    battle.attacker.id === player.id
+    ? '#13340c'
+    : '#4a0c0c'
+  )
+  : ''
+)
 
 
 // Functions
@@ -49,7 +72,6 @@ function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, 
     positions = battle.getWalkablePositions()
     color = '#00cc00'
     onClick = position => callBattleAction({
-      actorID: player.id,
       name: 'walk',
       position
     })
@@ -64,7 +86,6 @@ function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, 
     positions = battle.getTeleportablePositions()
     color = '#3dc8c8'
     onClick = position => callBattleAction({
-      actorID: player.id,
       name: 'teleport',
       position
     })
@@ -121,7 +142,6 @@ function useUtil (type: BattleItem['type']): void {
   }
 
   callBattleAction({
-    actorID: player.id,
     name: actionName
   })
 
@@ -147,7 +167,6 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
         return {
           item,
           onUse: () => callBattleAction({
-            actorID: player.id,
             name:'useWeapon',
             slotName: item.slotName
           })
@@ -185,14 +204,14 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
 
 
 
-<div class="controls">
+<div class="controls" style="background-color: {backgroundColor};">
 
   {#if showControls}
     {#if section === 'main'}
 
       <MainSection
         {battle}
-        {player}
+        player={battle.attacker}
         {callBattleAction}
         {setFocusedItem}
         {setSection}
@@ -204,7 +223,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
         <SvgIcon name="arrow_back" color="var(--color-text)" />
       </button>
 
-      {#each getButtonConfigsForSection(section, player) as { item, onUse }}
+      {#each getButtonConfigsForSection(section, battle.attacker) as { item, onUse }}
         <ItemButton {battle} {item} {setFocusedItem} {onUse} />
       {/each}
 
@@ -254,6 +273,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
   padding: 0.5em;
   gap: 0.5em;
   background-color: var(--color-primary);
+  transition: background-color 200ms;
 }
 
 
@@ -266,6 +286,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
   height: 4em;
   padding: 0.4em;
   border-radius: var(--ui-radius);
+  background-color: #ffffff30;
 }
 
 

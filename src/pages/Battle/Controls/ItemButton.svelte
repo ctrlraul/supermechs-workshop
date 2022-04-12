@@ -117,7 +117,12 @@ button {
   height: 4em;
   padding: 0.4em;
   border-radius: var(--ui-radius);
-  background-color: var(--color-primary-dark);
+  /* background-color: var(--color-primary-dark); */
+  background-color: #ffffff30;
+}
+
+.global-disabled {
+  background-color: #00000080;
 }
 
 .uses {

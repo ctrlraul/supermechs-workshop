@@ -30,8 +30,14 @@ export interface BattleAction {
   damageScale?: number
 }
 
+/** Used in the battle screen to make controlling
+ * the opponent's mech in offline battles more feasible */
+export type ActorlessBattleAction = { name: BattleAction['name'] } & Partial<{
+  [K in Exclude<keyof BattleAction, 'actorID'>]: BattleAction[K]
+}>
+
 interface BattleCompletion {
-  winnerID: BattlePlayer['id']
+  winner: BattlePlayer
   quit: boolean
 }
 
@@ -535,7 +541,13 @@ export class Battle {
 
         // Handle battle completion
         if (this.hasDeadPlayer()) {
-          this.setCompletion(this.p1.stats.health < this.p2.stats.health ? this.p2.id : this.p1.id)
+
+          this.setCompletion(
+            this.p1.stats.health < this.p2.stats.health
+            ? this.p2
+            : this.p1
+          )
+
         } else {
 
           // It was the last action point, so now we check if the drone should fire
@@ -561,7 +573,13 @@ export class Battle {
 
               // Drone fired so we have to check if the battle is complete again
               if (this.hasDeadPlayer()) {
-                this.setCompletion(this.p1.stats.health < this.p2.stats.health ? this.p2.id : this.p1.id)
+
+                this.setCompletion(
+                  this.p1.stats.health < this.p2.stats.health
+                  ? this.p2
+                  : this.p1
+                )
+
               } else {
                 this.passTurn()
               }
@@ -759,9 +777,9 @@ export class Battle {
   }
 
 
-  private setCompletion (winnerID: BattlePlayer['id'], quit: boolean = false) {
-    this.completion = { winnerID, quit }
-    this.pushLog(`${this.getPlayerForID(winnerID).name} won!`)
+  private setCompletion (winner: BattlePlayer, quit: boolean = false) {
+    this.completion = { winner, quit }
+    this.pushLog(`${winner.name} won!`)
     this.onUpdate(this)
     this.actionPoints = 0
     this.actionsStack = []

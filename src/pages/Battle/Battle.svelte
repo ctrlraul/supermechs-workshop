@@ -5,17 +5,23 @@
 // there is a route guard to guarantee us it is not.
 
 
-import * as router from 'svelte-spa-router'
-import { battle } from '../../stores'
 import PlayerBattlePanel from './PlayerBattlePanel.svelte'
 import Controls from './Controls/Controls.svelte'
-import * as SocketManager from '../../managers/SocketManager'
 import Logs from './Logs.svelte'
-import { onDestroy, onMount } from 'svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import type { BattleAction } from '../../battle/Battle'
+import * as router from 'svelte-spa-router'
+import * as SocketManager from '../../managers/SocketManager'
+import { onDestroy, onMount } from 'svelte'
+import { battle } from '../../stores'
 import { addPopup } from '../../managers/PopupManager'
 import { setCanvas } from '../../BattleRenderer'
+import { userData } from '../../stores/userData'
+
+
+
+// Types
+
+import type { BattleAction, ActorlessBattleAction } from '../../battle/Battle'
 
 
 
@@ -137,18 +143,34 @@ onDestroy(() => {
 
 // Functions
 
-async function callBattleAction (action: BattleAction): Promise<void> {
+async function callBattleAction (actorlessAction: ActorlessBattleAction): Promise<void> {
 
+  /* This should never be the case, since the client can't
+   * access this screen with $battle being null, but yeah */
   if ($battle === null) {
     throw new Error('Attempt to handle event but there is no battle')
   }
 
-  const moveAuthor = $battle!.getPlayerForID(action.actorID)
 
-  if ($battle.attacker.id !== moveAuthor.id) {
-    console.warn(`Not ${moveAuthor.name}'s turn`)
-    return
+  {
+
+    const isMyTurn = $battle.attacker.id === player.id
+    const controlOpponent = $userData.settings.controlOfflineOpponent
+    const canMakeMove = isMyTurn || (controlOpponent && !$battle.online)
+
+    if (!canMakeMove) {
+      $battle.pushLog(`${$battle.attacker.name} Tried to act in opponent's turn`, 'error')
+      return
+    }
+
   }
+
+
+  const action: BattleAction = {
+    ...actorlessAction,
+    actorID: $battle.attacker.id
+  }
+
 
   if ($battle.online) {
 
@@ -247,7 +269,7 @@ function onQuit (): void {
     {:else if $battle.completion}
       <div class="battle-complete">
         <div class="global-box contents">
-          <div class="title">{$battle.completion.winnerID === myID ? 'Victory!' : 'Defeat!'}</div>
+          <div class="title">{$battle.completion.winner.name} won!</div>
           <button class="global-box go-back-button" on:click={() => router.pop()}>
             Go Back
           </button>
@@ -338,7 +360,7 @@ main > .buttons > button {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 13em;
+  min-width: 13em;
   gap: 1em;
   padding-bottom: 1em;
 }
