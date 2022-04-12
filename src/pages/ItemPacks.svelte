@@ -181,9 +181,17 @@ function loadFromFile (e: Event): void {
       {/if}
 
       {#if $itemsPackData !== null}
-        <WideButton text="Cancel" on:click={() => router.pop()} />
+
+        <WideButton
+          text="Cancel"
+          style="background-color: var(--color-error)"
+          on:click={() => router.pop()}
+        />
+
       {:else if $isInMatchMaker}
+
         How did we get there?
+
       {/if}
 
     </div>
