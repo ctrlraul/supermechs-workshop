@@ -1,13 +1,15 @@
 <script lang="ts">
 
 import Header from '../../components/Header.svelte'
-import tooltip from '../../components/Tooltip/useTooltip'
 import Toggle from './Toggle.svelte'
 import { UserData, userData } from '../../stores/userData'
 import { push } from 'svelte-spa-router'
 import { isInMatchMaker, isWaitingResponse } from '../../stores/isInMatchMaker'
 import { addPopup } from '../../managers/PopupManager'
 
+
+
+// Data
 
 const togglesConfig = [{
   label: 'Arena buffs',
@@ -56,20 +58,34 @@ function onClickChangeItemsPack (): void {
   <ul>
 
     {#each togglesConfig as config}
-      <li class="global-box" use:tooltip={config.description}>
+      <li class="global-box">
 
-        <Toggle
-          value={$userData.settings[config.key]}
-          onToggle={value => $userData.settings[config.key] = value}
-        />
+        <header>
+          <Toggle
+            value={$userData.settings[config.key]}
+            onToggle={value => $userData.settings[config.key] = value}
+          />
 
-        <span>{config.label}</span>
+          <span>{config.label}</span>
+        </header>
+
+        <div class="description-container">
+          <div class="description">
+            {config.description}
+          </div>
+        </div>
 
       </li>
     {/each}
 
     <li class="global-box" on:click={onClickChangeItemsPack}>
       <button>Change Items Pack</button>
+
+      <div class="description-container">
+        <div class="description">
+          Brings you back to the pack selecting screen
+        </div>
+      </div>
     </li>
 
   </ul>
@@ -81,6 +97,8 @@ function onClickChangeItemsPack (): void {
 <style>
 
 main {
+  display: grid;
+  grid-template-rows: 3em 1fr;
   max-height: var(--content-height);
   max-width: var(--content-width);
   height: 100%;
@@ -90,35 +108,73 @@ main {
 ul {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-content: flex-start;
   gap: 0.5em;
   padding: 0.5em;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
 }
 
 li {
   position: relative;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 7.5em;
   padding: inherit;
+}
+
+li header,
+ul button {
+  position: relative;
+  display: flex;
   align-items: center;
+  margin-bottom: 0.5em;
 }
 
 li span {
   margin-left: 0.5em;
 }
 
-li::after{
-  content: '0';
-  visibility: hidden;
+li .description-container {
+  position: relative;
+  display: block;
+  width: 100%;
+  flex: 1;
+  background-color: #00000060;
+  padding: inherit;
+  border-radius: inherit;
+  overflow-y: auto;
 }
 
+li .description-container .description {
+  font-size: 0.85em;
+}
+
+
+
 li button {
-  position: absolute;
-  left: 0;
-  top: 0;
   width: 100%;
-  height: 2.4em;
   justify-content: start;
   padding: inherit;
+}
+
+
+
+@media (max-width: 785px) {
+  ul {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+
+@media (max-width: 550px) {
+  ul {
+    grid-template-columns: 1fr;
+  }
 }
 
 </style>
