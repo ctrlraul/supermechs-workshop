@@ -56,7 +56,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
           const positionToMove = attacker.position - (position - defender.position)
 
           // Make sure only valid positions are included
-          if (position >= 0 && position <= Battle.MAX_POSITION_INDEX) {
+          if (positionToMove >= 0 && positionToMove <= Battle.MAX_POSITION_INDEX) {
             // This actually results in some positions showing up in
             // the array more than once, this serves as a natural bias
             // towards picking positions that put multiple weapons in range
