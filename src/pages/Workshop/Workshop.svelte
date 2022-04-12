@@ -3,7 +3,6 @@
 import EquippedItemSlot from './EquippedItemSlot.svelte'
 import ItemPickingTab from '../../components/ItemPickingTab.svelte'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
-import Mech, { MechJSON, SlotName } from '../../mechs/Mech'
 import tooltip from '../../components/Tooltip/useTooltip'
 import MechCanvas from '../../components/MechCanvas.svelte'
 import MechSummary from '../../components/MechSummary.svelte'
@@ -24,6 +23,7 @@ import { isInMatchMaker } from '../../stores/isInMatchMaker'
 // Types
 
 import type Item from '../../items/Item'
+import type { MechJSON } from '../../mechs/Mech'
 
 
 
@@ -34,8 +34,7 @@ const slotAreas = 'abcdefghijklmnopqrst'
 
 let focusedSlotConfig: SlotConfig | null = null
 
-$: mech = $currentMech
-$: hasItemsEquipped = mech && mech.setup.some(Boolean)
+$: hasItemsEquipped = !!$currentMech && $currentMech.getItems().some(Boolean)
 
 // Update mech URL whenever $currentMech changes
 $: {
@@ -54,7 +53,7 @@ function updateMechURL () {
 
   query.delete('mech')
 
-  if ($currentMech !== null && $currentMech.setup.some(Boolean)) {
+  if ($currentMech !== null && hasItemsEquipped) {
 
     // Remove Non-ASCII characters, very useful to get rid of emojis
     const URLSafeName = $currentMech.name.replace(/[^\x00-\x7F]/g, '')
@@ -62,7 +61,7 @@ function updateMechURL () {
     const mechData: Partial<MechJSON> = {
       name: URLSafeName || 'Mech Mc.Mecher',
       pack_key: $currentMech.packKey,
-      setup: items2ids($currentMech.setup)
+      setup: items2ids($currentMech.getItems())
     }
 
     const ascii = btoa(JSON.stringify(mechData))
@@ -88,7 +87,7 @@ function updateMechURL () {
 
 function onClearSlot (config: SlotConfig): void {
   if ($currentMech) {
-    $currentMech.slots[config.name].item = null
+    $currentMech.slots[config.name] = null
     saveMech($currentMech)
   }
 }
@@ -105,10 +104,12 @@ function onSelectItem (itemID: Item['id']): void {
     return
   }
 
-  $currentMech.setItemAtSlot(focusedSlotConfig.name, getItemByID(itemID))
-  focusedSlotConfig = null
+
+  $currentMech.slots[focusedSlotConfig.name] = getItemByID(itemID)
 
   saveMech($currentMech)
+
+  focusedSlotConfig = null
 
 }
 
@@ -158,11 +159,11 @@ function onClickBattle (): void {
 
   let issue = ''
 
-  if (mech === null) {
+  if ($currentMech === null) {
     issue = 'a mech!'
-  } else if (mech.setup[Mech.TORSO_INDEX] === null) {
+  } else if (!$currentMech.slots.torso) {
     issue = 'a torso!'
-  } else if (mech.setup[Mech.LEGS_INDEX] === null) {
+  } else if (!$currentMech.slots.legs) {
     issue = 'legs!'
   }
 
@@ -191,10 +192,10 @@ function onClickBattle (): void {
 
 
 
-{#if mech && focusedSlotConfig}
+{#if $currentMech && focusedSlotConfig}
   <ItemPickingTab
     type={focusedSlotConfig.type}
-    currentItem={mech.slots[focusedSlotConfig.name].item}
+    currentItem={$currentMech.slots[focusedSlotConfig.name]}
     selectItem={onSelectItem}
   />
 {/if}
@@ -203,7 +204,7 @@ function onClickBattle (): void {
 
   <div class="mech-container" use:backgroundChanger>
     {#if $currentMech !== null}
-      <MechCanvas setup={items2ids($currentMech.setup)} style="max-width: 70%; max-height: 85%;" />
+      <MechCanvas setup={items2ids($currentMech.getItems())} style="max-width: 70%; max-height: 85%;" />
     {/if}
   </div>
 
@@ -211,7 +212,7 @@ function onClickBattle (): void {
     {#each SLOTS_CONFIG as config, i}
       <EquippedItemSlot
         {config}
-        item={mech ? mech.slots[config.name].item : null}
+        item={$currentMech ? $currentMech.slots[config.name] : null}
         onClear={onClearSlot}
         onClick={onClickSlot}
         style="grid-area: {slotAreas[i]}"

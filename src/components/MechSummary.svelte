@@ -52,7 +52,7 @@ function onRename (e: Event): void {
   {/if}
 
   <div class="blocks">
-    <StatBlocks source={items2ids(mech.setup)} />
+    <StatBlocks source={items2ids(mech.getItems())} />
   </div>
 
 </div>

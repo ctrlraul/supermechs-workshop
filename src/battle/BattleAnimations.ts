@@ -59,7 +59,7 @@ export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer
        - newState.getPlayerForID(attacker.id).position
     )
 
-    if (attacker.legs.tags.roller) {
+    if (attacker.slots.legs!.tags.roller) {
 
       // Rolling animation
       
@@ -85,7 +85,7 @@ export function move (oldState: Battle, newState: Battle, attacker: BattlePlayer
         })
         .start()
 
-      if (spotsMoved < 2 || !attacker.legs.stats.jump) {
+      if (spotsMoved < 2 || !attacker.slots.legs!.stats.jump) {
 
         console.log('TODO: Implement walking animation')
 

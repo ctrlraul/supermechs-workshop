@@ -22,7 +22,7 @@ export const socket = Socket(
   {
     query: {
       name: get(userData).name,
-      clientVersion: 'flabbergasted!!!' // Arbitraty value, just has to match the server
+      clientVersion: 'gobsmacked!!!' // Arbitraty value, just has to match the server
     }
   }
 )
@@ -80,6 +80,7 @@ socket.on('server.message', data => {
   }
 
 })
+
 
 
 // Common connection-related methods

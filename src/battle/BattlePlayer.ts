@@ -1,20 +1,24 @@
-import { BattleItem, getBattleItems } from '../items/ItemsManager'
-import { getBuffedMechSummary } from '../stats/StatsManager'
-import Mech from '../mechs/Mech'
+import { BattleItem, getBattleItem } from '../items/ItemsManager'
 
 
+
+// types
+
+import type Mech from '../mechs/Mech'
+import type { SlotName } from '../mechs/Mech'
+
+
+export type NonModuleSlotName = Exclude<SlotName, `module${number}`>
 
 export interface BattlePlayerArgs {
 
   id: string
   name: string
-  mechName: string
+  mech: Mech
   admin?: boolean
   ai?: boolean
 
   position: number
-
-  setup: number[]
 
 }
 
@@ -30,12 +34,9 @@ export class BattlePlayer {
   ai: boolean
 
   // Items
-  items: (BattleItem | null)[]
-  torso: BattleItem
-  legs: BattleItem
   weapons: (BattleItem | null)[]
-  drone: BattleItem | null = null
   utils: (BattleItem | null)[]
+  slots: Record<NonModuleSlotName, BattleItem | null>
 
   // Stats
   position: number
@@ -55,34 +56,63 @@ export class BattlePlayer {
     eleRes: number,
   }
 
-  
 
   constructor (args: BattlePlayerArgs) {
+
+    const { mech } = args
+
+    if (!mech.slots.torso || !mech.slots.legs) {
+      throw new Error(`Torso and legs are necessary to battle`)
+    }
+
 
     // Meta
 
     this.id = args.id
     this.name = args.name
-    this.mechName = args.mechName
+    this.mechName = args.mech.name
     this.admin = !!args.admin
     this.ai = !!args.ai
 
 
-    // Items
+    // Set slots
+    {
 
-    const items = getBattleItems(args.setup)
+      const slotNames: NonModuleSlotName[] = [
+        'torso',       'legs',         'sideWeapon1', 'sideWeapon2',
+        'sideWeapon3', 'sideWeapon4',  'topWeapon1',  'topWeapon2',
+        'drone',       'chargeEngine', 'teleporter',  'grapplingHook'
+      ]
 
-    this.items = items
-    this.torso = items[Mech.TORSO_INDEX]!
-    this.legs = items[Mech.LEGS_INDEX]!
-    this.weapons = items.slice(Mech.SIDE_1_INDEX, Mech.TOP_2_INDEX + 1)
-    this.drone = items[Mech.DRONE_INDEX]
-    this.utils = items.slice(Mech.DRONE_INDEX, Mech.HOOK_INDEX + 1)
+      const entries = slotNames.map(name => {
+        const item  = mech.slots[name]
+        return [name, item ? getBattleItem(item, name) : null] as const
+      })
+
+      this.slots = Object.fromEntries(entries) as BattlePlayer['slots']
+
+    }
+
+    this.weapons = [
+      this.slots.sideWeapon1,
+      this.slots.sideWeapon2,
+      this.slots.sideWeapon3,
+      this.slots.sideWeapon4,
+      this.slots.topWeapon1,
+      this.slots.topWeapon2,
+    ]
+
+    this.utils = [
+      this.slots.drone,
+      this.slots.chargeEngine,
+      this.slots.teleporter,
+      this.slots.grapplingHook,
+    ]
 
 
     // Stats
 
-    const summary = getBuffedMechSummary(args.setup)
+    const summary = mech.getSummary(true)
 
     this.position = args.position
 
@@ -106,4 +136,5 @@ export class BattlePlayer {
     }
 
   }
+
 }

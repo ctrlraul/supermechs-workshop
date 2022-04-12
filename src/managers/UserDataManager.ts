@@ -116,7 +116,7 @@ export function exportMechs (mechs: Mech[]): void {
 
     const mechExportData: MechsExportJSON['mechs'][string][0] = {
       name: mech.name,
-      setup: items2ids(mech.setup)
+      setup: items2ids(mech.getItems())
     }
 
     if (!(mech.packKey in mechsExportJson.mechs)) {
@@ -201,7 +201,7 @@ export function hasMech (mech: Mech): boolean {
     return false
   }
 
-  const setup = items2ids(mech.setup)
+  const setup = items2ids(mech.getItems())
 
   return Object.values(data[mech.packKey]).some(json => {
     return json.setup.every((itemID, i) => itemID === setup[i])

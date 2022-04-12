@@ -149,7 +149,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
           onUse: () => callBattleAction({
             actorID: player.id,
             name:'useWeapon',
-            itemIndex: item.index
+            slotName: item.slotName
           })
         }
       })

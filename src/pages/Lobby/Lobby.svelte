@@ -249,16 +249,14 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
     p1: {
       id: playerID,
       name: $userData.name,
-      mechName: $currentMech.name,
+      mech: $currentMech,
       position: pos1,
-      setup: items2ids($currentMech.setup)
     },
     p2: {
       id: 'bot',
       name: 'Skynet',
-      mechName: opponentMech.name,
+      mech: opponentMech,
       position: pos2,
-      setup: items2ids(opponentMech.setup),
       ai: true
     },
     starterID: playerID,

@@ -25,7 +25,8 @@ export let callBattleAction: (action: BattleAction) => void
 
 // State
 
-$: canMove = 'walk' in player.legs.stats || 'jump' in player.legs.stats
+$: legs = player.slots.legs!
+$: canMove = 'walk' in legs.stats || 'jump' in legs.stats
 $: hasWeapons = player.weapons.some(item => item !== null)
 $: hasUtils = player.utils.some(item => item !== null)
 
@@ -86,8 +87,8 @@ function onClickCooldown (): void {
 
 <ControlItemButton
   {battle}
-  item={player.legs}
-  disabled={battle.canFireWeapon(player.legs)}
+  item={legs}
+  disabled={battle.canFireWeapon(legs)}
   {setFocusedItem}
   onUse={onClickStomp}
 />

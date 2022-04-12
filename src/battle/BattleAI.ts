@@ -1,6 +1,5 @@
 import { Battle, BattleAction } from './Battle'
 import { sample } from 'lodash'
-import Mech from '../mechs/Mech'
 
 
 
@@ -13,7 +12,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
 
   // Drone
-  if (attacker.drone && !attacker.droneActive) {
+  if (attacker.slots.drone && !attacker.droneActive) {
     return { actorID, name: 'toggleDrone' }
   }
 
@@ -23,18 +22,16 @@ export function think (battle: Battle, actorID: string): BattleAction {
     const pick = sample(usableWeapons)
 
     if (pick) {
-      return { actorID, name: 'useWeapon', itemIndex: pick.index }
+      return { actorID, name: 'useWeapon', slotName: pick.slotName }
     }
   }
 
 
   // Stomp
   {
-    const legs = attacker.items[Mech.LEGS_INDEX]
-    if (legs !== null) {
-      if (battle.canFireWeapon(legs)) {
-        return { actorID, name: 'useWeapon', itemIndex: legs.index }
-      }
+    const legs = attacker.slots.legs!
+    if (battle.canFireWeapon(legs)) {
+      return { actorID, name: 'stomp' }
     }
   }
 
@@ -95,7 +92,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
       // Try grappling hook
       if (hasRange1Weapon) {
-        const hook = attacker.items[Mech.HOOK_INDEX]
+        const hook = attacker.slots.grapplingHook
         if (hook && battle.canFireWeapon(hook)) {
           return { actorID, name: 'hook' }
         }
@@ -103,7 +100,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
       // Try charge engine
       {
-        const charge = attacker.items[Mech.CHARGE_INDEX]
+        const charge = attacker.slots.chargeEngine
 
         if (charge && battle.canFireWeapon(charge)) {
 
@@ -121,7 +118,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
       // Try teleporter
       if (positionsThatPutOpponentInRange.length) {
-        const tele = attacker.items[Mech.TELEPORTER_INDEX]
+        const tele = attacker.slots.teleporter
 
         if (tele && battle.canFireWeapon(tele)) {
           return {

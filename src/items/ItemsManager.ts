@@ -15,6 +15,7 @@ import type Item from './Item'
 import type { ItemsPackV1 } from './importItemsPackV1'
 import type { ItemsPackV2 } from './importItemsPackV2'
 import type { AttachmentPoint, TorsoAttachment } from './Item'
+import type { NonModuleSlotName } from 'src/battle/BattlePlayer'
 
 
 export type ItemsPack = ItemsPackV1 | ItemsPackV2
@@ -23,8 +24,8 @@ export type ProgressListener = (progress: number) => void
 
 /** Only the data needed to be used in battle. */
 export interface BattleItem {
+  slotName: NonModuleSlotName
   id: number
-  index: number
   name: string
   type: Item['type']
   stats: Item['stats']
@@ -157,34 +158,53 @@ export function getItemByIdOrThrow (id: Item['id']): Item {
 
 export function getBattleItems (setup: number[], throwIfInvalid = true): (BattleItem | null)[] {
 
+  const slotNames: NonModuleSlotName[] = [
+    'torso', 'legs', 'sideWeapon1', 'sideWeapon2',
+    'sideWeapon3', 'sideWeapon4',  'topWeapon1',
+    'topWeapon2', 'drone', 'teleporter',
+    'chargeEngine', 'grapplingHook'
+  ]
+
+  const battleItems: (BattleItem | null)[] = []
+
+  for (let i = 0; i < slotNames.length; i++) {
+
+    const id = setup[i] || 0
+    const battleItem = getBattleItem(id, slotNames[i], throwIfInvalid)
+
+    battleItems.push(battleItem)
+
+  }
+
+  return battleItems
+}
+
+
+
+export function getBattleItem (item: Item, slotName: NonModuleSlotName, throwIfInvalid?: boolean): BattleItem;
+export function getBattleItem (itemdID: Item['id'], slotName: NonModuleSlotName, throwIfInvalid?: boolean): BattleItem | null;
+export function getBattleItem (value: Item | Item['id'] | null, slotName: NonModuleSlotName, throwIfInvalid = false): BattleItem | null {
+
   const getItemFn = throwIfInvalid ? getItemByIdOrThrow : getItemByID
+  const item = typeof value === 'number' ? getItemFn(value) : value
 
-  return setup.map((id, i) => {
+  if (item === null) {
+    return null
+  }
 
-    if (id === 0) {
-      return null;
-    }
+  const battleItem: BattleItem = {
+    slotName,
+    element: item.element,
+    id: item.id,
+    name: item.name,
+    stats: getBuffedItemStats(item.id), // Battle items always buffed
+    tags: cloneDeep(item.tags),
+    timesUsed: 0,
+    type: item.type,
+  }
 
-    const item = getItemFn(id)
+  return battleItem
 
-    if (item === null) {
-      return null
-    }
-
-    const battleItem: BattleItem = {
-      element: item.element,
-      id: item.id,
-      index: i,
-      name: item.name,
-      stats: getBuffedItemStats(item.id), // Battle items always buffed
-      tags: cloneDeep(item.tags),
-      timesUsed: 0,
-      type: item.type,
-    }
-
-    return battleItem
-
-  })
 }
 
 

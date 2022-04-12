@@ -1,4 +1,5 @@
 import Logger from '../utils/Logger'
+import Mech from '../mechs/Mech'
 import * as router from 'svelte-spa-router'
 import { socket } from '../managers/SocketManager'
 import { matchItemsHash } from '../items/ItemsManager'
@@ -37,7 +38,14 @@ export function matchMakerJoin (name: string, mechName: string, setup: number[],
 
   isWaitingResponse.set(true)
 
-  const data = { name, mechName, setup, itemsHash }
+  const data = {
+    name,
+    mech: {
+      name: mechName,
+      setup,
+    },
+    itemsHash
+  }
 
   socket.emit('matchmaker.join', data, (result: Result) => {
 
@@ -128,6 +136,16 @@ socket.on('matchmaker.validation', (data: MatchMakerValidationData) => {
 socket.on('battle.start', (battleJSON: any) => {
     
   isInMatchMaker.set(false)
+
+  battleJSON.p1.mech = new Mech({
+    name: battleJSON.p1.mech.name,
+    setup: battleJSON.p1.mech.setup
+  })
+
+  battleJSON.p2.mech = new Mech({
+    name: battleJSON.p2.mech.name,
+    setup: battleJSON.p2.mech.setup
+  })
 
   battle.set(new Battle({
     online: true,

@@ -1,11 +1,10 @@
-import { BattlePlayer, BattlePlayerArgs } from './BattlePlayer'
+import { BattlePlayer, BattlePlayerArgs, NonModuleSlotName } from './BattlePlayer'
 import * as BattleActionsHandler from './BattleActionsHandler'
 import * as BattleEffectsHandler from './BattleEffectsHandler'
 import * as BattleAnimations from './BattleAnimations'
 import type { BattleItem } from '../items/ItemsManager'
 import { cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
-import Mech from '../mechs/Mech'
 import { setBattle } from '../BattleRenderer'
 
 
@@ -25,7 +24,7 @@ export interface BattleAction {
   name: keyof typeof BattleActionsHandler
   actorID: BattlePlayer['id']
   fromServer?: boolean
-  itemIndex?: number
+  slotName?: NonModuleSlotName
   position?: number
   droneDamageScale?: number
   damageScale?: number
@@ -319,7 +318,8 @@ export class Battle {
   
     const { attacker, defender } = this
     
-    const maxDistance = Math.max(attacker.legs.stats.walk || 0, attacker.legs.stats.jump || 0)
+    const legs = attacker.slots.legs!
+    const maxDistance = Math.max(legs.stats.walk || 0, legs!.stats.jump || 0)
     const positions = Array(10).fill(false)
   
   
@@ -336,7 +336,7 @@ export class Battle {
   
   
     // If can't jump, remove positions beyond the opponent
-    if (!attacker.legs.stats.jump) {
+    if (!legs.stats.jump) {
   
       const distance = Math.abs(attacker.position - defender.position)
       const direction = attacker.position < defender.position ? 1 : -1
@@ -397,12 +397,12 @@ export class Battle {
   }
 
 
-  getDamageForItemAtIndex (index: number, damageScale: number): number {
+  getDamageForItemAtSlot (slot: NonModuleSlotName, damageScale: number): number {
 
-    const item = this.attacker.items[index]
+    const item = this.attacker.slots[slot]
 
     if (item === null) {
-      throw new Error(`${this.attacker.name} has no item at index "${index}"`)
+      throw new Error(`${this.attacker.name} has no item at slot "${slot}"`)
     }
 
     if (['TORSO', 'MODULE'].includes(item.type)) {
@@ -474,7 +474,7 @@ export class Battle {
     /* Check if it's not a melee item and requires
      * jumping. Melee items force the mech to jump. */
     if (item.tags.require_jump) {
-      if (attacker.legs.stats.jump === undefined) {
+      if (attacker.slots.legs!.stats.jump === undefined) {
         reasons.push('Require jumping')
       }
     }
@@ -542,9 +542,9 @@ export class Battle {
           if (this.actionPoints === 0) {
 
             const canFireDrone = (
-              this.attacker.drone
+              this.attacker.slots.drone
               && this.attacker.droneActive
-              && this.canFireWeapon(this.attacker.drone)
+              && this.canFireWeapon(this.attacker.slots.drone)
             )
 
             if (canFireDrone) {
@@ -555,7 +555,7 @@ export class Battle {
                 : Math.random()
               )
   
-              const damage = this.getDamageForItemAtIndex(Mech.DRONE_INDEX, droneDamageScale)
+              const damage = this.getDamageForItemAtSlot('drone', droneDamageScale)
 
               BattleEffectsHandler.fireDrone(this, this.attacker, damage)
 
@@ -635,7 +635,7 @@ export class Battle {
       case 'stomp': {
 
         const damageScale = action.damageScale || Math.random()
-        const damage = this.getDamageForItemAtIndex(Mech.LEGS_INDEX, damageScale)
+        const damage = this.getDamageForItemAtSlot('legs', damageScale)
 
         BattleActionsHandler.stomp(this, attacker, damage)
 
@@ -650,17 +650,32 @@ export class Battle {
 
       case 'useWeapon': {
 
-        if (typeof action.itemIndex !== 'number') {
-          throw new Error(`Invalid "itemIndex" property: ${action.itemIndex}`)
+        const slotNames: (keyof BattlePlayer['slots'])[] = [
+          'torso',
+          'legs',
+          'sideWeapon1',
+          'sideWeapon2',
+          'sideWeapon3',
+          'sideWeapon4',
+          'topWeapon1',
+          'topWeapon2',
+          'drone',
+          'chargeEngine',
+          'teleporter',
+          'grapplingHook'
+        ]
+
+        if (!action.slotName || !slotNames.includes(action.slotName)) {
+          throw new Error(`Invalid "slotName" property: ${action.slotName}`)
         }
 
-        const weapon = attacker.items[action.itemIndex]
+        const weapon = attacker.slots[action.slotName]
 
         if (weapon === null) {
-          throw new Error(`${attacker.name} has no item at index ${action.itemIndex}`)
+          throw new Error(`${attacker.name} has no item at index ${action.slotName}`)
         }
 
-        const damage = this.getDamageForItemAtIndex(action.itemIndex, damageScale)
+        const damage = this.getDamageForItemAtSlot(action.slotName, damageScale)
 
         BattleActionsHandler.useWeapon(this, attacker, weapon, damage)
 
@@ -682,7 +697,7 @@ export class Battle {
 
       case 'charge': {
 
-        const damage = this.getDamageForItemAtIndex(Mech.CHARGE_INDEX, damageScale)
+        const damage = this.getDamageForItemAtSlot('chargeEngine', damageScale)
 
         BattleActionsHandler.charge(this, attacker, damage)
 
@@ -702,7 +717,7 @@ export class Battle {
         }
 
         const damageScale = action.damageScale || Math.random()
-        const damageBase = this.getDamageForItemAtIndex(Mech.TELEPORTER_INDEX, damageScale)
+        const damageBase = this.getDamageForItemAtSlot('teleporter', damageScale)
 
         const damageDealt = BattleActionsHandler.teleport(this, damageBase, action.position)
 
@@ -718,7 +733,7 @@ export class Battle {
       case 'hook': {
 
         const damageScale = action.damageScale || Math.random()
-        const damage = this.getDamageForItemAtIndex(Mech.HOOK_INDEX, damageScale)
+        const damage = this.getDamageForItemAtSlot('grapplingHook', damageScale)
 
         BattleActionsHandler.hook(this, damage)
 

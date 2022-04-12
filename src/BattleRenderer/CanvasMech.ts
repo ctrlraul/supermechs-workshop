@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash'
 import { CanvasMechPart } from './CanvasMechPart'
 import { getItemByID } from '../items/ItemsManager'
 import Mech from '../mechs/Mech'
+import { getVisualX } from '.'
 
 
 
@@ -10,7 +11,7 @@ import Mech from '../mechs/Mech'
 
 import type { BattlePlayer } from '../battle/BattlePlayer'
 import type { AttachmentPoint, TorsoAttachment } from '../items/Item'
-import { getVisualX } from '.'
+import type Item from '../items/Item'
 
 
 
@@ -52,8 +53,14 @@ export class CanvasMech extends CanvasObject {
 
   init (): void {
 
-    const items = this.player.items.map(battleItem => {
-      return battleItem ? getItemByID(battleItem.id) : null
+    const items = Object.values(this.player.slots).map(battleItem => {
+
+      if (!battleItem) {
+        return null
+      }
+
+      return getItemByID(battleItem.id)
+
     })
 
     if (items[Mech.TORSO_INDEX] === null) {
@@ -84,7 +91,7 @@ export class CanvasMech extends CanvasObject {
   }
 
 
-  private createParts (setup: Mech['setup']): (CanvasMechPart | null)[] {
+  private createParts (setup: (Item | null)[]): (CanvasMechPart | null)[] {
 
     // Slice to keep only the items we will use
     const items = setup.slice(0, Mech.DRONE_INDEX + 1)

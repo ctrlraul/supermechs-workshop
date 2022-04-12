@@ -20,6 +20,7 @@ export let item: Item | null
 export let onClear: (config: SlotConfig) => void
 export let onClick: (config: SlotConfig) => void
 
+// console.log(item)
 
 
 // Functions

@@ -2,7 +2,7 @@
 
 import { getStatInstruction } from '../../stats/StatsManager'
 import ProgressBar from '../../components/ProgressBar.svelte'
-import { BattleItem, getItemByID } from '../../items/ItemsManager'
+import { BattleItem, getItemByIdOrThrow } from '../../items/ItemsManager'
 import ItemImage from '../../components/ItemImage.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
@@ -25,7 +25,7 @@ import type { Battle } from '../../battle/Battle'
 
 // State
 
-const torso = getItemByID(player.items[0]!.id)!
+const torso = getItemByIdOrThrow(player.slots.torso!.id)
 const opponentName = battle.getOpponentForPlayerID(player.id).name
 const turnIconURL = getStatInstruction('uses').imageURL
 const playerGfx = getPlayerGfx(player.id)
@@ -34,7 +34,7 @@ let showItemsInspector = false
 let focusedItem: BattleItem | null = null
 let stats = playerGfx.stats
 
-$: inspectableItems = [player.legs, ...player.weapons, ...player.utils].filter(Boolean) as BattleItem[]
+$: inspectableItems = [player.slots.legs, ...player.weapons, ...player.utils].filter(Boolean) as BattleItem[]
 $: isMyTurn = battle.attacker.id === player.id
 
 

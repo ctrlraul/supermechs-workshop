@@ -1,4 +1,3 @@
-import Mech from '../mechs/Mech'
 import type { Battle } from './Battle'
 import type { BattlePlayer } from './BattlePlayer'
 import type { BattleItem } from '../items/ItemsManager'
@@ -51,7 +50,7 @@ export function walk (battle: Battle, attacker: BattlePlayer, position: number):
 
 export function stomp (battle: Battle, attacker: BattlePlayer, damage: number): void {
 
-  const legs = battle.attacker.legs
+  const legs = battle.attacker.slots.legs!
 
   battle.dealDamagesAndTakeBackfire(attacker, legs, damage)
   battle.updatePositions(attacker, legs)
@@ -64,7 +63,7 @@ export function stomp (battle: Battle, attacker: BattlePlayer, damage: number): 
 
 export function toggleDrone (battle: Battle): void {
 
-  if (battle.attacker.drone === null) {
+  if (battle.attacker.slots.drone === null) {
     const message = `${battle.attacker.name} tried to toggle drone, but didn't equip one`
     battle.pushLog(message, 'error')
     throw new Error(message)
@@ -74,8 +73,8 @@ export function toggleDrone (battle: Battle): void {
   battle.attacker.droneActive = !battle.attacker.droneActive
   
   // Refill uses
-  if (battle.attacker.droneActive && battle.attacker.drone.stats.uses) {
-    battle.attacker.drone.timesUsed = 0
+  if (battle.attacker.droneActive && battle.attacker.slots.drone.stats.uses) {
+    battle.attacker.slots.drone.timesUsed = 0
   }
 
   battle.pushLog(`*${battle.attacker.name}* ${battle.attacker.droneActive ? 'enabled' : 'disabled'} the drone`, 'action')
@@ -85,7 +84,7 @@ export function toggleDrone (battle: Battle): void {
 
 export function charge (battle: Battle, attacker: BattlePlayer, damage: number): void {
 
-  const charge = attacker.items[Mech.CHARGE_INDEX]
+  const charge = attacker.slots.chargeEngine
 
   if (charge === null) {
     const message = `${battle.attacker.name} tried to use charge engine, but didn't equip one`
@@ -111,7 +110,7 @@ export function hook (battle: Battle, damage: number): void {
 
   const { attacker, defender } = battle
 
-  const hook = attacker.items[Mech.HOOK_INDEX]
+  const hook = attacker.slots.grapplingHook
 
   if (hook === null) {
     const message = `${battle.attacker.name} tried to use grappling hook, but didn't equip one`
@@ -140,7 +139,7 @@ export function teleport (battle: Battle, damage: number, position: number): num
 
   const { attacker, defender } = battle
 
-  const tele = attacker.items[Mech.TELEPORTER_INDEX]
+  const tele = attacker.slots.teleporter
   const previousPosition = attacker.position
 
   if (tele === null) {

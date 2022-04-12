@@ -72,8 +72,12 @@ export class CanvasBattleEngine extends CanvasEngine {
     this.mechsGfxContainer.width = this.root.width
     this.mechsGfxContainer.height = 0
 
-    this.mech1.adjust()
-    this.mech2.adjust()
+    if (this.mech1) {
+      this.mech1.adjust()
+    }
+    if (this.mech2) {
+      this.mech2.adjust()
+    }
 
   }
 

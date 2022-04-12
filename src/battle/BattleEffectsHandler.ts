@@ -1,5 +1,6 @@
-import { cloneDeep } from 'lodash'
 import * as BattleAnimations from './BattleAnimations'
+import { cloneDeep } from 'lodash'
+import { getPlayerGfx } from '../BattleRenderer'
 
 
 
@@ -7,7 +8,6 @@ import * as BattleAnimations from './BattleAnimations'
 
 import type { Battle } from './Battle'
 import type { BattlePlayer } from './BattlePlayer'
-import { getPlayerGfx } from '../BattleRenderer'
 
 
 
@@ -15,7 +15,7 @@ import { getPlayerGfx } from '../BattleRenderer'
 
 export function fireDrone (battle: Battle, attacker: BattlePlayer, damage: number): void {
 
-  const { drone } = attacker
+  const { drone } = attacker.slots
 
   if (drone === null) {
     throw new Error(`Failed to fire drone: ${attacker.name} does not have a drone equipped`)
