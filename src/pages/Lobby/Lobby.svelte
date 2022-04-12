@@ -86,6 +86,11 @@ async function onOnlineBattle (): Promise<void> {
 
   if (SocketManager.socket.disconnected) {
 
+    if (SocketManager.outdatedClient) {
+      SocketManager.addOutdatedClientPopup()
+      return
+    }
+
     let canceled = false
 
     const tryingToConnectPopup = addPopup({
@@ -116,17 +121,15 @@ async function onOnlineBattle (): Promise<void> {
       }
 
       const attempts = SocketManager.connectErrorStreakCount
-      const message = [
-        `We tried to reconnect ${attempts} time${attempts > 1 ? 's' : ''}!`,
-        '',
-        `Error: "${SocketManager.lastError.message}"`,
-      ]
+
+      let message = `
+        We tried to reconnect ${attempts} time${attempts === 1 ? '' : 's'}!
+
+        Error: "${err.message}"
+      `
 
       if (attempts > 4) {
-        message.push(
-          '',
-          'Please try again in a few minutes.'
-        )
+        message += '\nPlease try again in a few minutes.'
       }
 
       addPopup({

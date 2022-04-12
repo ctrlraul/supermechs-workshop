@@ -27,8 +27,8 @@ export const socket = Socket(
   }
 )
 
+export let outdatedClient = false
 export let connectErrorStreakCount = 0
-export let lastError: Error = new Error('Server Offline')
 
 const logger = new Logger()
 
@@ -39,9 +39,14 @@ socket.on('connect', () => {
   connectErrorStreakCount = 0
 })
 
+socket.on('disconnect', () => {
+  logger.log(`Disconnected`)
+})
+
 socket.on('connect_error', error => {
 
-  lastError = error
+  logger.log('Connection error:', error)
+
   connectErrorStreakCount++
 
   if (!production) {
@@ -56,15 +61,10 @@ socket.on('server.message', data => {
   switch (data.code) {
 
     case 'OUTDATED_CLIENT':
-      addPopup({
-        title: 'Outdated client!',
-        message: 'Your client is outdated! Please reload the page.',
-        mode: 'error',
-        options: {
-          Later () { this.remove() },
-          Reload () { location.reload() }
-        }
-      })
+      outdatedClient = true
+      logger.log('Client is outdated')
+      socket.disconnect()
+      addOutdatedClientPopup()
       break
 
     default:
@@ -114,18 +114,18 @@ export function createAttachment (listeners: Record<string, (data: any) => void>
 
 export function tryToConnectManually (): Promise<void> {
 
-  logger.log('Trying to connect manually...')
-
   return new Promise((resolve, reject) => {
+
+    logger.log('Trying to reconnect manually...')
 
     const onConnect = () => {
       socket.off('connect_error', onError)
       resolve()
     }
   
-    const onError = () => {
+    const onError = (err: Error) => {
       socket.off('connect', onConnect)
-      reject()
+      reject(err)
     }
   
     socket.once('connect', onConnect)
@@ -133,6 +133,26 @@ export function tryToConnectManually (): Promise<void> {
 
     socket.connect()
 
+  })
+
+}
+
+
+export function addOutdatedClientPopup (): void {
+  addPopup({
+    title: 'Outdated client!',
+    message: `
+      SuperMechs Workshop has been updated recently, but your browser is still using the old version!
+
+      Old versions can't safely connect to the server.
+
+      Click "Reload" to restart the page, hopefully your browser will load the newer version.
+    `,
+    mode: 'error',
+    options: {
+      Later () { this.remove() },
+      Reload () { location.reload() }
+    }
   })
 }
 
