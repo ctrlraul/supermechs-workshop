@@ -64,7 +64,6 @@ socket.on('server.message', data => {
       outdatedClient = true
       logger.log('Client is outdated')
       socket.disconnect()
-      addOutdatedClientPopup()
       break
 
     default:
