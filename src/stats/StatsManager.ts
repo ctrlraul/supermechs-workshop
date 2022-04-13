@@ -20,7 +20,7 @@ type StatInstructionWithImage = StatFormat & {
 
 // Data
 
-const WEIGHT_LIMIT = 1000
+export const WEIGHT_LIMIT = 1000
 export const OVERLOAD_LIMIT = 1010
 const OVERLOAD_PENALTY = 15
 

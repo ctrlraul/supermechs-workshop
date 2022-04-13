@@ -25,7 +25,7 @@ export interface TorsoAttachment {
 export type Attachment = AttachmentPoint | TorsoAttachment
 
 
-interface ItemStats {
+export interface ItemStats {
   weight: number
   health: number
   eneCap: number

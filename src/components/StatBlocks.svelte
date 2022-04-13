@@ -11,6 +11,7 @@ import { userData } from '../stores/userData'
 
 import type Item from '../items/Item'
 import type { StatKey } from '../stats/StatFormats'
+import type { ItemStats } from '../items/Item'
 
 
 
@@ -19,26 +20,57 @@ import type { StatKey } from '../stats/StatFormats'
 export let source: Item['id'] | Item['id'][] | Item['stats']
 
 
+type StatEntry <K extends StatKey = StatKey> = [K, ItemStats[K]]
+
+
 $: stats = getStats(source, $userData.settings.arenaBuffs)
-$: entries = Object.entries(stats) as [StatKey, number | number[]][]
+$: entries = Object.entries(stats) as StatEntry[]
 $: instructions = entries.map(([key]) => StatsManager.getStatInstruction(key))
+$: useAdvancedDamage = $userData.settings.advancedDamageDisplay
 
 
 
 // Functions
 
-function getColorForWeight (weight: number | number[]): string {
-  // We are accepting arrays solely because
-  // svelte doesn't let me wanna use the
-  // "as ..." operator in the html. But no
-  // it can never come as an array.
-  return (
-    weight > 1009 ? 'var(--color-error)'   :
-    weight > 1000 ? '#ff8844'              :
-    weight > 999  ? 'var(--color-accent)'  :
-    weight > 994  ? 'var(--color-success)' :
-    'inherit'
-  )
+function getTooltipText <K extends StatKey> (key: K, value: ItemStats[K]): string {
+
+  if (key === 'weight') {
+
+    if (value > StatsManager.OVERLOAD_LIMIT) {
+      return 'Too heavy for battle!'
+    }
+
+    if (value > StatsManager.WEIGHT_LIMIT) {
+      return 'Over-weighted!\nYou can still battle but your health is nerfed.'
+    }
+
+  }
+
+  return StatsManager.getStatInstruction(key).name
+
+}
+
+
+function getStyleForWeight (value: number): string | null {
+
+  if (value > StatsManager.OVERLOAD_LIMIT) {
+    return 'color: var(--color-error);'
+  }
+
+  if (value > StatsManager.WEIGHT_LIMIT) {
+    return 'color: #ff8844;'
+  }
+
+  if (value > 999) {
+    return 'color: var(--color-accent);'
+  }
+
+  if (value > 994) {
+    return 'color: var(--color-success);'
+  }
+
+  return null
+
 }
 
 
@@ -65,13 +97,19 @@ function getStats (statsSource: typeof source, arenaBuffs: boolean): Item['stats
 }
 
 
-function getDamageAverage (value: number[]): number {
-  return Math.round(value[0] + (value[1] - value[0]) * 0.5)
+function getAverage (min: number, max: number): number {
+  return (min + max) * 0.5
 }
 
 
-function getRandomnessScale (value: number[]): string {
-  return ((1 - value[0] / value[1]) * 100).toFixed(0) + '%'
+function getRandomnessText (min: number, max: number): string {
+  const scale = (1 - min / max)
+  return (scale * 100).toFixed(0)
+}
+
+
+function getRandomnessStyle (min: number, max: number): string {
+  return `color: hsl(${min / max * 115}, 100%, 70%);`
 }
 
 
@@ -83,30 +121,49 @@ function isDamageType (key: StatKey): boolean {
 
 
 {#each entries as [key, value], i}
+
   <div
     class="stat-block"
     style={$$props.style}
-    use:tooltip={instructions[i].name}
+    use:tooltip={getTooltipText(key, value)}
   >
 
-    <img src={instructions[i].imageURL} alt={key} />
+    <img class="icon" src={instructions[i].imageURL} alt={key} />
 
-    <output style="color: {key === 'weight' ? getColorForWeight(value) : ''}">
+    <div class="output-container">
+
       {#if Array.isArray(value)}
 
-        {#if $userData.settings.advancedDamageDisplay && isDamageType(key)}
-          <span>{separateDecimals(getDamageAverage(value))}~</span>
-          <span class="smol" style="color: hsl({value[0] / value[1] * 115}, 100%, 70%);">{getRandomnessScale(value)}</span>
+        {#if useAdvancedDamage && isDamageType(key)}
+
+          <output>
+            {separateDecimals(Math.round(getAverage(...value)))}~
+          </output>
+
+          <output class="randomness" style={getRandomnessStyle(...value)}>
+            {getRandomnessText(...value)}
+          </output>
+
         {:else}
-          {value.map(separateDecimals).join('-')}
+
+          <output>
+            {value.map(separateDecimals).join('-')}
+          </output>
+
         {/if}
 
       {:else}
-        {separateDecimals(value)}
+
+        <output style={key === 'weight' ? getStyleForWeight(value) : null}>
+          {separateDecimals(value)}
+        </output>
+
       {/if}
-    </output>
+
+    </div>
 
   </div>
+
 {/each}
 
 
@@ -123,7 +180,8 @@ function isDamageType (key: StatKey): boolean {
   width: 100%;
 }
 
-.stat-block > img {
+
+.icon {
   position: relative;
   display: block;
   width: 1.2rem;
@@ -134,14 +192,19 @@ function isDamageType (key: StatKey): boolean {
 }
 
 
-output {
+.output-container {
   display: flex;
   align-items: center;
 }
 
-.smol {
+
+.randomness {
   font-size: 0.8em;
   margin-left: 0.5em;
+}
+
+.randomness::after {
+  content: '%';
 }
 
 </style>
