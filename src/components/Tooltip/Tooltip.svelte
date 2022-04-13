@@ -11,8 +11,7 @@ import StatBlocks from '../StatBlocks.svelte'
 
 /* Most mobile browsers have the 'window'
  * locked to theleft hand side. So if this
- * isn't zero, likely to be a desktop browser window.
- */
+ * isn't zero, likely to be a desktop browser window. */
 const probablyDesktop = window.screenX === 0 && window.innerWidth > window.innerHeight
 
 /** Distance from tooltip to cursor */
@@ -51,7 +50,6 @@ function updatePosition (e: MouseEvent): void {
 onMount(() => window.addEventListener('mousemove', updatePosition))
 onDestroy(() => window.removeEventListener('mousemove', updatePosition))
 
-
 </script>
 
 
@@ -62,7 +60,7 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
 
     <div
       class="global-box tooltip text no-select"
-      style="left: {x}px; top: {y}px;"
+      style="left: {x}px; top: {y}px; line-height: 1.2em;"
       bind:this={element}
     >
       {@html $tooltip.replace(/\n/g, '<br/>')}
@@ -103,6 +101,7 @@ onDestroy(() => window.removeEventListener('mousemove', updatePosition))
   display: block;
   z-index: var(--z-index-tooltip);
   border: 0.15em solid var(--color-secondary);
+  box-shadow: 0 0 1em 0.5em #000000;
 }
 
 .text {
