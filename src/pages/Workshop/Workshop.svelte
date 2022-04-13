@@ -378,7 +378,7 @@ main {
     grid-template-rows: 3fr 3fr 2fr;
     grid-template-columns: 25fr 8fr 17fr 17fr 8fr 25fr 25fr 8fr 17fr 17fr 8fr 25fr;
     grid-template-areas:
-      'a a b b c c d d e e f f'
+      'd d e e f f a a b b c c'
       'g g h h i i j j k k l l'
       'm n n o o p q r r s s t';
   }
