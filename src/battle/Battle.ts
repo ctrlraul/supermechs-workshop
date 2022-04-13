@@ -838,9 +838,23 @@ export class Battle {
 
     } else if (this.attacker.ai && this.actionPoints > 0) {
 
-      const action = think(this, this.attacker.id)
+      try {
 
-      this.pushAction(action)
+        const action = think(this, this.attacker.id)
+  
+        this.pushAction(action)
+
+      } catch (err: any) {
+
+        console.log('AI caused an error:', err)
+
+        this.pushLog(`AI caused an error: ${err.message}`)
+        this.pushAction({
+          actorID: this.attacker.id,
+          name: 'cooldown'
+        })
+
+      }
 
     }
 
