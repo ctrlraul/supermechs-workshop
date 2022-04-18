@@ -19,7 +19,7 @@ import { userData } from './stores/userData'
 import ItemPacks from './pages/ItemPacks.svelte'
 import Workshop from './pages/Workshop/Workshop.svelte'
 import Mechs from './pages/Mechs.svelte'
-import Lobby from './pages/Lobby/Lobby.svelte'
+import Lobby from './pages/Lobby.svelte'
 import Battle from './pages/Battle/Battle.svelte'
 import Settings from './pages/Settings/Settings.svelte'
 

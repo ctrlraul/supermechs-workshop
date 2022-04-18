@@ -2,7 +2,8 @@
 
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../../components/MechCanvas.svelte'
-import MechPicker from './MechPicker.svelte'
+import MechPicker from '../../components/MechPicker.svelte'
+// import MechPicker from './MechPicker.svelte'
 import Mech from '../../mechs/Mech'
 import * as router from 'svelte-spa-router'
 import * as SocketManager from '../../managers/SocketManager'
@@ -14,7 +15,7 @@ import { Battle } from '../../battle/Battle'
 import { getRandomStartingPositions } from '../../battle/utils'
 import { addPopup } from '../../managers/PopupManager'
 import { checkSetup } from '../../battle/utils'
-import { currentMech } from '../../stores/mechs'
+import { currentMech, mechs } from '../../stores/mechs'
 import { isInMatchMaker, isWaitingResponse, matchMakerJoin, matchMakerQuit } from '../../stores/isInMatchMaker'
 
 
@@ -44,6 +45,13 @@ function showNoMechSelectedPopup (): void {
   })
 }
 
+
+/** Returns the mechs that can fight, includes invalid mechs. */
+function getFightableMechs (mechs: Mech[]): Mech[] {
+  return mechs.filter(mech => {
+    return mech.slots.torso && mech.slots.legs
+  })
+}
 
 
 
@@ -232,14 +240,14 @@ function onGoBack (): void {
 }
 
 
-function onPickOpponentMech (opponentMech: Mech | null): void {
+function onPickOpponentMech (opponentMech: Mech[]): void {
 
   if ($currentMech === null) {
     showNoMechSelectedPopup()
     return
   }
 
-  if (opponentMech === null) {
+  if (opponentMech.length === 0) {
     pickOpponentMech = false
     return
   }
@@ -258,7 +266,7 @@ function onPickOpponentMech (opponentMech: Mech | null): void {
     p2: {
       id: 'bot',
       name: 'Skynet',
-      mech: opponentMech,
+      mech: opponentMech[0],
       position: pos2,
       ai: !$userData.settings.controlOfflineOpponent
     },
@@ -390,7 +398,11 @@ onDestroy(() => {
 
 
   {#if pickOpponentMech}
-    <MechPicker onPickMech={onPickOpponentMech} title="Pick opponent's mech" />
+    <MechPicker
+      title="Select opponent's mech"
+      onPick={mechs => onPickOpponentMech(mechs)}
+      mechs={getFightableMechs($mechs)}
+    />
   {/if}
 
 </main>
