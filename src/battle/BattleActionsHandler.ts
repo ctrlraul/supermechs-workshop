@@ -43,7 +43,7 @@ export function walk (battle: Battle, attacker: BattlePlayer, position: number):
   
   attacker.position = position
 
-  battle.pushLog(`*${attacker.name}*'s moved from position *${previousPosition}* to position *${attacker.position}*`, 'action')
+  battle.pushLog(`*${attacker.name}* moved from position *${previousPosition}* to position *${attacker.position}*`, 'action')
 
 }
 
