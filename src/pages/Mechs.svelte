@@ -8,7 +8,7 @@ import Mech from '../mechs/Mech'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
 import MechSummary from '../components/MechSummary.svelte'
-import { addPopup } from '../managers/PopupManager'
+import MechPicker from '../components/MechPicker.svelte'
 import { itemsPackData } from '../stores'
 import { currentMech, mechs } from '../stores/mechs'
 import { items2ids } from '../items/ItemsManager'
@@ -17,7 +17,7 @@ import { items2ids } from '../items/ItemsManager'
 
 // State
 
-let selectedMechs = [] as Mech[]
+let selectingMechsToExport = false
 
 
 
@@ -91,39 +91,20 @@ function onClickImportMechs (): void {
 
 
 function onClickExportMechs (): void {
-
-  if (selectedMechs.length) {
-
-    UserDataManager.exportMechs(selectedMechs)
-    
-  } else {
-
-    addPopup({
-      title: 'Export Mechs',
-      message: 'No mechs selected, export all of them instead?',
-      options: {
-        Yes () {
-          UserDataManager.exportMechs($mechs)
-          this.remove()
-        },
-        Cancel () {
-          this.remove()
-        }
-      }
-    })
-
-  }
-
+  selectingMechsToExport = !selectingMechsToExport
 }
 
 
-function onToggleSelected (mech: Mech): void {
-  if (selectedMechs.includes(mech)) {
-    selectedMechs.splice(selectedMechs.indexOf(mech), 1);
-    selectedMechs = [...selectedMechs];
-  } else {
-    selectedMechs = [...selectedMechs, mech];
+function onSelectedMechsToExport (mechs: Mech[]): void {
+  
+  selectingMechsToExport = false
+
+  if (mechs.length === 0) {
+    return
   }
+  
+  UserDataManager.exportMechs(mechs)
+
 }
 
 
@@ -203,8 +184,7 @@ function onSetActive (mech: Mech): void {
 
     <button
       class="classic-box"
-      on:click={onClickExportMechs}
-      style={selectedMechs.length ? '' : 'opacity: 0.5; cursor: not-allowed'}>
+      on:click={onClickExportMechs}>
       Export
     </button>
   </div>
@@ -218,8 +198,6 @@ function onSetActive (mech: Mech): void {
           mech={mech}
           onSetActive={onSetActive}
           onDelete={onDeleteMech}
-          onToggleSelected={onToggleSelected}
-          selected={selectedMechs.includes(mech)}
         />
       {/each}
     {:else}
@@ -231,6 +209,16 @@ function onSetActive (mech: Mech): void {
       </div>
     {/if}
   </div>
+
+
+  {#if selectingMechsToExport}
+    <MechPicker
+      multiple
+      mechs={$mechs}
+      onPick={onSelectedMechsToExport}
+      title="Select mechs to export"
+    />
+  {/if}
 
 </main>
 
