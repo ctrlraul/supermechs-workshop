@@ -326,8 +326,8 @@ header > button {
 @media (orientation: portrait) {
 
   .item-picking-tab > .content {
-    grid-template-rows: 5.5em 14em 1fr;
-    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 5.5em 15em 1fr;
+    grid-template-columns: 1fr 1.2fr;
     grid-template-areas:
       'header header'
       'item-image info'
