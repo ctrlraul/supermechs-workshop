@@ -43,15 +43,38 @@ function duplicate (): void {
   setCurrentMechID(newMech.id)
 }
 
+
+function getProceduralColorForText (text: string): string {
+
+  let hue = 0
+
+  for (const char of text) {
+    hue += char.charCodeAt(0)
+  }
+
+  hue *= 1000
+
+  return `hsl(${hue}, 100%, 5%)`
+
+}
+
 </script>
 
 
 
 <button class="mech-card {active ? 'active' : ''}" style={$$props.style}>
 
-  <div class="mech-container" on:click={() => onSetActive(mech)}>
+  <div
+    class="mech-container"
+    on:click={() => onSetActive(mech)}
+    style="--unique-color: {getProceduralColorForText(mech.id)};"
+  >
     {#if setup[Mech.TORSO_INDEX] !== 0}
-      <MechCanvas {setup} outlineThickness={0} style="width: 80%; max-height: 90%" />
+      <MechCanvas
+        {setup}
+        outlineThickness={0}
+        style="width: 80%; max-height: 90%; bottom: 0.2em"
+      />
     {:else}
       <SvgIcon
         name="mech"
@@ -137,6 +160,7 @@ function duplicate (): void {
 
 
 .mech-container {
+  --unique-color: #ffffff;
   position: relative;
   display: flex;
   justify-content: center;
@@ -144,6 +168,7 @@ function duplicate (): void {
   width: 100%;
   flex: 1;
   border-radius: var(--ui-radius);
+  background-image: radial-gradient(#000000, var(--unique-color));
 }
 
 

@@ -291,7 +291,7 @@ main {
   position: relative;
   display: grid;
   grid-template-rows: 3fr 3fr 3fr 2fr 2fr 2fr;
-  grid-template-columns: 25fr 8fr 17fr 17fr 8fr 25fr;
+  grid-template-columns: 25fr 8fr 13.5fr 13.5fr 8fr 25fr;
   grid-template-areas:
     'a a b b c c'
     'd d e e f f'
@@ -376,7 +376,7 @@ main {
     bottom: 0;
     height: 30%;
     grid-template-rows: 3fr 3fr 2fr;
-    grid-template-columns: 25fr 8fr 17fr 17fr 8fr 25fr 25fr 8fr 17fr 17fr 8fr 25fr;
+    grid-template-columns: 25fr 8fr 12fr 12fr 8fr 25fr 25fr 8fr 12fr 12fr 8fr 25fr;
     grid-template-areas:
       'd d e e f f a a b b c c'
       'g g h h i i j j k k l l'
