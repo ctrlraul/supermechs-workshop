@@ -1,8 +1,6 @@
 <script lang="ts">
 
 import ItemInfo from './ItemInfo.svelte'
-import SvgIcon from './SvgIcon/SvgIcon.svelte'
-import ItemImage from './ItemImage.svelte'
 import ItemButton from './ItemButton.svelte'
 import { getStatInstruction } from '../stats/StatsManager'
 import { clickOutside } from '../utils/useClickOutside'
@@ -19,6 +17,7 @@ export let selectItem: (itemID: Item['id']) => void
 // Types
 
 import type Item from '../items/Item'
+import Header from './Header.svelte'
 
 interface Filter {
   query: string
@@ -34,8 +33,8 @@ const expDmgImgURL = getStatInstruction('expDmg').imageURL
 const eleDmgImgURL = getStatInstruction('eleDmg').imageURL
 
 let inspectedItem: Item | null = null
-$: itemToDisplay = inspectedItem || currentItem
 let filter: Filter = { query: '', element: null }
+$: itemToDisplay = inspectedItem || currentItem
 $: itemsFiltered = getFilteredItemsList(filter)
 $: itemGroups = getItemGroups(itemsFiltered)
 
@@ -79,6 +78,7 @@ function onSeach (e: Event): void {
 }
 
 
+
 // Functions
 
 function toggleElementFilter (element: Item['element']): void {
@@ -117,91 +117,98 @@ function getItemGroups (items: Item[]): Promise<Item[]>[] {
 
 
 
-<div class="item-picking-tab global-blur-sublings global-darkscreen" data-select-null use:clickOutside={onOffClick}>
+<div class="global-blur-sublings global-darkscreen" data-select-null use:clickOutside={onOffClick}>
   <div class="content" data-select-null use:clickOutside={onOffClick}>
 
-    <header data-select-null use:clickOutside={onOffClick}>
-      <input type="text" placeholder="Search" on:input={onSeach} />
-      <div class="item-filters" style={filter.query ? 'filter: contrast(0.75) brightness(0.25);' : ''}>
-        <button
-          class="global-box no-select"
-          style="{!filter.element || (filter.element === 'PHYSICAL') ? '' : 'opacity:0.5'}"
-          on:click={() => toggleElementFilter('PHYSICAL')}>
-          <img src={phyDmgImgURL} alt="Physical"/>
-        </button>
-        <button
-          class="global-box no-select"
-          style="{!filter.element || (filter.element === 'EXPLOSIVE') ? '' : 'opacity:0.5'}"
-          on:click={() => toggleElementFilter('EXPLOSIVE')}>
-          <img src={expDmgImgURL} alt="Explosive"/>
-        </button>
-        <button
-          class="global-box no-select"
-          style="{!filter.element || (filter.element === 'ELECTRIC') ? '' : 'opacity:0.5'}"
-          on:click={() => toggleElementFilter('ELECTRIC')}>
-          <img src={eleDmgImgURL} alt="Electric"/>
-        </button>
-      </div>
-      <button on:click={() => selectItem(0)} class="global-box">
-        <SvgIcon name="cross" color="var(--color-text)" />
-      </button>
-    </header>
+    <Header
+      title="Item Picking Tab"
+      onGoBack={() => selectItem(0)}
+      style="height: 2em;"
+    />
 
-    <div class="image-container" use:clickOutside={onOffClick}>
+    <div class="image-container global-box" use:clickOutside={onOffClick}>
       {#if itemToDisplay}
-        <ItemImage item={itemToDisplay} style="
-          position: relative;
-          display: block;
-          max-width: 80%;
-          max-height: 80%;
-        "/>
+        <ItemButton
+          item={itemToDisplay}
+          active={false}
+          style="width: 100%; height: 100%; padding: unset;"
+          on:click={() => selectItem(itemToDisplay ? itemToDisplay.id : 0)}
+        />
       {/if}
     </div>
 
     {#if itemToDisplay}
       <ItemInfo
         item={itemToDisplay}
+        columns={3}
         style="
           grid-area: info;
           overflow-y: auto;
           max-height: 100%;
-          margin: 0.4em;
         "
       />
     {:else}
-      <div class="info-placeholder global-box">
+      <div class="info-placeholder global-box" style="grid-area: info;">
         Select an item!
       </div>
     {/if}
 
-    <div class="items-list global-box" data-select-null>
+
+    <div class="items-list-container global-box" data-select-null>
+
+      <div class="items-list-filters {filter.query ? 'hide-buttons' : ''}">
+
+        <input type="text" placeholder="Search" on:input={onSeach} />
+
+        <button
+          class="global-box no-select {filter.element && filter.element !== 'PHYSICAL' ? 'global-disabled' : ''}"
+          on:click={() => toggleElementFilter('PHYSICAL')}>
+          <img src={phyDmgImgURL} alt="Physical"/>
+        </button>
+
+        <button
+          class="global-box no-select {filter.element  && filter.element !== 'EXPLOSIVE' ? 'global-disabled' : ''}"
+          on:click={() => toggleElementFilter('EXPLOSIVE')}>
+          <img src={expDmgImgURL} alt="Explosive"/>
+        </button>
+
+        <button
+          class="global-box no-select {filter.element && filter.element !== 'ELECTRIC' ? 'global-disabled' : ''}"
+          on:click={() => toggleElementFilter('ELECTRIC')}>
+          <img src={eleDmgImgURL} alt="Electric"/>
+        </button>
+
+      </div>
 
       {#if itemsFiltered.length}
 
-        {#each itemGroups as group}
-          {#await group then items}
-            {#each items as item}
-              <ItemButton
-                {item}
-                active={currentItem !== null && currentItem.id === item.id}
-                on:click={() => onSelectItem(item)}
-                on:mouseover={() => inspectedItem = item}
-                on:mouseout={() => inspectedItem = null}
-                on:focus={() => inspectedItem = item}
-                on:blur={() => { /* ffs svelte */ }}
-              />
-            {/each}
-          {/await}
-        {/each}
-        
+        <div class="items-list">
+
+          {#each itemGroups as group}
+            {#await group then items}
+              {#each items as item}
+                <ItemButton
+                  {item}
+                  active={currentItem !== null && currentItem.id === item.id}
+                  on:click={() => onSelectItem(item)}
+                  on:mouseover={() => inspectedItem = item}
+                  on:mouseout={() => inspectedItem = null}
+                  on:focus={() => inspectedItem = item}
+                  on:blur={() => { /* ffs svelte */ }}
+                />
+              {/each}
+            {/await}
+          {/each}
+
+        </div>
+
       {:else}
 
         <div class="no-items-text">
-          No items loaded for this slot! :(
+          {filter.query ? 'No matches!' : 'No items loaded for this slot!'}
         </div>
 
       {/if}
-      
 
     </div>
 
@@ -212,64 +219,20 @@ function getItemGroups (items: Item[]): Promise<Item[]>[] {
 
 <style>
 
-.item-picking-tab {
-  z-index: var(--z-index-tab);
-}
-
-.item-picking-tab > .content {
+.content {
   position: relative;
   display: grid;
-  grid-template-rows: 3em 1fr 14em;
-	grid-template-columns: 15em 1fr;
+  grid-template-rows: 2em 1fr 11.5em;
+	grid-template-columns: 18em 1fr;
   grid-template-areas:
     'header header'
     'item-image items'
     'info items';
+  gap: 0.5em;
   width: 100%;
   height: 100%;
   max-width: var(--content-width);
   max-height: var(--content-height);
-}
-
-
-header {
-  position: relative;
-  display: flex;
-  grid-area: header;
-  padding: 0.5em;
-}
-
-
-header > input[type=text] {
-  position: relative;
-  width: 16em;
-  height: 2em;
-}
-
-
-header > button {
-  margin-left: auto;
-  width: 2em;
-  height: 2em;
-}
-
-.item-filters {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 1em;
-}
-
-.item-filters > button {
-  margin-right: 0.5em;
-  width: 2em;
-  height: 2em;
-}
-
-.item-filters > button > img {
-  width: 90%;
-    height: 90%;
 }
 
 
@@ -280,9 +243,7 @@ header > button {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 0.5em;
   grid-area: item-image;
-  overflow: hidden;
 }
 
 
@@ -293,7 +254,46 @@ header > button {
   justify-content: center;
   max-width: 100%;
   max-height: 100%;
-  margin: 0.4em;
+}
+
+
+
+.items-list-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--ui-radius);
+  overflow: hidden;
+  grid-area: items;
+}
+
+
+.items-list-filters {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 2em 2em 2em;
+  gap: 0.5em;
+  padding: 0.5em;
+  background-color: var(--color-secondary);
+}
+
+.items-list-filters.hide-buttons {
+  grid-template-columns: 1fr;
+}
+
+.items-list-filters.hide-buttons button {
+  display: none;
+}
+
+
+.items-list-filters button {
+  width: 2em;
+  height: 2em;
+}
+
+.items-list-filters button img {
+  width: 90%;
+  height: 90%;
 }
 
 
@@ -302,12 +302,11 @@ header > button {
   display: flex;
   align-content: flex-start;
   flex-wrap: wrap;
-  overflow-y: scroll;
+  padding: 0.5em;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.4em;
   gap: 1.4%;
-  grid-area: items;
-  margin: 0.4em;
+  flex: 1;
 }
 
 
@@ -325,27 +324,16 @@ header > button {
 
 @media (orientation: portrait) {
 
-  .item-picking-tab > .content {
-    grid-template-rows: 5.5em 15em 1fr;
-    grid-template-columns: 1fr 1.2fr;
+  .content {
+    grid-template-rows: 2em 10em 11.5em 1fr;
+    grid-template-columns: 1fr;
     grid-template-areas:
-      'header header'
-      'item-image info'
-      'items items';
+      'header'
+      'item-image'
+      'info'
+      'items';
     max-width: unset;
     max-height: unset;
-  }
-
-  header {
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 0.5em;
-  }
-
-  header > .item-filters {
-    margin: 0;
-    justify-content: start;
   }
 
 }

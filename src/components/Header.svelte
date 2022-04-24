@@ -41,6 +41,7 @@ header {
   justify-content: center;
   width: 100%;
   height: 3em;
+  grid-area: header;
 }
 
 header > .title {
@@ -49,7 +50,7 @@ header > .title {
 
 header > button {
   position: absolute;
-  right: 0.2em;
+  right: 0em;
   width: 2em;
   height: 2em;
 }

@@ -41,7 +41,7 @@ $: backgroundImage = `radial-gradient(#000000, ${elementColors[item.element]})`
   on:focus
   on:blur
   on:click
-  style="background-image: {backgroundImage};"
+  style="background-image: {backgroundImage};{$$props.style}"
 >
 
   <ItemImage

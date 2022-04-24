@@ -122,11 +122,7 @@ function onSetActive (mech: Mech): void {
 
 <main>
 
-  <Header
-    title="Mechs Manager"
-    onGoBack={() => router.replace('/workshop')}
-    style="grid-area: header"
-  />
+  <Header title="Mechs Manager" onGoBack={() => router.replace('/workshop')} />
 
   <div class="current-mech-view">
 

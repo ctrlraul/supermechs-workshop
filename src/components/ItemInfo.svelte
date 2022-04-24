@@ -7,6 +7,7 @@ import type Item from '../items/Item'
 
 
 export let item: Item
+export let columns = 2
 
 
 const hasAnyTag = Object.values(item.tags).includes(true)
@@ -23,22 +24,24 @@ const displayTags: [keyof Item['tags'], string][] = [
 
 <div class="item-info global-box no-select" style={$$props.style}>
 
-  <div>{item.name}</div>
-  <span class="kind">({item.kind.replace(/_/g, ' ')})</span>
+  <header>
 
-  {#if hasAnyTag}
-    <div class="tags">
-      {#each displayTags as [tag, color]}
-        {#if item.tags[tag]}
-          <span style="color: {color};">{tag.replace(/_/g, ' ')}</span>
-        {/if}
-      {/each}
-    </div>
-  {/if}
+    <div>{item.name}</div>
+    <span class="kind">({item.kind.replace(/_/g, ' ')})</span>
 
-  <div class="separator"></div>
+    {#if hasAnyTag}
+      <div class="tags">
+        {#each displayTags as [tag, color]}
+          {#if item.tags[tag]}
+            <span style="color: {color};">{tag.replace(/_/g, ' ')}</span>
+          {/if}
+        {/each}
+      </div>
+    {/if}
 
-  <div class="stats">
+  </header>
+
+  <div class="stats" style="grid-template-columns:{' 1fr'.repeat(columns)};">
     <StatBlocks source={item.id} />
   </div>
 
@@ -53,8 +56,19 @@ const displayTags: [keyof Item['tags'], string][] = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5em;
+  border-radius: var(--ui-radius);
+  overflow: hidden;
 }
+
+
+header {
+  position: relative;
+  padding: 0.5em;
+  background-color: var(--color-secondary);
+  width: 100%;
+  text-align: center;
+}
+
 
 .kind {
   color: var(--color-text-dark);
@@ -78,20 +92,12 @@ const displayTags: [keyof Item['tags'], string][] = [
   text-transform: capitalize;
 }
 
-.separator {
-  position: relative;
-  width: 100%;
-  height: 0.1em;
-  background-color: var(--color-secondary);
-  margin: 0.5em 0;
-}
-
 .stats {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
   gap: 0.5em;
+  width: 100%;
+  padding: 0.5em;
 }
 
 </style>
