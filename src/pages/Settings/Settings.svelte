@@ -98,11 +98,16 @@ function onClickChangeItemsPack (): void {
 
 main {
   display: grid;
-  grid-template-rows: 3em 1fr;
+  grid-template-rows: 2em 1fr;
+  grid-template-areas:
+    'header'
+    '.';
+  gap: 0.5em;
   max-height: var(--content-height);
   max-width: var(--content-width);
   height: 100%;
   width: 100%;
+  padding: 0.5em;
 }
 
 ul {
@@ -111,7 +116,7 @@ ul {
   grid-template-columns: 1fr 1fr 1fr;
   align-content: flex-start;
   gap: 0.5em;
-  padding: 0.5em;
+  padding: 0 0.5em 0.5em 0;
   width: 100%;
   height: 100%;
   overflow-y: scroll;
@@ -123,7 +128,7 @@ li {
   flex-direction: column;
   justify-content: center;
   height: 7.5em;
-  padding: inherit;
+  padding: 0.5em;
 }
 
 li header,

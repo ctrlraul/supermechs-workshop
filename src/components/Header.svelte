@@ -40,7 +40,6 @@ header {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 3em;
   grid-area: header;
 }
 
