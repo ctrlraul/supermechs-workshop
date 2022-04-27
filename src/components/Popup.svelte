@@ -108,7 +108,9 @@ function onOffClick (e: Event): void {
   justify-content: space-between;
   margin-top: 1rem;
   width: 100%;
-  height: 2rem;
+  height: 2em;
+  max-height: 2em;
+  min-height: 2em;
 }
 
 .buttons button {

@@ -5,6 +5,7 @@ import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'
 import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
+import PatreonNotification from './components/PatreonNotification.svelte'
 import { onMount } from 'svelte'
 import { importItemsPack } from './items/ItemsManager'
 import { addPopup } from './managers/PopupManager'
@@ -33,7 +34,10 @@ import type { RouteDefinition } from 'svelte-spa-router'
 
 // Data
 
+const MINUTES_BEFORE_PATREON_NOTIFICATION = 3
+
 let didLoadStats = false
+let showPatreonNotification = false
 
 
 const routes: RouteDefinition = {
@@ -81,6 +85,10 @@ onMount(async () => {
   didLoadStats = true
 
   tryToImportLastItemsPack()
+
+  setTimeout(() => {
+    showPatreonNotification = true
+  }, MINUTES_BEFORE_PATREON_NOTIFICATION * 60000)
 
 })
 
@@ -159,6 +167,10 @@ function conditionsFailed () {
   <div class="pages">
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
+
+  {#if showPatreonNotification}
+    <PatreonNotification onHide={() => showPatreonNotification = false} />
+  {/if}
 
 {:else}
   <div class="loading">
