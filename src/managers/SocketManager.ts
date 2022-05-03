@@ -14,18 +14,20 @@ import type { BattleAction } from '../battle/Battle'
 // Init
 
 const production = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
+const initHeaders = new Headers({})
 
 export const socket = Socket(
   production
   ? 'https://supermechs-workshop-server.thearchives.repl.co'
   : window.location.hostname + ':3000',
   {
-    query: {
-      name: get(userData).name,
-      clientVersion: 'gobsmacked!!!' // Arbitraty value, just has to match the server
+    extraHeaders: {
+      'x-player-name': get(userData).name,
+      'x-client-version': 'gobsmacked!!!' // Arbitraty value, just has to match the server
     }
   }
 )
+
 
 export let outdatedClient = false
 export let connectErrorStreakCount = 0
