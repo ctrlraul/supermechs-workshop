@@ -15,7 +15,7 @@ import type Item from './Item'
 import type { ItemsPackV1 } from './importItemsPackV1'
 import type { ItemsPackV2 } from './importItemsPackV2'
 import type { AttachmentPoint, TorsoAttachment } from './Item'
-import type { NonModuleSlotName } from 'src/battle/BattlePlayer'
+import type { SlotName } from '../mechs/Mech'
 
 
 export type ItemsPack = ItemsPackV1 | ItemsPackV2
@@ -24,7 +24,7 @@ export type ProgressListener = (progress: number) => void
 
 /** Only the data needed to be used in battle. */
 export interface BattleItem {
-  slotName: NonModuleSlotName
+  slotName: SlotName
   id: number
   name: string
   type: Item['type']
@@ -158,11 +158,13 @@ export function getItemByIdOrThrow (id: Item['id']): Item {
 
 export function getBattleItems (setup: number[], throwIfInvalid = true): (BattleItem | null)[] {
 
-  const slotNames: NonModuleSlotName[] = [
+  const slotNames: SlotName[] = [
     'torso', 'legs', 'sideWeapon1', 'sideWeapon2',
     'sideWeapon3', 'sideWeapon4',  'topWeapon1',
     'topWeapon2', 'drone', 'teleporter',
-    'chargeEngine', 'grapplingHook'
+    'chargeEngine', 'grapplingHook',
+    'module1', 'module2', 'module3', 'module4',
+    'module5', 'module6', 'module7', 'module8'
   ]
 
   const battleItems: (BattleItem | null)[] = []
@@ -181,9 +183,9 @@ export function getBattleItems (setup: number[], throwIfInvalid = true): (Battle
 
 
 
-export function getBattleItem (item: Item, slotName: NonModuleSlotName, throwIfInvalid?: boolean): BattleItem;
-export function getBattleItem (itemdID: Item['id'], slotName: NonModuleSlotName, throwIfInvalid?: boolean): BattleItem | null;
-export function getBattleItem (value: Item | Item['id'] | null, slotName: NonModuleSlotName, throwIfInvalid = false): BattleItem | null {
+export function getBattleItem (item: Item, slotName: SlotName, throwIfInvalid?: boolean): BattleItem;
+export function getBattleItem (itemdID: Item['id'], slotName: SlotName, throwIfInvalid?: boolean): BattleItem | null;
+export function getBattleItem (value: Item | Item['id'] | null, slotName: SlotName, throwIfInvalid = false): BattleItem | null {
 
   const getItemFn = throwIfInvalid ? getItemByIdOrThrow : getItemByID
   const item = typeof value === 'number' ? getItemFn(value) : value

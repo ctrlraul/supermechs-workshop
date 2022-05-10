@@ -1,6 +1,7 @@
 import potpack from 'potpack'
 import { createSyntheticItemAttachment, ImportResult, ProgressListener } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
+import { includeStatFormats } from '../stats/StatsManager'
 // import { ItemsPackV1Te } from './Typeyes/ItemsPackV1Te'
 
 
@@ -10,6 +11,7 @@ import { loadImage } from '../utils/loadImage'
 import type Item from './Item'
 import type { Attachment, Rectangle } from './Item'
 import type { ItemsPackData } from '../stores'
+import type { StatFormatWithImage } from '../stats/StatsManager'
 
 
 
@@ -50,6 +52,7 @@ export interface ItemsPackV1 {
     key: string
     base_url: string
   }
+  stats?: StatFormatWithImage[]
   items: RawItemV1[]
 }
 
@@ -83,6 +86,8 @@ export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: Pro
     spritesSheet: spritesSheet,
     items,
   }
+
+  includeStatFormats(itemsPack.stats || [])
 
   onProgress(1)
 

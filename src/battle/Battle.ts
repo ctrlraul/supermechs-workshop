@@ -1,8 +1,7 @@
-import { BattlePlayer, BattlePlayerArgs, NonModuleSlotName } from './BattlePlayer'
 import * as BattleActionsHandler from './BattleActionsHandler'
 import * as BattleEffectsHandler from './BattleEffectsHandler'
 import * as BattleAnimations from './BattleAnimations'
-import type { BattleItem } from '../items/ItemsManager'
+import { BattlePlayer, BattlePlayerArgs } from './BattlePlayer'
 import { cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
 import { setBattle } from '../BattleRenderer'
@@ -10,6 +9,9 @@ import { setBattle } from '../BattleRenderer'
 
 
 // Types
+
+import type { BattleItem } from '../items/ItemsManager'
+import type { SlotName } from '../mechs/Mech'
 
 interface BattleArgs {
   online: boolean
@@ -24,7 +26,7 @@ export interface BattleAction {
   name: keyof typeof BattleActionsHandler
   actorID: BattlePlayer['id']
   fromServer?: boolean
-  slotName?: NonModuleSlotName
+  slotName?: SlotName
   position?: number
   droneDamageScale?: number
   damageScale?: number
@@ -74,7 +76,6 @@ export class Battle {
   povPlayerID: BattlePlayer['id']
 
   actionPoints: number = 1
-  actionsStack: BattleAction[] = []
   idle: boolean = true
 
   online: boolean
@@ -136,11 +137,7 @@ export class Battle {
     }
 
 
-    if (this.idle) {
-      this.proccessAction(action)
-    } else {
-      this.actionsStack.push(action)
-    }
+    this.proccessAction(action)
 
   }
 
@@ -403,7 +400,7 @@ export class Battle {
   }
 
 
-  getDamageForItemAtSlot (slot: NonModuleSlotName, damageScale: number): number {
+  getDamageForItemAtSlot (slot: SlotName, damageScale: number): number {
 
     const item = this.attacker.slots[slot]
 
@@ -524,8 +521,6 @@ export class Battle {
   // Functions
 
   private proccessAction (action: BattleAction) {
-
-    this.idle = false
 
     try {
 
@@ -690,7 +685,7 @@ export class Battle {
         const weapon = attacker.slots[action.slotName]
 
         if (weapon === null) {
-          throw new Error(`${attacker.name} has no item at index ${action.slotName}`)
+          throw new Error(`${attacker.name} has no item at slot ${action.slotName}`)
         }
 
         const damage = this.getDamageForItemAtSlot(action.slotName, damageScale)
@@ -782,7 +777,6 @@ export class Battle {
     this.pushLog(`${winner.name} won!`)
     this.onUpdate(this)
     this.actionPoints = 0
-    this.actionsStack = []
   }
 
 
@@ -790,8 +784,8 @@ export class Battle {
 
     this.actionPoints = 0
 
-    // Regen energy at end of turn
-    BattleEffectsHandler.regenEnergy(this.attacker)
+    // Regen stats at end of turn
+    BattleEffectsHandler.regen(this.attacker)
 
     // Clear items used
     this.attacker.itemsAlreadyUsed = []
@@ -830,17 +824,13 @@ export class Battle {
 
   private onIdle () {
 
-    this.idle = true
-
-    if (this.actionsStack.length) {
-
-      this.proccessAction(this.actionsStack.shift() as BattleAction)
-
-    } else if (this.attacker.ai && this.actionPoints > 0) {
+    if (this.attacker.ai && this.actionPoints > 0) {
 
       try {
 
         const action = think(this, this.attacker.id)
+
+        console.log({ action })
   
         this.pushAction(action)
 

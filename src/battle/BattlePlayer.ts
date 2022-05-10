@@ -8,8 +8,6 @@ import type Mech from '../mechs/Mech'
 import type { SlotName } from '../mechs/Mech'
 
 
-export type NonModuleSlotName = Exclude<SlotName, `module${number}`>
-
 export interface BattlePlayerArgs {
 
   id: string
@@ -36,7 +34,8 @@ export class BattlePlayer {
   // Items
   weapons: (BattleItem | null)[]
   utils: (BattleItem | null)[]
-  slots: Record<NonModuleSlotName, BattleItem | null>
+  modules: (BattleItem | null)[]
+  slots: Record<SlotName, BattleItem | null>
 
   // Stats
   position: number
@@ -78,10 +77,12 @@ export class BattlePlayer {
     // Set slots
     {
 
-      const slotNames: NonModuleSlotName[] = [
+      const slotNames: SlotName[] = [
         'torso',       'legs',         'sideWeapon1', 'sideWeapon2',
         'sideWeapon3', 'sideWeapon4',  'topWeapon1',  'topWeapon2',
-        'drone',       'chargeEngine', 'teleporter',  'grapplingHook'
+        'drone',       'chargeEngine', 'teleporter',  'grapplingHook',
+        'module1',     'module2',      'module3',     'module4',
+        'module5',     'module6',      'module7',     'module8'
       ]
 
       const entries = slotNames.map(name => {
@@ -107,6 +108,17 @@ export class BattlePlayer {
       this.slots.chargeEngine,
       this.slots.teleporter,
       this.slots.grapplingHook,
+    ]
+
+    this.modules = [
+      this.slots.module1,
+      this.slots.module2,
+      this.slots.module3,
+      this.slots.module4,
+      this.slots.module5,
+      this.slots.module6,
+      this.slots.module7,
+      this.slots.module8,
     ]
 
 

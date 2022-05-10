@@ -1,5 +1,6 @@
 import { createSyntheticItemAttachment, ImportResult } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
+import { includeStatFormats } from '../stats/StatsManager'
 
 
 
@@ -8,6 +9,7 @@ import { loadImage } from '../utils/loadImage'
 import type Item from './Item'
 import type { Attachment, Rectangle } from './Item'
 import type { ItemsPackData } from '../stores'
+import type { StatFormatWithImage } from '../stats/StatsManager'
 
 
 interface RawItemV2 {
@@ -41,6 +43,7 @@ export interface ItemsPackV2 {
   description: string
   spritesSheet: string
   spritesMap: Record<string, Rectangle>
+  stats?: StatFormatWithImage[]
   items: RawItemV2[]
 }
 
@@ -59,6 +62,8 @@ export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (pr
     spritesSheet,
     items,
   }
+
+  includeStatFormats(itemsPack.stats || [])
 
   onProgress(1)
 

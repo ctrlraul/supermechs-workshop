@@ -12,7 +12,7 @@ import { get } from 'svelte/store'
 import type { StatFormat } from './StatFormats'
 import type Item from '../items/Item'
 
-type StatInstructionWithImage = StatFormat & {
+export type StatFormatWithImage = StatFormat & {
   imageURL: string
 }
 
@@ -28,7 +28,8 @@ const STAT_IMAGES_BASE_URL = 'https://gist.githubusercontent.com/ctrlraul/de0f1e
 const IMAGE_MISSING_URL = '/assets/images/texture-missing.png'
 const MAX_IMAGE_SIZE = 128
 
-const stats = {} as Record<keyof Item['stats'], StatInstructionWithImage>
+const stats = {} as Record<keyof Item['stats'], StatFormatWithImage>
+const statsFromPack: Record<string, StatFormatWithImage> = {}
 
 const buffFunctions = {
   add: (x: number, amount: number) => x + amount,
@@ -38,6 +39,20 @@ const buffFunctions = {
 
 
 // Functions
+
+export function includeStatFormats (statFormats: StatFormatWithImage[]): void {
+
+  // Delete previous stats (don't use for...in, that also includes built-in)
+  for (const key of Object.keys(statsFromPack)) {
+    delete statsFromPack[key]
+  }
+
+  for (const format of statFormats) {
+    statsFromPack[format.key] = format
+  }
+
+}
+
 
 function getBuffedStats (stats: Item['stats'], isMechSummary: boolean): Item['stats'] {
 
@@ -206,12 +221,26 @@ export function getSmartItemStats (id: Item['id']): Item['stats'] {
 }
 
 
-export function getStatInstruction (key: keyof Item['stats']): StatInstructionWithImage {
+export function getStatInstruction (key: keyof Item['stats']): StatFormatWithImage {
 
   if (stats[key]) {
     return stats[key]
   }
 
-  throw new Error(`Stat '${key}' did not load or doesn't exist.`)
+  if (statsFromPack[key]) {
+    return statsFromPack[key]
+  }
+
+  console.error(`Stat '${key}' did not load or doesn't exist.`)
+
+  // throw `Stat '${key}' did not load or doesn't exist.`
+  return {
+    key,
+    // @ts-ignore
+    name: 'Error: Unknown Stat',
+    type: 'number',
+    buff: null,
+    imageURL: IMAGE_MISSING_URL
+  }
 
 }

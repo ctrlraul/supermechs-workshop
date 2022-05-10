@@ -64,6 +64,32 @@ export function forceCooldown (battle: Battle, player: BattlePlayer): boolean {
 }
 
 
+export function regen (player: BattlePlayer): void {
+
+  player.stats.energy = Math.min(
+    player.stats.eneCap,
+    player.stats.energy + player.stats.eneReg
+  )
+
+  for (const mod of player.modules) {
+
+    if (mod && "healthReg" in mod.stats) {
+      // @ts-ignore
+      this.attacker.stats.health += mod.stats.healthReg
+    }
+
+    player.stats.health = Math.min(
+      player.stats.healthCap,
+      player.stats.health
+    )
+
+  }
+
+  getPlayerGfx(player.id).updateStats()
+
+}
+
+
 export function regenEnergy (player: BattlePlayer): void {
 
   player.stats.energy = Math.min(
