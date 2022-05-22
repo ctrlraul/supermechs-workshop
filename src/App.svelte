@@ -34,7 +34,7 @@ import type { RouteDefinition } from 'svelte-spa-router'
 
 // Data
 
-const MINUTES_BEFORE_PATREON_NOTIFICATION = 3
+const MINUTES_BEFORE_PATREON_NOTIFICATION = 3000000
 
 let didLoadStats = false
 let showPatreonNotification = false
