@@ -34,7 +34,7 @@ import type { RouteDefinition } from 'svelte-spa-router'
 
 // Data
 
-const MINUTES_BEFORE_PATREON_NOTIFICATION = 3000000
+const MINUTES_BEFORE_PATREON_NOTIFICATION = 60
 
 let didLoadStats = false
 let showPatreonNotification = false
@@ -168,7 +168,7 @@ function conditionsFailed () {
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
 
-  {#if showPatreonNotification}
+  {#if showPatreonNotification && 1 == 2}
     <PatreonNotification onHide={() => showPatreonNotification = false} />
   {/if}
 
