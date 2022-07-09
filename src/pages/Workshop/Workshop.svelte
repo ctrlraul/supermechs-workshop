@@ -33,6 +33,7 @@ const PATREON_URL = 'https://www.patreon.com/ctrlraul'
 const slotAreas = 'abcdefghijklmnopqrst'
 
 let focusedSlotConfig: SlotConfig | null = null
+let showDiscordWidget: boolean = false
 
 $: hasItemsEquipped = !!$currentMech && $currentMech.getItems().some(Boolean)
 
@@ -256,6 +257,10 @@ function onClickBattle (): void {
       <SvgIcon name="patreon_logo" color="#FF424D" />
     </button>
 
+    <button class="global-box" on:click={() => showDiscordWidget = !showDiscordWidget} use:tooltip={'Give suggestions or report bugs in the Discord server!'}>
+      <SvgIcon name="discord_logo" />
+    </button>
+
   </div>
 
 
@@ -265,6 +270,20 @@ function onClickBattle (): void {
     </div>
   {/if}
 
+
+  {#if showDiscordWidget}
+    <div class="global-darkscreen" on:click={() => showDiscordWidget = !showDiscordWidget}>
+      <iframe
+        title="SuperMechs Workshop Discord Widget"
+        src="https://discord.com/widget?id=527596699988918282&theme=dark"
+        width={350}
+        height={500}
+        allowtransparency={true}
+        frameborder={0}
+        sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
+      </iframe>
+    </div>
+  {/if}
 
 </main>
 
