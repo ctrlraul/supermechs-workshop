@@ -74,17 +74,24 @@ export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (pr
 
 async function loadSpritesSheet (url: string): Promise<HTMLCanvasElement> {
 
-  const image = await loadImage(url)
+  try {
 
-  const spritesSheet = document.createElement('canvas')
-  const ctx = spritesSheet.getContext('2d')!
+    const image = await loadImage(url)
+    const spritesSheet = document.createElement('canvas')
+    const ctx = spritesSheet.getContext('2d')!
 
-  spritesSheet.width = image.naturalWidth
-  spritesSheet.height = image.naturalHeight
+    spritesSheet.width = image.naturalWidth
+    spritesSheet.height = image.naturalHeight
 
-  ctx.drawImage(image, 0, 0)
+    ctx.drawImage(image, 0, 0)
 
-  return spritesSheet
+    return spritesSheet
+
+  } catch (err: any) {
+
+    throw new Error('Failed to load sprites sheet: ' + err.message)
+
+  }
 
 }
 
