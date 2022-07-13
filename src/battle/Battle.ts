@@ -32,12 +32,6 @@ export interface BattleAction {
   damageScale?: number
 }
 
-/** Used in the battle screen to make controlling
- * the opponent's mech in offline battles more feasible */
-export type ActorlessBattleAction = { name: BattleAction['name'] } & Partial<{
-  [K in Exclude<keyof BattleAction, 'actorID'>]: BattleAction[K]
-}>
-
 interface BattleCompletion {
   winner: BattlePlayer
   quit: boolean
@@ -368,25 +362,28 @@ export class Battle {
   }
 
 
-  getItemRange (item: BattleItem): number[] {
+  getPositionsInItemRange (player: BattlePlayer, item: BattleItem, includePositionsOutOfArena = false): number[] {
 
-    const { attacker, defender } = this
-
-    const result = Array(10).fill(true);
-  
-    if (item.stats.range === undefined) {
-      return result;
+    // Item has infinite range, so we just return the entire arena
+    if (!item.stats.range) {
+      return range(Battle.MAX_POSITION_INDEX)
     }
-  
-    const dir = attacker.position < defender.position ? 1 : -1;
-    const rangeStat = item.stats.range;
-    const positions = result.map((_, i) =>
-      i * dir >= attacker.position * dir + rangeStat[0] &&
-      i * dir <= attacker.position * dir + rangeStat[1]
-    );
-  
-    return range(Battle.MAX_POSITION_INDEX + 1).filter(p => positions[p]);
-  
+
+    const dir = this.getPositionalDirection(player.id)
+    const positions: number[] = []
+
+    for (let i = item.stats.range[0]; i <= item.stats.range[1]; i++) {
+      positions.push(player.position + i * dir)
+    }
+
+    if (includePositionsOutOfArena) {
+      return positions
+    }
+
+    return positions.filter(position => {
+      return position >= 0 && position <= Battle.MAX_POSITION_INDEX
+    })
+
   }
 
 
@@ -469,7 +466,8 @@ export class Battle {
     }
 
     if (typeof item.stats.range !== 'undefined') {
-      if (!(this.getItemRange(item).includes(defender.position))) {
+      const positionsInRange = this.getPositionsInItemRange(attacker, item)
+      if (!positionsInRange.includes(defender.position)) {
         reasons.push('Out of range')
       }
     }

@@ -21,6 +21,7 @@ export interface ItemsPackData {
   key: string
   items: Item[]
   spritesSheet: HTMLCanvasElement
+  issues: string[]
 }
 
 

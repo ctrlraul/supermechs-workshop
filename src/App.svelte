@@ -1,17 +1,14 @@
 <script lang="ts">
 
-import Router, { replace } from 'svelte-spa-router'
+import Router, { replace, location } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
 import Tooltip from './components/Tooltip/Tooltip.svelte'
 import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 import PatreonNotification from './components/PatreonNotification.svelte'
 import { onMount } from 'svelte'
-import { importItemsPack } from './items/ItemsManager'
-import { addPopup } from './managers/PopupManager'
 import { battle, itemsPackData } from './stores'
 import { loadStatImages } from './stats/StatsManager'
-import { userData } from './stores/userData'
 
 
 
@@ -84,8 +81,6 @@ onMount(async () => {
   await loadStatImages()
   didLoadStats = true
 
-  tryToImportLastItemsPack()
-
   setTimeout(() => {
     showPatreonNotification = true
   }, MINUTES_BEFORE_PATREON_NOTIFICATION * 60000)
@@ -105,53 +100,24 @@ function needsItemsPack (): boolean {
 }
 
 
-async function tryToImportLastItemsPack (): Promise<void> {
-
-  if ($userData.lastItemsPackURL === null) {
-    return
-  }
-
-  const popup = addPopup({
-    title: 'Importing last items pack...',
-    hideOnOffclick: false,
-    spinner: true
-  })
-
-
-  try {
-
-    const result = await importItemsPack($userData.lastItemsPackURL, () => {})
-
-    itemsPackData.set(result.data)
-
-    popup.remove()
-
-  } catch (err: any) {
-
-    popup.replace({
-      title: 'Failed to import last items pack!',
-      message: err.message,
-      hideOnOffclick: false,
-      mode: 'error',
-      options: {
-        Ok () {
-          replace('/')
-          this.remove()
-        },
-        Retry () {
-          tryToImportLastItemsPack()
-          this.remove()
-        }
-      }
-    })
-
-  }
-
-}
-
-
 function conditionsFailed () {
-  replace('/')
+
+  if ($itemsPackData) {
+
+    replace('/workshop')
+
+  } else {
+
+    let redirectPath = '/'
+  
+    if ($location !== '/battle') {
+      redirectPath += '?returnTo=' + $location
+    }
+    
+    replace(redirectPath)
+
+  }
+
 }
 
 </script>
@@ -168,7 +134,7 @@ function conditionsFailed () {
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
 
-  {#if showPatreonNotification && 1 == 2}
+  {#if showPatreonNotification && Math.random() === 0}
     <PatreonNotification onHide={() => showPatreonNotification = false} />
   {/if}
 

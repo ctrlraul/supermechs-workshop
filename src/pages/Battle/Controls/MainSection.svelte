@@ -7,7 +7,7 @@ import ControlItemButton from './ItemButton.svelte'
 
 // Types
 
-import type { Battle, ActorlessBattleAction } from '../../../battle/Battle'
+import type { Battle, BattleAction } from '../../../battle/Battle'
 import type { BattlePlayer } from '../../../battle/BattlePlayer'
 import type { BattleItem } from '../../../items/ItemsManager'
 
@@ -19,7 +19,7 @@ export let battle: Battle
 export let player: BattlePlayer
 export let setSection: (section: string) => void
 export let setFocusedItem: (item: BattleItem | null) => void
-export let callBattleAction: (action: ActorlessBattleAction) => void
+export let callBattleAction: (action: Omit<BattleAction, 'actorID'>) => void
 
 
 

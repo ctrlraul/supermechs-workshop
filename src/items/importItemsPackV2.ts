@@ -1,4 +1,4 @@
-import { createSyntheticItemAttachment, ImportResult } from './ItemsManager'
+import { createSyntheticItemAttachment } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
 import { includeStatFormats } from '../stats/StatsManager'
 
@@ -49,10 +49,10 @@ export interface ItemsPackV2 {
 
 
 
-export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (progress: number) => void): Promise<ImportResult> {
+export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (progress: number) => void): Promise<ItemsPackData> {
 
   const spritesSheet = await loadSpritesSheet(itemsPack.spritesSheet)
-  const { items, errors } = importItems(itemsPack.items, itemsPack.spritesMap)
+  const { items, issues } = importItems(itemsPack.items, itemsPack.spritesMap)
 
   const data: ItemsPackData = {
     version: itemsPack.version,
@@ -61,13 +61,14 @@ export async function importItemsPackV2 (itemsPack: ItemsPackV2, onProgress: (pr
     description: itemsPack.description,
     spritesSheet,
     items,
+    issues,
   }
 
   includeStatFormats(itemsPack.stats || [])
 
   onProgress(1)
 
-  return { data, errors }
+  return data
 
 }
 
@@ -96,20 +97,20 @@ async function loadSpritesSheet (url: string): Promise<HTMLCanvasElement> {
 }
 
 
-function importItems (rawItems: RawItemV2[], spritesMap: ItemsPackV2['spritesMap']): { items: Item[], errors: string[] } {
+function importItems (rawItems: RawItemV2[], spritesMap: ItemsPackV2['spritesMap']): { items: Item[], issues: string[] } {
 
   const items: Item[] = []
-  const errors: string[] = []
+  const issues: string[] = []
 
   for (const raw of rawItems) {
     try {
       items.push(importItem(raw, spritesMap))
     } catch (err: any) {
-      errors.push(err.message)
+      issues.push(err.message)
     }
   }
 
-  return { items, errors }
+  return { items, issues }
 
 }
 

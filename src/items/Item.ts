@@ -66,6 +66,19 @@ export interface ItemStats {
 }
 
 
+export const ItemType = {
+  TORSO: 'TORSO',
+  LEGS: 'LEGS',
+  SIDE_WEAPON: 'SIDE_WEAPON',
+  TOP_WEAPON: 'TOP_WEAPON',
+  DRONE: 'DRONE',
+  CHARGE_ENGINE: 'CHARGE_ENGINE',
+  TELEPORTER: 'TELEPORTER',
+  GRAPPLING_HOOK: 'GRAPPLING_HOOK',
+  MODULE: 'MODULE',
+} as const
+
+
 export default interface Item {
 
   id: number
@@ -79,7 +92,7 @@ export default interface Item {
   transformRange: string
 
   // Stats
-  type: 'TORSO' | 'LEGS' | 'SIDE_WEAPON' | 'TOP_WEAPON' | 'DRONE' | 'CHARGE_ENGINE' | 'TELEPORTER' | 'GRAPPLING_HOOK' | 'MODULE'
+  type: keyof typeof ItemType;
   element: 'PHYSICAL' | 'EXPLOSIVE' | 'ELECTRIC' | 'COMBINED'
   stats: Partial<ItemStats>
   tags: {

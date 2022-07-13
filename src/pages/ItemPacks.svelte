@@ -1,14 +1,15 @@
 <script lang="ts">
 
-import * as router from 'svelte-spa-router'
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
+import { push, pop, querystring } from 'svelte-spa-router'
 import { importItemsPack } from '../items/ItemsManager'
-import { itemsPackData } from '../stores'
+import { ItemsPackData, itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
 import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
 import { userData } from '../stores/userData'
 import { isInMatchMaker } from '../stores/isInMatchMaker'
+import { onMount } from 'svelte';
 
 
 
@@ -23,32 +24,26 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 // Data
 
 let loadingProgress = 0
-/** To prevent the client from instantly redirecting to workshop
- * screen if they come to this page with a pack already loaded */
-let justLoadedPack = false
-/** To force redirect whenever a pack is loaded from this screen */
-let alreadyHasPack = $itemsPackData !== null
-
-$: {
-  if ($itemsPackData !== null && (!alreadyHasPack || justLoadedPack)) {
-    router.push('/workshop')
-  }
-}
+let currentURL = ''
+let saveURL = false
 
 
 
-// Events
+// Functions
 
 function loadDefaultPack (): void {
   loadFromURL(defaultPackURL)
 }
 
 
-async function loadFromURL (url: string, saveURL = true): Promise<void> {
+async function loadFromURL (url: string): Promise<void> {
 
   if (!url) {
     return
   }
+
+
+  currentURL = url
 
 
   const popup = addPopup({
@@ -59,11 +54,9 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
   try {
   
-    const result = await importItemsPack(url, progress => loadingProgress = progress)
+    const itemsPack = await importItemsPack(url, progress => loadingProgress = progress)
 
-    justLoadedPack = true
-
-    itemsPackData.set(result.data)
+    onPackImported(itemsPack)
 
   } catch (err: any) {
 
@@ -96,12 +89,7 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
   } finally {
 
-    loadingProgress = 0
     popup.remove()
-
-    if (itemsPackData !== null && saveURL) {
-      $userData.lastItemsPackURL = url
-    }
 
   }
 
@@ -119,13 +107,76 @@ function loadFromFile (e: Event): void {
     const file = target.files[0]
 
     try {
-      loadFromURL(URL.createObjectURL(file), false)
+      saveURL = false
+      loadFromURL(URL.createObjectURL(file))
     } catch (err: any) {
       alert(`Failed to load pack: ${err.message}`)
     }
 
   }
 }
+
+
+function onPackImported (itemsPack: ItemsPackData): void {
+
+  if (saveURL) {
+    $userData.lastItemsPackURL = currentURL
+  }
+
+  loadingProgress = 0
+  saveURL = false
+
+  if (itemsPack.issues.length === 0) {
+
+    itemsPackData.set(itemsPack)
+    gotoNextRoute()
+
+  } else {
+
+    addPopup({
+      title: `${itemsPack.issues.length} item(s) were not successfuly imported!`,
+      message: itemsPack.issues,
+      hideOnOffclick: true,
+      options: {
+        Ok () {
+          itemsPackData.set(itemsPack)
+          gotoNextRoute()
+          this.remove()
+        },
+        Retry () {
+          loadFromURL(currentURL)
+          this.remove()
+        }
+      }
+    })
+
+  }
+
+}
+
+
+function gotoNextRoute () {
+
+  const urlParams = new URLSearchParams($querystring)
+
+  if (urlParams.has('returnTo')) {
+    push(urlParams.get('returnTo')!)
+  } else {
+    push('/workshop')
+  }
+
+}
+
+
+
+// Lifecycle
+
+onMount(() => {
+  // Try to load last items pack if there is no pack already loaded
+  if (!$itemsPackData && $userData.lastItemsPackURL) {
+    loadFromURL($userData.lastItemsPackURL)
+  }
+})
 
 </script>
 
@@ -185,7 +236,7 @@ function loadFromFile (e: Event): void {
         <WideButton
           text="Cancel"
           style="background-color: var(--color-error)"
-          on:click={() => router.pop()}
+          on:click={pop}
         />
 
       {:else if $isInMatchMaker}

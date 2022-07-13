@@ -3,7 +3,7 @@
 import SvgIcon from '../../../components/SvgIcon/SvgIcon.svelte'
 import ItemButton from './ItemButton.svelte'
 import MainSection from './MainSection.svelte'
-import { ActorlessBattleAction, Battle, BattleAction } from '../../../battle/Battle'
+import { Battle, BattleAction } from '../../../battle/Battle'
 import { battle as battleStore } from '../../../stores'
 import { userData } from '../../../stores/userData'
 
@@ -19,7 +19,7 @@ import type { BattlePlayer } from '../../../battle/BattlePlayer'
 // Props
 
 export let player: BattlePlayer
-export let callBattleAction: (event: ActorlessBattleAction) => any
+export let callBattleAction: (event: Omit<BattleAction, 'actorID'>) => any
 export let blocked: boolean
 export let reverse: boolean
 
@@ -78,7 +78,7 @@ function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, 
 
   } else if (itemHovered && 'range' in itemHovered.stats) {
 
-    positions = battle.getItemRange(itemHovered)
+    positions = battle.getPositionsInItemRange(player, itemHovered)
     color = '#cc0000'
 
   } else if (isTeleporting || (itemHovered && itemHovered.type === 'TELEPORTER')) {
