@@ -1,0 +1,33 @@
+{
+  "name": "SuperMechs Workshop",
+  "lang": "en",
+  "short_name": "SM Workshop",
+  "start_url": "/",
+  "display": "fullscreen",
+  "theme_color": "#00ADB5",
+  "background_color": "#0e1114",
+  "prefer_related_applications": false,
+  "description": "Mech building simulator for SuperMechs",
+  "icons": [{
+    "src": "/assets/images/icons/android-chrome-192x192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }, {
+    "src": "/assets/images/icons/android-chrome-512x512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }],
+  "screenshots" : [{
+    "src": "/assets/images/screenshots/workshop.jpeg",
+    "sizes": "800x450",
+    "type": "image/jpeg",
+    "platform": "wide",
+    "label": "Workshop"
+  }, {
+    "src": "/assets/images/screenshots/item-picking-tab.jpeg",
+    "sizes": "800x450",
+    "type": "image/jpeg",
+    "platform": "wide",
+    "label": "Items selecting tab"
+  }]
+}

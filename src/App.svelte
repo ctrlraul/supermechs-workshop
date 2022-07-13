@@ -141,7 +141,7 @@ function conditionsFailed () {
 {:else}
   <div class="loading">
 
-    <img src="/assets/images/logo-white.svg" alt="logo" />
+    <img src="/assets/images/logo-stencil.svg" alt="logo" />
     
     <div class="spinner-container">
       <SvgIcon name="aim" class="spinner" color="var(--color-text)" />
