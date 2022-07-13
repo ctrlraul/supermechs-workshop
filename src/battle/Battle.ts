@@ -364,23 +364,26 @@ export class Battle {
 
   getPositionsInItemRange (player: BattlePlayer, item: BattleItem, includePositionsOutOfArena = false): number[] {
 
-    const { attacker, defender } = this
-
-    const result = Array(10).fill(true);
-  
-    if (item.stats.range === undefined) {
-      return result;
+    // Item has infinite range, so we just return the entire arena
+    if (!item.stats.range) {
+      return range(Battle.MAX_POSITION_INDEX)
     }
-  
-    const dir = attacker.position < defender.position ? 1 : -1;
-    const rangeStat = item.stats.range;
-    const positions = result.map((_, i) =>
-      i * dir >= attacker.position * dir + rangeStat[0] &&
-      i * dir <= attacker.position * dir + rangeStat[1]
-    );
-  
-    return range(Battle.MAX_POSITION_INDEX + 1).filter(p => positions[p]);
-  
+
+    const dir = this.getPositionalDirection(player.id)
+    const positions: number[] = []
+
+    for (const position of item.stats.range) {
+      positions.push(player.position + position * dir)
+    }
+
+    if (includePositionsOutOfArena) {
+      return positions
+    }
+
+    return positions.filter(position => {
+      return position >= 0 && position <= Battle.MAX_POSITION_INDEX
+    })
+
   }
 
 
