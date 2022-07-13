@@ -362,7 +362,7 @@ export class Battle {
   }
 
 
-  getItemRange (item: BattleItem): number[] {
+  getPositionsInItemRange (player: BattlePlayer, item: BattleItem, includePositionsOutOfArena = false): number[] {
 
     const { attacker, defender } = this
 
@@ -463,7 +463,8 @@ export class Battle {
     }
 
     if (typeof item.stats.range !== 'undefined') {
-      if (!(this.getItemRange(item).includes(defender.position))) {
+      const positionsInRange = this.getPositionsInItemRange(attacker, item)
+      if (!positionsInRange.includes(defender.position)) {
         reasons.push('Out of range')
       }
     }
