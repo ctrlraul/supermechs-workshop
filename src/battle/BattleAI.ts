@@ -416,7 +416,6 @@ function getPositionsToPutOpponentInRange (battle: Battle, attacker: BattlePlaye
         positionsThatPutOpponentInRange.push(positionToMove)
       }
 
-      debugger
     }
   }
 
