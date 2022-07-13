@@ -14,7 +14,6 @@ import type { BattleAction } from '../battle/Battle'
 // Init
 
 const production = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
-const initHeaders = new Headers({})
 
 export const socket = Socket(
   production
