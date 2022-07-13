@@ -32,12 +32,6 @@ export interface BattleAction {
   damageScale?: number
 }
 
-/** Used in the battle screen to make controlling
- * the opponent's mech in offline battles more feasible */
-export type ActorlessBattleAction = { name: BattleAction['name'] } & Partial<{
-  [K in Exclude<keyof BattleAction, 'actorID'>]: BattleAction[K]
-}>
-
 interface BattleCompletion {
   winner: BattlePlayer
   quit: boolean

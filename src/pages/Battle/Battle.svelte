@@ -21,7 +21,7 @@ import { userData } from '../../stores/userData'
 
 // Types
 
-import type { BattleAction, ActorlessBattleAction } from '../../battle/Battle'
+import type { BattleAction } from '../../battle/Battle'
 
 
 
@@ -143,7 +143,7 @@ onDestroy(() => {
 
 // Functions
 
-async function callBattleAction (actorlessAction: ActorlessBattleAction): Promise<void> {
+async function callBattleAction (actorlessAction: Omit<BattleAction, 'actorID'>): Promise<void> {
 
   /* This should never be the case, since the client can't
    * access this screen with $battle being null, but yeah */
