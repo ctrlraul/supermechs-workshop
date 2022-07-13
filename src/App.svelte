@@ -168,7 +168,7 @@ function conditionsFailed () {
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
 
-  {#if showPatreonNotification && 1 == 2}
+  {#if showPatreonNotification && Math.random() === 0}
     <PatreonNotification onHide={() => showPatreonNotification = false} />
   {/if}
 
