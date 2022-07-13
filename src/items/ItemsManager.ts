@@ -111,9 +111,9 @@ function filterInvalidItems (items: Item[]) {
         continue
       }
 
-      validItems.push(item)
-
     }
+
+    validItems.push(item)
 
   }
 
