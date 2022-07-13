@@ -9,20 +9,34 @@ import { addPopup } from '../../managers/PopupManager'
 
 
 
+// Types
+
+interface ToggleConfig {
+  label: string
+  key: keyof UserData['settings']
+  description: string
+}
+
+
+
 // Data
 
-const togglesConfig = [{
+const togglesConfig: ToggleConfig[] = [{
   label: 'Arena buffs',
   key: 'arenaBuffs' as keyof UserData['settings'],
-  description: 'Apply arena buffs to items and mechs.\nNote: This is always active in battle'
+  description: 'Apply arena buffs to items and mechs\nNote: This is always active in battle'
 }, {
   label: 'Advanced damage display',
   key: 'advancedDamageDisplay' as keyof UserData['settings'],
-  description: 'Show average damage and randomness percentage instead of raw item damage'
+  description: 'Show average damage and damage spread instead of raw item damage in item stats'
 }, {
-  label: 'Control Offline Opponent',
+  label: 'Control computer\'s mech',
   key: 'controlOfflineOpponent' as keyof UserData['settings'],
-  description: 'Control both mechs in computer battles'
+  description: 'Control both mechs in battles versus computer'
+}, {
+  label: 'Items pack auto-load',
+  key: 'automaticallyLoadLastItemsPack' as keyof UserData['settings'],
+  description: 'Automatically load the last items pack you used\nNote: Only packs loaded from links can be auto-loaded'
 }]
 
 

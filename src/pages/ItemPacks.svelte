@@ -25,7 +25,7 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 
 let loadingProgress = 0
 let currentURL = ''
-let saveURL = false
+let saveURL = true
 
 
 
@@ -124,7 +124,7 @@ function onPackImported (itemsPack: ItemsPackData): void {
   }
 
   loadingProgress = 0
-  saveURL = false
+  saveURL = true
 
   if (itemsPack.issues.length === 0) {
 
@@ -173,7 +173,7 @@ function gotoNextRoute () {
 
 onMount(() => {
   // Try to load last items pack if there is no pack already loaded
-  if (!$itemsPackData && $userData.lastItemsPackURL) {
+  if (!$itemsPackData && $userData.settings.automaticallyLoadLastItemsPack && $userData.lastItemsPackURL) {
     loadFromURL($userData.lastItemsPackURL)
   }
 })

@@ -70,10 +70,28 @@ interface UserDataV4 {
   lastItemsPackURL: string | null
 }
 
-type UserDataAnyVersion = UserDataV1 | UserDataV2 | UserDataV3 | UserDataV4
+interface UserDataV5 {
+  version: '5'
+  name: string
+  mechs: {
+    [pack_key: string]: {
+      [mech_id: string]: MechJSON
+    }
+  }
+  settings: {
+    arenaBuffs: boolean
+    advancedDamageDisplay: boolean
+    controlOfflineOpponent: boolean
+    automaticallyLoadLastItemsPack: boolean
+  }
+  currentMechID: string | null
+  lastItemsPackURL: string | null
+}
+
+type UserDataAnyVersion = UserDataV1 | UserDataV2 | UserDataV3 | UserDataV4 | UserDataV5
 
 /** Typed with the latest version of the user data */
-export type UserData = UserDataV4
+export type UserData = UserDataV5
 
 
 
@@ -131,7 +149,9 @@ function saveUserData (data: UserData): void {
 
 function updateUserData (data: UserDataAnyVersion): UserData {
 
-  switch (data.version) {
+  const version = data.version
+
+  switch (version) {
 
     case undefined: { // v1
 
@@ -183,8 +203,27 @@ function updateUserData (data: UserDataAnyVersion): UserData {
       return updateUserData(v4)
 
     case '4':
+
+      logger.log('Updating user data from v4 to v5')
+
+      const v5: UserDataV5 = {
+        ...data,
+        version: '5',
+        settings: {
+          ...data.settings,
+          automaticallyLoadLastItemsPack: true
+        }
+      }
+
+      return updateUserData(v5)
+
+    case '5':
       logger.log('User data is up to date')
       return data
+    
+    default:
+      logger.log(`Unknown user data version '${version}' (Overriding it with valid data)`)
+      return DEFAULT_USER_DATA
 
   }
 
@@ -196,13 +235,14 @@ function updateUserData (data: UserDataAnyVersion): UserData {
 
 const LOCAL_STORAGE_KEY = 'superMechsWorkshop-userData'
 const DEFAULT_USER_DATA: UserData = {
-  version: '4',
+  version: '5',
   name: 'Unnamed Pilot',
   mechs: {},
   settings: {
     arenaBuffs: false,
     advancedDamageDisplay: false,
-    controlOfflineOpponent: false
+    controlOfflineOpponent: false,
+    automaticallyLoadLastItemsPack: true,
   },
   currentMechID: null,
   lastItemsPackURL: null
@@ -213,7 +253,7 @@ const DEFAULT_USER_DATA: UserData = {
 // Data
 
 const logger = new Logger()
-export const userData = writable<UserData>(DEFAULT_USER_DATA)
+export const userData = writable<UserData>()
 
 loadUserData() // Auto-load user data
 
