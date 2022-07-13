@@ -24,6 +24,8 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 // Data
 
 let loadingProgress = 0
+let currentURL = ''
+let saveURL = false
 
 
 
@@ -34,11 +36,14 @@ function loadDefaultPack (): void {
 }
 
 
-async function loadFromURL (url: string, saveURL = true): Promise<void> {
+async function loadFromURL (url: string): Promise<void> {
 
   if (!url) {
     return
   }
+
+
+  currentURL = url
 
 
   const popup = addPopup({
@@ -84,12 +89,7 @@ async function loadFromURL (url: string, saveURL = true): Promise<void> {
 
   } finally {
 
-    loadingProgress = 0
     popup.remove()
-
-    if (itemsPackData !== null && saveURL) {
-      $userData.lastItemsPackURL = url
-    }
 
   }
 
@@ -107,7 +107,8 @@ function loadFromFile (e: Event): void {
     const file = target.files[0]
 
     try {
-      loadFromURL(URL.createObjectURL(file), false)
+      saveURL = false
+      loadFromURL(URL.createObjectURL(file))
     } catch (err: any) {
       alert(`Failed to load pack: ${err.message}`)
     }
@@ -118,8 +119,44 @@ function loadFromFile (e: Event): void {
 
 function onPackImported (itemsPack: ItemsPackData): void {
 
-  itemsPackData.set(itemsPack)
-  
+  if (saveURL) {
+    $userData.lastItemsPackURL = currentURL
+  }
+
+  loadingProgress = 0
+  saveURL = false
+
+  if (itemsPack.issues.length === 0) {
+
+    itemsPackData.set(itemsPack)
+    gotoNextRoute()
+
+  } else {
+
+    addPopup({
+      title: `${itemsPack.issues.length} item(s) were not successfuly imported!`,
+      message: itemsPack.issues,
+      hideOnOffclick: true,
+      options: {
+        Ok () {
+          itemsPackData.set(itemsPack)
+          gotoNextRoute()
+          this.remove()
+        },
+        Retry () {
+          loadFromURL(currentURL)
+          this.remove()
+        }
+      }
+    })
+
+  }
+
+}
+
+
+function gotoNextRoute () {
+
   const urlParams = new URLSearchParams($querystring)
 
   if (urlParams.has('returnTo')) {

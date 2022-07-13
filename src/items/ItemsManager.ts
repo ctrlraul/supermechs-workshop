@@ -43,12 +43,6 @@ export interface BattleItem {
 type MechSetup = (Item | null)[];
 
 
-export interface ImportResult {
-  data: ItemsPackData
-  errors: string[]
-}
-
-
 
 // Stuff
 
@@ -59,18 +53,17 @@ const logger = new Logger()
 
 // Methods
 
-export async function importItemsPack (url: string, onProgress: (progress: number) => void): Promise<ImportResult> {
+export async function importItemsPack (url: string, onProgress: (progress: number) => void): Promise<ItemsPackData> {
 
   const response = await fetch(url)
   const itemsPack = await response.json()
-  const result = await useCorrectImportFunction(itemsPack as unknown as ItemsPack, onProgress)
+  const itemsPackData = await useCorrectImportFunction(itemsPack as unknown as ItemsPack, onProgress)
+  const filterResult = filterInvalidItems(itemsPackData.items)
 
-  const filterResult = filterInvalidItems(result.data.items)
+  itemsPackData.items = filterResult.items
+  itemsPackData.issues.push(...filterResult.issues)
 
-  result.data.items = filterResult.items
-  result.errors.push(...filterResult.issues)
-
-  return result
+  return itemsPackData
 
 }
 

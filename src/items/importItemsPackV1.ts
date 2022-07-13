@@ -1,5 +1,5 @@
 import potpack from 'potpack'
-import { createSyntheticItemAttachment, ImportResult, ProgressListener } from './ItemsManager'
+import { createSyntheticItemAttachment, ProgressListener } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
 import { includeStatFormats } from '../stats/StatsManager'
 // import { ItemsPackV1Te } from './Typeyes/ItemsPackV1Te'
@@ -61,21 +61,21 @@ interface LoadItemImagesResult {
     rawItem: RawItemV1
     image: HTMLImageElement
   }[]
-  errors: string[]
+  issues: string[]
 }
 
 
 
 // Methods
 
-export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: ProgressListener): Promise<ImportResult> {
+export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: ProgressListener): Promise<ItemsPackData> {
 
   // Throw error if pack doesn't match the format expected
   // ItemsPackV1Te.assert(itemsPack)
 
   const onProgressSub: ProgressListener = progress => onProgress(progress / 1.01)
 
-  const { spritesSheet, errors, boxes } = await loadSpritesSheet(itemsPack, onProgressSub)
+  const { spritesSheet, issues, boxes } = await loadSpritesSheet(itemsPack, onProgressSub)
   const items = importItems(boxes)
 
   const data: ItemsPackData = {
@@ -85,13 +85,14 @@ export async function importItemsPackV1 (itemsPack: ItemsPackV1, onProgress: Pro
     description: itemsPack.config.description,
     spritesSheet: spritesSheet,
     items,
+    issues,
   }
 
   includeStatFormats(itemsPack.stats || [])
 
   onProgress(1)
 
-  return { data, errors }
+  return data
 
 }
 
@@ -103,7 +104,7 @@ async function loadSpritesSheet (itemsPack: ItemsPackV1, onProgress: ProgressLis
 
   // Get data required
   const baseURL = getProperBaseURL(itemsPack)
-  const { imagesData, errors } = await loadItemImages(baseURL, itemsPack.items, onProgress)
+  const { imagesData, issues } = await loadItemImages(baseURL, itemsPack.items, onProgress)
 
   // Create sprites sheet rects
   const boxes = createBoxes(imagesData)
@@ -123,7 +124,7 @@ async function loadSpritesSheet (itemsPack: ItemsPackV1, onProgress: ProgressLis
   }
 
   // Bob is your uncle
-  return { spritesSheet, errors, boxes }
+  return { spritesSheet, issues, boxes }
 
 }
 
@@ -134,7 +135,7 @@ function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: Pro
 
     const result: LoadItemImagesResult = {
       imagesData: [],
-      errors: []
+      issues: []
     }
 
     let completedItems = 0
@@ -164,7 +165,7 @@ function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: Pro
 
       }).catch(err => {
 
-        result.errors.push(err.message)
+        result.issues.push(err.message)
 
       }).finally(() => {
 
