@@ -1,5 +1,5 @@
 // Maybe we should replace itemHasScopeRange with a "scope" item tag?
-
+// TODO: make useScope it use items like explosive retreat too
 
 
 import { Battle, BattleAction } from './Battle'

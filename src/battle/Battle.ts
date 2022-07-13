@@ -372,8 +372,8 @@ export class Battle {
     const dir = this.getPositionalDirection(player.id)
     const positions: number[] = []
 
-    for (const position of item.stats.range) {
-      positions.push(player.position + position * dir)
+    for (let i = item.stats.range[0]; i <= item.stats.range[1]; i++) {
+      positions.push(player.position + i * dir)
     }
 
     if (includePositionsOutOfArena) {

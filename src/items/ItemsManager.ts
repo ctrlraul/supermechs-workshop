@@ -1,3 +1,7 @@
+// TODO: filterInvalidItems should have more in-depht checks
+
+
+
 import Logger from '../utils/Logger'
 import { importItemsPackV1 } from './importItemsPackV1'
 import { importItemsPackV2 } from './importItemsPackV2'
@@ -61,8 +65,10 @@ export async function importItemsPack (url: string, onProgress: (progress: numbe
   const itemsPack = await response.json()
   const result = await useCorrectImportFunction(itemsPack as unknown as ItemsPack, onProgress)
 
-  // Sort items by element
-  result.data.items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1)
+  const filterResult = filterInvalidItems(result.data.items)
+
+  result.data.items = filterResult.items
+  result.errors.push(...filterResult.issues)
 
   return result
 
@@ -85,6 +91,42 @@ async function useCorrectImportFunction (itemsPack: ItemsPack, onProgress: (prog
       logger.warn(`Items pack version missing or unknown (${itemsPack.version}). Importing as version 1`)
       return await importItemsPackV1(itemsPack, onProgress)
     
+  }
+
+}
+
+
+function filterInvalidItems (items: Item[]) {
+
+  const issues: string[] = []
+  const validItems: Item[] = []
+
+  // Sort items by element (btw this inverts the list order and that isn't desired)
+  items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1)
+
+  for (const item of items) {
+
+    if (item.stats.range) {
+
+      if (item.stats.range.length !== 2) {
+        issues.push(`Invalid range stat for "${item.name}": Expected two values [min, max]`)
+        continue
+      }
+
+      if (item.stats.range[0] > item.stats.range[1]) {
+        issues.push(`Invalid range stat for "${item.name}": Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`)
+        continue
+      }
+
+      validItems.push(item)
+
+    }
+
+  }
+
+  return {
+    issues,
+    items: validItems
   }
 
 }
