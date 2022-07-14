@@ -70,6 +70,7 @@ async function loadFromURL (url: string): Promise<void> {
 
     addPopup({
       title: 'Could not load this pack!',
+      mode: 'error',
       message: `
         Error:
         ${errMessage.join('\n')}
