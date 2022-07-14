@@ -2,6 +2,7 @@
 
 import ItemInfo from './ItemInfo.svelte'
 import ItemButton from './ItemButton.svelte'
+import Header from './Header.svelte'
 import { getStatInstruction } from '../stats/StatsManager'
 import { clickOutside } from '../utils/useClickOutside'
 import { getItemsByType } from '../items/ItemsManager'
@@ -17,7 +18,6 @@ export let selectItem: (itemID: Item['id']) => void
 // Types
 
 import type Item from '../items/Item'
-import Header from './Header.svelte'
 
 interface Filter {
   query: string

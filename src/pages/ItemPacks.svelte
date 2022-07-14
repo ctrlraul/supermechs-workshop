@@ -9,7 +9,7 @@ import { addPopup } from '../managers/PopupManager'
 import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
 import { userData } from '../stores/userData'
 import { isInMatchMaker } from '../stores/isInMatchMaker'
-import { onMount } from 'svelte';
+import { onMount } from 'svelte'
 
 
 
