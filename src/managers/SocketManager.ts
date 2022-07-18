@@ -11,79 +11,115 @@ import { addPopup } from './PopupManager'
 import type { BattleAction } from '../battle/Battle'
 
 
+
 // Init
 
-const production = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
-
-export const socket = Socket(
-  production
-  ? 'https://supermechs-workshop-server.thearchives.repl.co'
-  : window.location.hostname + ':3000',
-  {
-    extraHeaders: {
-      'x-player-name': get(userData).name,
-      'x-client-version': 'gobsmacked!!!' // Arbitraty value, just has to match the server
-    }
-  }
-)
-
-
-export let outdatedClient = false
-export let connectErrorStreakCount = 0
-
+const isInProduction = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
 const logger = new Logger()
 
+let socket: ReturnType<typeof Socket>
+let outdatedClient: boolean
+let connectionErrorsStreak: number
 
 
-socket.on('connect', () => {
-  logger.log(`Connected as "${socket.id}"`)
-  connectErrorStreakCount = 0
-})
 
-socket.on('disconnect', () => {
-  logger.log(`Disconnected`)
-})
+// Methods
 
-socket.on('connect_error', error => {
+export function init (): void {
 
-  logger.log('Connection error:', error)
-
-  connectErrorStreakCount++
-
-  if (!production) {
-    socket.disconnect()
-    logger.log('Disconnected the socket to avoid error spam in development')
+  if (socket) {
+    throw new Error('Already initialized!')
   }
 
-})
+  logger.log('Initializing')
 
-socket.on('server.message', data => {
+  const extraHeaders = {
+    'x-player-name': get(userData).name,
+    'x-client-version': '2' // Arbitraty value, just has to match the server
+  }
 
-  switch (data.code) {
+  socket = Socket(getServerURL(), { extraHeaders })
+  outdatedClient = false
+  connectionErrorsStreak = 0
 
-    case 'OUTDATED_CLIENT':
-      outdatedClient = true
-      logger.log('Client is outdated')
+
+  // Global event listeners
+
+  socket.on('connect', () => {
+    logger.log(`Connected as "${socket.id}"`)
+    connectionErrorsStreak = 0
+  })
+  
+  socket.on('disconnect', () => {
+    logger.log(`Disconnected`)
+  })
+  
+  socket.on('connect_error', error => {
+  
+    logger.log('Connection error:', error)
+  
+    connectionErrorsStreak++
+  
+    if (!isInProduction) {
       socket.disconnect()
-      break
+      logger.log('Disconnected the socket to avoid error spam in development')
+    }
+  
+  })
+  
+  socket.on('server.message', data => {
+  
+    switch (data.code) {
+  
+      case 'OUTDATED_CLIENT':
+        outdatedClient = true
+        logger.log('Client is outdated')
+        socket.disconnect()
+        break
+  
+      default:
+        addPopup({
+          title: data.code,
+          message: data.message || JSON.stringify(data),
+          mode: 'error',
+          options: {
+            Ok () { this.remove() }
+          }
+        })
+  
+    }
+  
+  })
 
-    default:
-      addPopup({
-        title: data.code,
-        message: data.message || JSON.stringify(data),
-        mode: 'error',
-        options: {
-          Ok () { this.remove() }
-        }
-      })
+}
 
+
+export function isConnected(): boolean {
+  return socket && socket.connected
+}
+
+
+export function isClientOutdated (): boolean {
+
+  if (!socket) {
+    throw new Error('Not initialized!')
   }
 
-})
+  return outdatedClient
+
+}
 
 
+export function getConnectionErrorsStreak (): number {
 
-// Common connection-related methods
+  if (!socket) {
+    throw new Error('Not initialized!')
+  }
+
+  return connectionErrorsStreak
+
+}
+
 
 export function createAttachment (listeners: Record<string, (data: any) => void>) {
 
@@ -157,6 +193,30 @@ export function addOutdatedClientPopup (): void {
 }
 
 
+export function getSocket (): typeof socket {
+
+  if (!socket) {
+    throw new Error('Not initialized!')
+  }
+
+  return socket
+
+}
+
+
+
+// Lobby
+
+export function lobbyJoin (): void {
+  socket.emit('lobby.join')
+}
+
+
+export function lobbyExit(): void {
+  socket.emit('lobby.exit')
+}
+
+
 
 // Battle methods
 
@@ -171,13 +231,14 @@ export function battleAction (action: BattleAction): void {
 
 
 
-// Statistics
+// Private utils
 
-export function playersOnlineListen (): void {
-  socket.emit('playersonline.listen')
-}
+function getServerURL (): string {
 
+  if (isInProduction) {
+    return 'https://supermechs-workshop-server.thearchives.repl.co'
+  }
+  
+  return window.location.hostname + ':3000'
 
-export function playersOnlineIgnore (): void {
-  socket.emit('playersonline.ignore')
 }

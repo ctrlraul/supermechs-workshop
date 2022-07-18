@@ -27,7 +27,7 @@ import type { BattleAction } from '../../battle/Battle'
 
 // State
 
-let myID: string = $battle!.online ? SocketManager.socket.id : 'player'
+let myID: string = $battle!.online ? SocketManager.getSocket().id : 'player'
 let awaitingMove: boolean = false
 let viewLogs = false
 

@@ -97,6 +97,11 @@ export type UserData = UserDataV5
 
 // Functions
 
+export function init (): void {
+  loadUserData()
+}
+
+
 function loadUserData () {
 
   logger.log('Loading user data...')
@@ -125,7 +130,11 @@ function loadUserData () {
 
     logger.error('Failed to load user data:', err.message)
 
+  } finally {
+    userData.subscribe(saveUserData)
   }
+  
+  
 
 }
 
@@ -254,7 +263,3 @@ const DEFAULT_USER_DATA: UserData = {
 
 const logger = new Logger()
 export const userData = writable<UserData>()
-
-loadUserData() // Auto-load user data
-
-userData.subscribe(saveUserData) // Auto-save user data

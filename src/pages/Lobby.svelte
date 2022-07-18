@@ -1,12 +1,12 @@
 <script lang=ts>
 
+import * as router from 'svelte-spa-router'
+import * as SocketManager from '../managers/SocketManager'
 import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
 import MechPicker from '../components/MechPicker.svelte'
-// import MechPicker from './MechPicker.svelte'
+import Header from '../components/Header.svelte'
 import Mech from '../mechs/Mech'
-import * as router from 'svelte-spa-router'
-import * as SocketManager from '../managers/SocketManager'
 import { items2ids, getItemsHash } from '../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { battle } from '../stores'
@@ -20,11 +20,35 @@ import { isInMatchMaker, isWaitingResponse, matchMakerJoin, matchMakerQuit } fro
 
 
 
+// Types
+
+interface LobbyPlayer {
+  name: string
+  id: string
+  isInMatchMaker: boolean
+  admin: boolean
+}
+
+
+interface ProfileData {
+  name: string
+  mech: {
+    name: string
+    setup: number[]
+  }
+  itemsHash: string
+}
+
+
+
 // State
 
-let pickOpponentMech = false
-let playersOnline: number | null = null
-let isConnected = SocketManager.socket.connected
+let showMechPicker: boolean = false
+let pickingOpponent: boolean = false
+let playersInLobby: LobbyPlayer[] = []
+let isConnected = SocketManager.isConnected()
+let showProfile: boolean = false
+let currentProfileHash: string = ""
 $: canOfflineBattle = !$isInMatchMaker && !$isWaitingResponse
 
 
@@ -92,9 +116,9 @@ async function onOnlineBattle (): Promise<void> {
 
   // Make sure we're connected to server
 
-  if (SocketManager.socket.disconnected) {
+  if (!SocketManager.isConnected()) {
 
-    if (SocketManager.outdatedClient) {
+    if (SocketManager.isClientOutdated()) {
       SocketManager.addOutdatedClientPopup()
       return
     }
@@ -128,7 +152,7 @@ async function onOnlineBattle (): Promise<void> {
         return
       }
 
-      const attempts = SocketManager.connectErrorStreakCount
+      const attempts = SocketManager.getConnectionErrorsStreak()
 
       let message = `
         We tried to reconnect ${attempts} time${attempts === 1 ? '' : 's'}!
@@ -172,10 +196,9 @@ async function onOnlineBattle (): Promise<void> {
 
   } else {
 
-    const setup = items2ids($currentMech.setup)
-    const itemsHash = getItemsHash(setup)
+    const data = getProfileData()
 
-    matchMakerJoin($userData.name, $currentMech.name, setup, itemsHash)
+    matchMakerJoin(data.name, data.mech.name, data.mech.setup, data.itemsHash)
 
   }
 
@@ -228,27 +251,29 @@ function onOfflineBattle (): void {
 
   } else {
 
-    pickOpponentMech = true
+    showMechPicker = true
+    pickingOpponent = true
 
   }
 
 }
 
 
-function onGoBack (): void {
-  router.replace('/workshop')
-}
+function onPickMech (mech: Mech[]): void {
 
+  showMechPicker = false
 
-function onPickOpponentMech (opponentMech: Mech[]): void {
-
-  if ($currentMech === null) {
-    showNoMechSelectedPopup()
+  if (mech.length === 0) {
     return
   }
 
-  if (opponentMech.length === 0) {
-    pickOpponentMech = false
+  if (!pickingOpponent) {
+    $currentMech = mech[0]
+    return
+  }
+
+  if ($currentMech === null) {
+    showNoMechSelectedPopup()
     return
   }
 
@@ -266,7 +291,7 @@ function onPickOpponentMech (opponentMech: Mech[]): void {
     p2: {
       id: 'bot',
       name: 'Skynet',
-      mech: opponentMech[0],
+      mech: mech[0],
       position: pos2,
       ai: !$userData.settings.controlOfflineOpponent
     },
@@ -280,6 +305,70 @@ function onPickOpponentMech (opponentMech: Mech[]): void {
 }
 
 
+function toggleProfile (): void {
+
+  showProfile = !showProfile
+  pickingOpponent = false
+
+  const data = getProfileData()
+  const hash = JSON.stringify(data)
+
+  // If is about to change profile, prepare the
+  // current hash to check if it changed later
+  if (showProfile) {
+    currentProfileHash = hash
+    return
+  }
+  
+  // Done changing profile, time to actually
+  // check if something changed before updating
+  if (hash !== currentProfileHash) {
+    console.log('profile changed')
+    SocketManager.getSocket().emit('profile.update', data)
+  }
+
+}
+
+
+function getProfileData (): ProfileData {
+
+  const data: ProfileData = {
+    name: $userData.name,
+    mech: {
+      name: '',
+      setup: []
+    },
+    itemsHash: ''
+  }
+
+  if ($currentMech) {
+
+    data.mech.name = $currentMech.name
+    data.mech.setup = items2ids($currentMech.setup)
+    data.itemsHash = getItemsHash(data.mech.setup)
+    
+  }
+
+  return data
+
+}
+
+
+function getColorForPlayer(player: LobbyPlayer): string {
+
+  if (player.admin) {
+    return 'var(--color-error)'
+  }
+
+  if (player.id === SocketManager.getSocket().id) {
+    return 'var(--color-success)'
+  }
+
+  return 'var(--color-text)'
+
+}
+
+
 
 // Socket shit
 
@@ -287,20 +376,46 @@ const socketAttachment = SocketManager.createAttachment({
 
   // Statistics
 
-  'playersonline' (data: { count: number }): void {
-    playersOnline = data.count
+  'lobby.players' (data: { players: LobbyPlayer[] }): void {
+    playersInLobby = data.players
+  },
+
+  'lobby.players.joined' (data: { player: LobbyPlayer }): void {
+
+    const index = playersInLobby.findIndex(player => player.id === data.player.id)
+
+    if (index > -1) {
+      playersInLobby[index] = data.player
+    } else {
+      playersInLobby[playersInLobby.length] = data.player
+    }
+    
+  },
+
+  'lobby.players.exited' (data: { id: string }): void {
+    playersInLobby = playersInLobby.filter(player => player.id !== data.id)
+  },
+
+  'lobby.players.matchmaker' (data: { id: string, isInMatchMaker: boolean }): void {
+    const index = playersInLobby.findIndex(player => player.id === data.id)
+    playersInLobby[index].isInMatchMaker = data.isInMatchMaker
+  },
+
+  'profile.update' (data: { id: string, name: string }): void {
+    const index = playersInLobby.findIndex(player => player.id === data.id)
+    playersInLobby[index].name = data.name
   },
 
 
   // Connection
 
   'disconnect' (): void {
-    playersOnline = null
+    playersInLobby = []
     isConnected = false
   },
 
   'connect' (): void {
-    SocketManager.playersOnlineListen()
+    SocketManager.lobbyJoin()
     isConnected = true
   }
 
@@ -311,8 +426,8 @@ onMount(() => {
 
   socketAttachment.attach()
 
-  if (SocketManager.socket.connected) {
-    SocketManager.playersOnlineListen()
+  if (SocketManager.isConnected()) {
+    SocketManager.lobbyJoin()
   }
 
 })
@@ -321,8 +436,8 @@ onDestroy(() => {
 
   socketAttachment.detach()
 
-  if (SocketManager.socket.connected) {
-    SocketManager.playersOnlineIgnore()
+  if (SocketManager.isConnected()) {
+    SocketManager.lobbyExit()
   }
 
 })
@@ -333,43 +448,15 @@ onDestroy(() => {
 
 <main>
 
-  <div class="players-online">
-    {#if isConnected}
+  <Header title="Lobby" hideMatchMakingPopup />
 
-      <span>Players online:</span>
-      {#if playersOnline !== null}
-        {playersOnline}
-      {:else}
-        <SvgIcon name="aim" class="spinner" style="width: 1em; height: 1em" />
-      {/if}
 
-    {:else}
-      (Disconnected)
+  <div class="mech-gfx-container">
+    {#if $currentMech}
+      <MechCanvas setup={$currentMech.toJSONModel().setup} />
     {/if}
   </div>
 
-  <button class="back-button" on:mousedown={onGoBack}>
-    <SvgIcon name="cross" color="var(--color-text)" />
-  </button>
-
-  {#if $currentMech}
-
-    <div class="mech-gfx-container">
-      <MechCanvas setup={$currentMech.toJSONModel().setup} />
-    </div>
-
-    <label>
-      <span>Name:</span>
-      <input type="text" class="name" bind:value={$userData.name} />
-    </label>
-
-  {:else}
-
-    <div class="no-active-mech">
-      No active mech!
-    </div>
-
-  {/if}
 
   <div class="buttons">
 
@@ -397,10 +484,94 @@ onDestroy(() => {
   </div>
 
 
-  {#if pickOpponentMech}
+  <div class="players-list global-box">
+
+    <header>
+      <span style="margin-left: 0.5em">{$userData.name}</span>
+      <button class="profile-button global-box" on:click={toggleProfile}>
+        <SvgIcon name="pencil" color="var(--color-text)" />
+      </button>
+    </header>
+
+    {#if isConnected && playersInLobby.length}
+    
+      <div class="list-container">
+        <ul>
+
+          {#each playersInLobby as player}
+
+            <li style="color: {getColorForPlayer(player)}">
+
+              <span>{player.name}</span>
+
+              {#if player.isInMatchMaker}
+                <SvgIcon name="aim" class="spinner" />
+              {/if}
+
+            </li>
+            
+          {/each}
+          
+        </ul>
+      </div>
+    
+    {:else}
+
+      <div class="center">
+        {#if !isConnected}
+
+          <span style="opacity: 0.5">Disconnected</span>
+
+        {:else}
+
+          <span>Connecting</span>
+          <SvgIcon
+            name="aim"
+            class="spinner"
+            style="width: 1em; height: 1em; margin: 0.5em"
+          />
+
+        {/if}
+      </div>
+
+    {/if}
+
+  </div>
+
+
+  {#if showProfile}
+    <div class="global-darkscreen" on:click={e => e.target === e.currentTarget && toggleProfile()}>
+      <div class="profile global-box">
+        <header>
+          <span>Profile</span>
+          <button class="global-box" on:click={toggleProfile}>
+            <SvgIcon name="cross" />
+          </button>
+        </header>
+        <div class="sections">
+          <section>
+            <span>Name</span>
+            <input type="text" bind:value={$userData.name} maxlength="32">
+          </section>
+          <section>
+            <span>Mech</span>
+            <div class="mech-container">
+              {#if $currentMech}
+                <MechCanvas setup={$currentMech.toJSONModel().setup} />
+              {/if}
+            </div>
+            <button on:click={() => showMechPicker = !showMechPicker}>Change Mech</button>
+          </section>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+
+  {#if showMechPicker}
     <MechPicker
-      title="Select opponent's mech"
-      onPick={mechs => onPickOpponentMech(mechs)}
+      title={pickingOpponent ? "Select opponent's mech" : "Select mech"}
+      onPick={onPickMech}
       mechs={getFightableMechs($mechs)}
     />
   {/if}
@@ -412,59 +583,30 @@ onDestroy(() => {
 <style>
 
 main {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: 3em 1fr 2.5em;
+  grid-template-columns: 1fr 16em;
+  grid-template-areas:
+    'header header'
+    'mech players'
+    'buttons players';
   width: 100%;
-  max-width: var(--content-width);
   height: 100%;
+  max-width: var(--content-width);
   max-height: var(--content-height);
   padding: 0.5em;
 }
 
-
-.players-online {
-  position: absolute;
-  left: 0.5em;
-  top: 0.5em;
-  display: flex;
-  align-items: center;
-}
-
-.players-online span {
-  margin-right: 0.3em;
-}
-
-
-.back-button {
-  position: relative;
-  width: 2em;
-  height: 2em;
-  align-self: end;
-  margin: 0.5em;
-}
 
 .mech-gfx-container {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  width: 80%;
-  height: 70%;
-}
-
-.name {
-  margin-top: 1em;
-}
-
-
-.no-active-mech {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
+  width: 100%;
+  height: 90%;
+  grid-area: mech;
+  margin-top: auto;
 }
 
 
@@ -473,35 +615,169 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 2em;
-  gap: 1em;
+  grid-area: buttons;
 }
 
-.buttons > button {
+.buttons button {
   width: 10em;
   height: 2.5em;
 }
 
-.buttons > button.cancel {
+.buttons button.cancel {
   background-color: var(--color-error);
 }
 
-.buttons > button.cancel span {
+.buttons button.cancel span {
   font-size: 0.9em;
+}
+
+.buttons button:first-of-type {
+  margin-right: 0.5em;
+}
+
+
+.players-list {
+  position: relative;
+  display: grid;
+  grid-template-rows: 3em 1fr;
+  overflow: hidden;
+  grid-area: players;
+}
+
+.players-list header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0.5em;
+  background-color: var(--color-secondary);
+}
+
+.players-list header button {
+  position: relative;
+  width: 2em;
+  height: 2em;
+  padding: 0.25em;
+}
+
+.players-list .list-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.players-list ul {
+  position: relative;
+  list-style: none;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.players-list ul li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5em;
+  width: 100%;
+  height: 2em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.players-list ul li:nth-child(even) {
+  background-color: #00000030;
+}
+
+.players-list .center {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+
+.profile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 20em;
+  max-width: 90%;
+  overflow: hidden;
+}
+
+.profile header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.5em;
+  background-color: var(--color-secondary);
+}
+
+.profile header span {
+  margin-left: 0.5em;
+}
+
+.profile header button {
+  width: 2em;
+  height: 2em;
+  stroke: var(--color-text);
+}
+
+.profile .sections {
+  position: relative;
+  display: grid;
+  padding: 0.5em;
+  gap: 0.5em;
+}
+
+.profile section {
+  display: grid;
+  gap: 0.5em;
+}
+
+.profile input {
+  margin-bottom: 0.5em;
+}
+
+.profile .mech-container {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 10em;
+  justify-content: center;
+}
+
+.profile button {
+  width: 100%;
+  height: 2em;
 }
 
 
 
 @media (orientation: portrait) {
-  .buttons {
-    flex-direction: column;
-    width: 100%;
-    margin: 10% 0;
+
+  main {
+    gap: 0.5em;
+    grid-template-rows: 3em 1fr 2.5em 0.8fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'mech'
+      'buttons'
+      'players';
   }
 
-  .buttons > button {
-    width: 70%;
+  .buttons button {
+    flex: 1;
   }
+
 }
 
 </style>

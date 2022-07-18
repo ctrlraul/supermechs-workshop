@@ -72,8 +72,9 @@ input[type="text"] {
   font-family: inherit;
   font-size: inherit;
   letter-spacing: inherit;
-  background-color: var(--color-primary);
-  border: 0.15em solid var(--color-secondary);
+  background-color: #00000040;
+  border: none;
+  border-bottom: 0.15em solid var(--color-secondary);
   padding: 0.3em;
   border-radius: var(--ui-radius);
   transition: border-color 100ms;

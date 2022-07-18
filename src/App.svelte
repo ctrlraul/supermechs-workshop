@@ -1,5 +1,8 @@
 <script lang="ts">
 
+import * as SocketManager from './managers/SocketManager'
+import * as IsInMatchMaker from './stores/isInMatchMaker'
+import * as UserData from './stores/userData'
 import Router, { replace, location } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
 import Popup from './components/Popup.svelte'
@@ -80,6 +83,10 @@ onMount(async () => {
   // This doesn't really fail as of now
   await loadStatImages()
   didLoadStats = true
+
+  UserData.init()
+  SocketManager.init()
+  IsInMatchMaker.init()
 
   setTimeout(() => {
     showPatreonNotification = true

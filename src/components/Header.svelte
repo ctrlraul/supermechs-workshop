@@ -7,6 +7,7 @@ import { isInMatchMaker, matchMakerQuit } from '../stores/isInMatchMaker'
 
 export let title: string
 export let onGoBack: () => any = pop
+export let hideMatchMakingPopup: boolean = false
 
 </script>
 
@@ -14,7 +15,7 @@ export let onGoBack: () => any = pop
 
 <header style={$$props.style}>
 
-  {#if $isInMatchMaker}
+  {#if $isInMatchMaker && !hideMatchMakingPopup}
     <div class="global-box searching-for-battle">
       <SvgIcon name="aim" class="spinner" />
       <span>Searching for battle...</span>
