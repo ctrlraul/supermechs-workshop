@@ -121,7 +121,8 @@ function done (): void {
 
 .content {
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   padding: 0.5em;
 }
