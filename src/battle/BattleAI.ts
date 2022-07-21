@@ -12,6 +12,7 @@ import { ItemType } from '../items/Item'
 
 import type { BattlePlayer } from './BattlePlayer'
 import type { BattleItem } from '../items/ItemsManager'
+import type { StatKey } from '../stats/StatFormats'
 
 
 
@@ -26,6 +27,7 @@ export function think (battle: Battle, actorID: string): BattleAction {
     useScope,
     activateDrone,
     preventFromShuttingDown,
+    useResistanceDrainer,
     useWeapon,
     smartMotion,
     dumbMotion,
@@ -132,6 +134,26 @@ function preventFromShuttingDown(_battle: Battle, attacker: BattlePlayer, _defen
 
   if (attacker.stats.heaCap - attacker.stats.heat < 50) {
     return { name: 'cooldown' }
+  }
+
+  return null
+
+}
+
+
+function useResistanceDrainer(battle: Battle, attacker: BattlePlayer, defender: BattlePlayer): Omit<BattleAction, 'actorID'> | null {
+
+  const resDrainers = battle.getFirableWeapons().filter(itemIsResistanceDrainer)
+
+  if (resDrainers.length) {
+
+    const randomDrainer = sample(resDrainers)!
+
+    return {
+      name: 'useWeapon',
+      slotName: randomDrainer.slotName
+    }
+
   }
 
   return null
@@ -391,6 +413,24 @@ function dumbMotion (battle: Battle, attacker: BattlePlayer, defender: BattlePla
 
 function itemHasScopeRange (item: BattleItem): boolean {
   return !!(item.stats.range && item.stats.range[0] > 6)
+}
+
+
+function itemIsResistanceDrainer (item: BattleItem): boolean {
+  
+  const resDmgStatKeys: StatKey[] = ['phyResDmg', 'expResDmg',  'eleResDmg']
+  const resDmgToBeConsideredDrainer: number = 30
+
+  let totalResistanceDrain: number = 0
+
+  for (const key of resDmgStatKeys) {
+    if (item.stats[key]) {
+      totalResistanceDrain += item.stats[key] as number
+    }
+  }
+
+  return totalResistanceDrain >= resDmgToBeConsideredDrainer
+
 }
 
 
