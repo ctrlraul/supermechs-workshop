@@ -46,17 +46,6 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
 // Thoughts
 
-function preventFromShuttingDown(_battle: Battle, attacker: BattlePlayer, _defender: BattlePlayer): Omit<BattleAction, 'actorID'> | null {
-
-  if (attacker.stats.heaCap - attacker.stats.heat < 50) {
-    return { name: 'cooldown' }
-  }
-
-  return null
-
-}
-
-
 function useScope(battle: Battle, attacker: BattlePlayer, defender: BattlePlayer): Omit<BattleAction, 'actorID'> | null {
 
   const scopes = battle.getFirableWeapons(['Out of range']).filter(weapon => {
@@ -132,6 +121,17 @@ function activateDrone(_battle: Battle, attacker: BattlePlayer, _defender: Battl
 
   if (attacker.slots.drone && !attacker.droneActive) {
     return { name: 'toggleDrone' }
+  }
+
+  return null
+
+}
+
+
+function preventFromShuttingDown(_battle: Battle, attacker: BattlePlayer, _defender: BattlePlayer): Omit<BattleAction, 'actorID'> | null {
+
+  if (attacker.stats.heaCap - attacker.stats.heat < 50) {
+    return { name: 'cooldown' }
   }
 
   return null
