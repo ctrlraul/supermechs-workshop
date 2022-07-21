@@ -50,9 +50,9 @@ export function think (battle: Battle, actorID: string): BattleAction {
 
 function useScope(battle: Battle, attacker: BattlePlayer, defender: BattlePlayer): Omit<BattleAction, 'actorID'> | null {
 
-  const scopes = battle.getFirableWeapons(['Out of range']).filter(weapon => {
-    return weapon && itemHasScopeRange(weapon)
-  })
+  const scopes = battle
+    .getFirableWeapons(['Out of range'])
+    .filter(itemHasScopeRange)
 
 
   // No scopes at all lol
@@ -85,8 +85,6 @@ function useScope(battle: Battle, attacker: BattlePlayer, defender: BattlePlayer
 
 
   const positionsThatPutOpponentInRange = getPositionsToPutOpponentInRange(battle, attacker, defender, scopes)
-
-  console.log("positionsThatPutOpponentInRange: ", positionsThatPutOpponentInRange)
 
 
   // Can't move anywhere to put opponent in range
