@@ -159,42 +159,28 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
 
   switch (sec) {
     
-    case 'weapons': {
-
-      const items = player.weapons.filter(Boolean) as BattleItem[]
-
-      configs = items.map(item => {
+    case 'weapons':
+      configs = player.weapons.map(item => {
         return {
           item,
           onUse: () => callBattleAction({
             name:'useWeapon',
-            slotName: item.slotName
-          })
-        }
-      })
+            slotName: item.slotName,
+          }),
+        };
+      });
+      break;
 
-      break
-
-    }
-
-
-    case 'utils': {
-
-      const items = player.utils.filter(Boolean) as BattleItem[]
-
-      configs = items.map(item => {
+    case 'utils':
+      configs = player.utils.map(item => {
         return {
           item,
-          onUse: () => useUtil(item.type)
-        }
-      })
-
-      break
-
-    }
+          onUse: () => useUtil(item.type),
+        };
+      });
+      break;
 
   }
-
 
   return configs
 

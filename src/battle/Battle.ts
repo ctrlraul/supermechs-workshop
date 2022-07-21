@@ -499,10 +499,6 @@ export class Battle {
 
     return this.attacker.weapons.filter(weapon => {
 
-      if (weapon === null) {
-        return false
-      }
-
       const reasons = this.whyCantFireWeapon(weapon)
         .filter(reason => !ignoreReasons.includes(reason))
 

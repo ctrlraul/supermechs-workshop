@@ -24,6 +24,28 @@ export interface BattlePlayerArgs {
 
 export class BattlePlayer {
 
+  private static WEAPON_SLOT_NAMES: SlotName[] = [
+    'sideWeapon1', 'sideWeapon2', 'sideWeapon3',
+    'sideWeapon4', 'topWeapon1', 'topWeapon2'
+  ];
+
+  private static UTILS_SLOT_NAMES: SlotName[] = [
+    'drone', 'chargeEngine', 'teleporter', 'grapplingHook',
+  ];
+
+  private static MODULE_SLOT_NAMES: SlotName[] = [
+    'module1', 'module2', 'module3', 'module4',
+    'module5', 'module6', 'module7', 'module8'
+  ];
+
+  private static readonly SLOT_NAMES: SlotName[] = [
+    'torso', 'legs',
+    ...this.WEAPON_SLOT_NAMES,
+    ...this.UTILS_SLOT_NAMES,
+    ...this.MODULE_SLOT_NAMES
+  ];
+
+
   // Meta
   id: string
   name: string
@@ -32,9 +54,9 @@ export class BattlePlayer {
   ai: boolean
 
   // Items
-  weapons: (BattleItem | null)[]
-  utils: (BattleItem | null)[]
-  modules: (BattleItem | null)[]
+  public readonly weapons: BattleItem[] = [];
+  public readonly utils: BattleItem[] = [];
+  public readonly modules: BattleItem[] = [];
   slots: Record<SlotName, BattleItem | null>
 
   // Stats
@@ -76,50 +98,32 @@ export class BattlePlayer {
 
     // Set slots
     {
-
-      const slotNames: SlotName[] = [
-        'torso',       'legs',         'sideWeapon1', 'sideWeapon2',
-        'sideWeapon3', 'sideWeapon4',  'topWeapon1',  'topWeapon2',
-        'drone',       'chargeEngine', 'teleporter',  'grapplingHook',
-        'module1',     'module2',      'module3',     'module4',
-        'module5',     'module6',      'module7',     'module8'
-      ]
-
-      const entries = slotNames.map(name => {
-        const item  = mech.slots[name]
-        return [name, item ? getBattleItem(item, name) : null] as const
+      const entries = BattlePlayer.SLOT_NAMES.map(name => {
+        const item = mech.slots[name];
+        return [name, item ? getBattleItem(item, name) : null];
       })
 
       this.slots = Object.fromEntries(entries) as BattlePlayer['slots']
-
     }
 
-    this.weapons = [
-      this.slots.sideWeapon1,
-      this.slots.sideWeapon2,
-      this.slots.sideWeapon3,
-      this.slots.sideWeapon4,
-      this.slots.topWeapon1,
-      this.slots.topWeapon2,
-    ]
 
-    this.utils = [
-      this.slots.drone,
-      this.slots.chargeEngine,
-      this.slots.teleporter,
-      this.slots.grapplingHook,
-    ]
+    for (const slotName of BattlePlayer.WEAPON_SLOT_NAMES) {
+      if (this.slots[slotName]) {
+        this.weapons.push(this.slots[slotName]!);
+      }
+    }
 
-    this.modules = [
-      this.slots.module1,
-      this.slots.module2,
-      this.slots.module3,
-      this.slots.module4,
-      this.slots.module5,
-      this.slots.module6,
-      this.slots.module7,
-      this.slots.module8,
-    ]
+    for (const slotName of BattlePlayer.UTILS_SLOT_NAMES) {
+      if (this.slots[slotName]) {
+        this.utils.push(this.slots[slotName]!);
+      }
+    }
+
+    for (const slotName of BattlePlayer.MODULE_SLOT_NAMES) {
+      if (this.slots[slotName]) {
+        this.modules.push(this.slots[slotName]!);
+      }
+    }
 
 
     // Stats

@@ -213,9 +213,7 @@ function useWeapon(battle: Battle, attacker: BattlePlayer, defender: BattlePlaye
   )
 
   for (const weapon of attacker.weapons) {
-    if (weapon) {
-      weaponRanges.push(...battle.getPositionsInItemRange(attacker, weapon))
-    }
+    weaponRanges.push(...battle.getPositionsInItemRange(attacker, weapon));
   }
 
 
@@ -302,12 +300,10 @@ function smartMotion (battle: Battle, attacker: BattlePlayer, defender: BattlePl
   )
 
   for (const weapon of attacker.weapons) {
-    if (weapon) {
-      // Yes, this adds some positions multiple times if weapon ranges overlap,
-      // but this isn't bad, as it serves as a natural bias towards teleporting
-      // to positions that place the opponent in range of multiple weapons.
-      weaponRanges.push(...battle.getPositionsInItemRange(attacker, weapon))
-    }
+    // Yes, this adds some positions multiple times if weapon ranges overlap,
+    // but this isn't bad, as it serves as a natural bias towards teleporting
+    // to positions that place the opponent in range of multiple weapons.
+    weaponRanges.push(...battle.getPositionsInItemRange(attacker, weapon));
   }
 
 

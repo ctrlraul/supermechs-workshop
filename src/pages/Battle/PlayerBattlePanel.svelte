@@ -34,7 +34,7 @@ let showItemsInspector = false
 let focusedItem: BattleItem | null = null
 let stats = playerGfx.stats
 
-$: inspectableItems = [player.slots.legs, ...player.weapons, ...player.utils].filter(Boolean) as BattleItem[]
+$: inspectableItems = [player.slots.legs!, ...player.weapons, ...player.utils];
 $: isMyTurn = battle.attacker.id === player.id
 
 
