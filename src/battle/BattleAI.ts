@@ -23,18 +23,17 @@ export function think (battle: Battle, actorID: string): BattleAction {
   const defender = battle.getOpponentForPlayerID(actorID)
 
   const thoughts = [
-    [useScope, 'useScope'],
-    [activateDrone, 'activateDrone'],
-    [preventFromShuttingDown, 'preventFromShuttingDown'],
-    [useWeapon, 'useWeapon'],
-    [smartMotion, 'smartMotion'],
-    [dumbMotion, 'dumbMotion'],
-  ] as const
+    useScope,
+    activateDrone,
+    preventFromShuttingDown,
+    useWeapon,
+    smartMotion,
+    dumbMotion,
+  ]
 
-  for (const [thought, log] of thoughts) {
+  for (const thought of thoughts) {
     const action = thought(battle, attacker, defender)
     if (action) {
-      console.log(log)
       return { ...action, actorID }
     }
   }
