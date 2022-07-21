@@ -323,7 +323,7 @@ function toggleProfile (): void {
   // Done changing profile, time to actually
   // check if something changed before updating
   if (hash !== currentProfileHash) {
-    console.log('profile changed')
+    $userData.name = data.name || 'Unnamed Pilot'
     SocketManager.getSocket().emit('profile.update', data)
   }
 
@@ -551,7 +551,12 @@ onDestroy(() => {
         <div class="sections">
           <section>
             <span>Name</span>
-            <input type="text" bind:value={$userData.name} maxlength="32">
+            <input
+              type="text"
+              value={$userData.name}
+              maxlength="32"
+              placeholder="Unnamed Pilot"
+            >
           </section>
           <section>
             <span>Mech</span>

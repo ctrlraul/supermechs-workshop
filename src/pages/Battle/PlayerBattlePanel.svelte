@@ -79,7 +79,7 @@ function toggleItemsInspector (): void {
 
   <div class="names">
     <span class="player-name">
-      {player.name || 'Unnamed Pilot'}
+      {player.name}
     </span>
     <span class="mech-name">
       <SvgIcon
@@ -87,7 +87,7 @@ function toggleItemsInspector (): void {
         color="var(--color-accent)" 
         style="width: 1em; height: 1em;"
       />
-      {player.mechName || 'Unnamed Mech'}
+      {player.mechName}
     </span>
   </div>
 

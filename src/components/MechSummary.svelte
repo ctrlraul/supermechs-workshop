@@ -20,7 +20,7 @@ function onRename (e: Event): void {
 
   const { value } = e.target as HTMLInputElement
 
-  mech.name = value
+  mech.name = value || 'Unnamed Mech'
 
   saveMech(mech)
 
@@ -45,7 +45,7 @@ function onRename (e: Event): void {
         type="text"
         value={mech.name}
         on:change={onRename}
-        placeholder="(Unnamed Mech)"
+        placeholder="Unnamed Mech"
       />
 
     </div>

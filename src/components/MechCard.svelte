@@ -30,7 +30,7 @@ function onRename (e: Event): void {
 
   const { value: newName } = e.target as HTMLInputElement
 
-  mech.name = newName
+  mech.name = newName || 'Unnamed Mech'
 
   saveMech(mech)
 
