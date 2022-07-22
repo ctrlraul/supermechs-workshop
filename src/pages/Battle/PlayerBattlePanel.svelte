@@ -1,12 +1,12 @@
 <script lang="ts">
 
-import { getStatInstruction } from '../../stats/StatsManager'
 import ProgressBar from '../../components/ProgressBar.svelte'
-import { BattleItem, getItemByIdOrThrow } from '../../items/ItemsManager'
 import ItemImage from '../../components/ItemImage.svelte'
 import tooltip from '../../components/Tooltip/useTooltip'
 import SvgIcon from '../../components/SvgIcon/SvgIcon.svelte'
 import ItemButton from './Controls/ItemButton.svelte'
+import { getStatInstruction } from '../../stats/StatsManager'
+import { BattleItem, getItemByIdOrThrow } from '../../items/ItemsManager'
 import { getPlayerGfx } from '../../BattleRenderer'
 
 
@@ -324,7 +324,7 @@ function toggleItemsInspector (): void {
   gap: 0.3em;
   padding: 0.3em;
   max-width: 20em;
-  background-color: var(--color-primary-darker);
+  background-color: var(--color-primary-dark);
   border: 0.15em solid var(--color-primary);
   border-radius: var(--ui-radius);
   z-index: 2;
@@ -334,23 +334,5 @@ function toggleItemsInspector (): void {
   transform: scaleX(-1);
   direction: ltr;
 }
-
-
-/* .focused-item-stats {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  gap: 0.3em;
-  padding: 0.3em;
-  max-height: 10em;
-  width: 15em;
-  background-color: var(--color-background-darker);
-  border: 0.2em solid var(--color-background);
-  z-index: 1;
-  font-size: 0.8em;
-} */
 
 </style>

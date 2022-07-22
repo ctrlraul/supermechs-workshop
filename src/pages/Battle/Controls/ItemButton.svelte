@@ -137,8 +137,8 @@ button {
 }
 
 img.dark {
-  filter: brightness(0.25);
-  -webkit-filter: brightness(0.25);
+  filter: brightness(0.5) grayscale(1);
+  -webkit-filter: brightness(0.5) grayscale(1);
 }
 
 </style>

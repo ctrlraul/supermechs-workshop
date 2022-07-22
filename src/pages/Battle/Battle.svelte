@@ -304,6 +304,7 @@ main {
   justify-content: space-between;
   width: 100%;
   padding: 0.5em;
+  z-index: 3;
 }
 
 
