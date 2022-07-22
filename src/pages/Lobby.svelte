@@ -310,6 +310,10 @@ function toggleProfile (): void {
   showProfile = !showProfile
   pickingOpponent = false
 
+  if (!$userData.name) {
+    $userData.name = 'Unnamed Pilot';
+  }
+
   const data = getProfileData()
   const hash = JSON.stringify(data)
 
@@ -323,7 +327,6 @@ function toggleProfile (): void {
   // Done changing profile, time to actually
   // check if something changed before updating
   if (hash !== currentProfileHash) {
-    $userData.name = data.name || 'Unnamed Pilot'
     SocketManager.getSocket().emit('profile.update', data)
   }
 
@@ -553,7 +556,7 @@ onDestroy(() => {
             <span>Name</span>
             <input
               type="text"
-              value={$userData.name}
+              bind:value={$userData.name}
               maxlength="32"
               placeholder="Unnamed Pilot"
             >
