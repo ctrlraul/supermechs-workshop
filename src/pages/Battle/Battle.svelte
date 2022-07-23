@@ -230,20 +230,32 @@ function onQuit (): void {
 
   {#if $battle !== null}
 
-    <div class="player-panels">
-      <PlayerBattlePanel battle={$battle} player={player} />
-      <PlayerBattlePanel battle={$battle} player={opponent} rtl />
-    </div>
+    <header>
 
-    <div class="buttons">
-      <button class="classic-box" on:mousedown={() => viewLogs = !viewLogs}>
-        Logs
-      </button>
-      <button class="classic-box" on:mousedown={onQuit}>
-        <SvgIcon name="off" color="var(--color-text)" />
-      </button>
-    </div>
-  
+      <PlayerBattlePanel
+        battle={$battle}
+        player={player}
+        style="grid-area: user1"
+      />
+
+      <div class="buttons">
+        <button class="classic-box" on:mousedown={() => viewLogs = !viewLogs}>
+          Logs
+        </button>
+        <button class="classic-box" on:mousedown={onQuit}>
+          <SvgIcon name="off" color="var(--color-text)" />
+        </button>
+      </div>
+
+      <PlayerBattlePanel
+        battle={$battle}
+        player={opponent}
+        rtl
+        style="grid-area: user2"
+      />
+
+    </header>
+
   
     <div class="mechs-container {reverse ? 'reverse' : ''}">
       <canvas bind:this={battleCanvas}>
@@ -298,7 +310,7 @@ main {
 }
 
 
-.player-panels {
+header {
   position: relative;
   display: flex;
   justify-content: space-between;
@@ -308,18 +320,18 @@ main {
 }
 
 
-main > .buttons {
-  position: absolute;
+header > .buttons {
+  position: relative;
   display: flex;
-  width: 7em;
-  gap: 0.5em;
-  left: calc(50% - 3.5em);
-  top: 0.5em;
+  width: 6.5em;
+  justify-content: space-between;
+  padding: 0.5em;
+  grid-area: buttons;
 }
 
-main > .buttons > button {
-  width: 3em;
-  height: 3em;
+header > .buttons > button {
+  width: 2.5em;
+  height: 2.5em;
   padding: 0.3em;
 }
 
@@ -396,10 +408,26 @@ main > .buttons > button {
 
 @media (orientation: portrait) {
 
-  .player-panels {
-    flex-direction: column;
+  header {
+    display: grid;
+    grid-template-rows: 3em 1fr 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'buttons'
+      'user1'
+      'user2';
     gap: 1em;
-    top: 4em;
+  }
+
+
+  header .buttons {
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  header .buttons button:first-of-type {
+    margin-right: 0.5em;
   }
 
 }

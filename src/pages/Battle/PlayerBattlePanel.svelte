@@ -185,8 +185,9 @@ function toggleItemsInspector (): void {
 .panel {
   position: relative;
   display: grid;
+  flex: 1;
   grid-template-rows: 2.2em 1.4em 1.4em 2.5em;
-  grid-template-columns: 5em 7em 7em;
+  grid-template-columns: 5fr 7fr 7fr;
   grid-template-areas:
     'pfp names names'
     'pfp health health'
