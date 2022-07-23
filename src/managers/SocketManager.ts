@@ -3,6 +3,7 @@ import Logger from '../utils/Logger'
 import { get } from 'svelte/store'
 import { userData } from '../stores/userData'
 import { addPopup } from './PopupManager'
+import { isInProduction } from '../lib/isInProduction';
 
 
 
@@ -14,7 +15,6 @@ import type { BattleAction } from '../battle/Battle'
 
 // Init
 
-const isInProduction = !(/\d+\.\d+\.\d+\.\d+|localhost/).test(window.location.hostname)
 const logger = new Logger()
 
 let socket: ReturnType<typeof Socket>

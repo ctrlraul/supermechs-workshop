@@ -8,38 +8,58 @@ import ItemButton from './Controls/ItemButton.svelte'
 import { getStatInstruction } from '../../stats/StatsManager'
 import { BattleItem, getItemByIdOrThrow } from '../../items/ItemsManager'
 import { getPlayerGfx } from '../../BattleRenderer'
-
-
-export let player: BattlePlayer
-export let battle: Battle
-export let rtl = false
+import { BattlePlayer } from '../../battle/BattlePlayer'
 
 
 
 // Types 
 
-import type { BattlePlayer } from '../../battle/BattlePlayer'
 import type { Battle } from '../../battle/Battle'
 
 
 
 // State
 
-const torso = getItemByIdOrThrow(player.slots.torso!.id)
-const opponentName = battle.getOpponentForPlayerID(player.id).name
-const turnIconURL = getStatInstruction('uses').imageURL
-const playerGfx = getPlayerGfx(player.id)
+export let player: BattlePlayer | null;
+export let battle: Battle | null;
+export let rtl = false
 
-let showItemsInspector = false
-let focusedItem: BattleItem | null = null
-let stats = playerGfx.stats
+const turnIconURL = getStatInstruction('uses').imageURL;
 
-$: inspectableItems = [player.slots.legs!, ...player.weapons, ...player.utils];
-$: isMyTurn = battle.attacker.id === player.id
+const visualInfo = (
+  player && battle
+  ? {
+    torso: getItemByIdOrThrow(player.slots.torso!.id),
+    opponentName: battle.getOpponentForPlayerID(player.id).name,
+    playerGfx: getPlayerGfx(player.id),
+  }
+  : null
+)
+
+// const torso = getItemByIdOrThrow(player.slots.torso!.id)
+// const opponentName = battle.getOpponentForPlayerID(player.id).name
+// const playerGfx = getPlayerGfx(player.id)
+
+let showItemsInspector = false;
+let focusedItem: BattleItem | null = null;
+let stats: BattlePlayer['stats'] = (
+  visualInfo
+  ? visualInfo.playerGfx.stats
+  : BattlePlayer.getDummyStats()
+);
+
+$: inspectableItems = (
+  player
+  ? [player.slots.legs!, ...player.weapons, ...player.utils]
+  : []
+);
+
+$: isMyTurn = player && battle && player.id === battle.attacker.id;
 
 
-
-playerGfx.onStatsUpdate = value => stats = value
+if (visualInfo) {
+  visualInfo.playerGfx.onStatsUpdate = value => stats = value;
+}
 
 
 
@@ -68,18 +88,20 @@ function toggleItemsInspector (): void {
 
 
 
-<div style={$$props.style} class="panel {player.admin ? 'admin' : ''} {rtl ? 'rtl' : ''}">
+<div style={$$props.style} class="panel {player && player.admin ? 'admin' : ''} {rtl ? 'rtl' : ''}">
 
 
   <!-- Player Fnfo -->
 
   <div class="profile-picture-container">
-    <ItemImage item={torso} style="width: 100%; height: 100%;" />
+    {#if visualInfo}
+      <ItemImage item={visualInfo.torso} style="width: 100%; height: 100%;" />
+    {/if}
   </div>
 
   <div class="names">
     <span class="player-name">
-      {player.name}
+      {player ? player.name : 'User Name'}
     </span>
     <span class="mech-name">
       <SvgIcon
@@ -87,7 +109,7 @@ function toggleItemsInspector (): void {
         color="var(--color-accent)" 
         style="width: 1em; height: 1em;"
       />
-      {player.mechName}
+      {player ? player.mechName : 'Mech Name'}
     </span>
   </div>
 
@@ -142,9 +164,9 @@ function toggleItemsInspector (): void {
 
   <!-- Action Points -->
 
-  <div class="turns" use:tooltip={isMyTurn ? `${battle.actionPoints} Action Points` : `${opponentName}'s turn!`}>
-    <img src={turnIconURL} alt="Turn" style={isMyTurn && battle.actionPoints > 0 ? '' : 'filter:brightness(0.4)'}>
-    <img src={turnIconURL} alt="Turn" style={isMyTurn && battle.actionPoints > 1 ? '' : 'filter:brightness(0.4)'}>
+  <div class="turns" use:tooltip={`${battle ? battle.actionPoints : '?'} Action Points`}>
+    <img src={turnIconURL} alt="Turn" style={isMyTurn && battle && battle.actionPoints > 0 ? '' : 'filter:brightness(0.4)'}>
+    <img src={turnIconURL} alt="Turn" style={isMyTurn && battle && battle.actionPoints > 1 ? '' : 'filter:brightness(0.4)'}>
   </div>
 
 

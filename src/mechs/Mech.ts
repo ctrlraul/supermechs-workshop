@@ -28,6 +28,8 @@ export type SlotName = (
 
 export default class Mech {
 
+  public static readonly NULL_MECH: Mech = new Mech();
+
   static readonly TORSO_INDEX = 0
   static readonly LEGS_INDEX = 1
   static readonly SIDE_1_INDEX = 2

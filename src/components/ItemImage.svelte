@@ -1,21 +1,32 @@
 <script lang="ts">
 
 import { onMount } from 'svelte'
-import type Item from '../items/Item'
-import { BattleItem, getItemByIdOrThrow, renderItem } from '../items/ItemsManager'
+import { BattleItem, getItemByID, renderItem } from '../items/ItemsManager'
 
+
+
+// Types
+
+import type Item from '../items/Item'
+
+
+
+// State
 
 export let item: Item | BattleItem
 
 let canvas: HTMLCanvasElement
 
-$: usableItem = getItemByIdOrThrow(item.id)
+$: usableItem = getItemByID(item.id)
+$: {
+  if (usableItem) {
+    updateImage(usableItem);
+  }
+}
 
 
-// I know this looks weird but chill
-onMount(() => updateImage(usableItem))
-$: { updateImage(usableItem) }
 
+// Functions
 
 function updateImage (item: Item) {
   if (canvas) {
@@ -25,6 +36,15 @@ function updateImage (item: Item) {
     renderItem(ctx, item, 0, 0, item.width, item.height)
   }
 }
+
+
+// Lifecycle
+
+onMount(() => {
+  if (usableItem) {
+    updateImage(usableItem);
+  }
+})
 
 </script>
 

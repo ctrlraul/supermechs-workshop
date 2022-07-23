@@ -5,6 +5,7 @@ import { BattlePlayer, BattlePlayerArgs } from './BattlePlayer'
 import { cloneDeep, range } from 'lodash'
 import { think } from './BattleAI'
 import { setBattle } from '../BattleRenderer'
+import Mech from '../mechs/Mech'
 
 
 

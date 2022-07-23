@@ -4,8 +4,8 @@ import { BattleItem, getBattleItem } from '../items/ItemsManager'
 
 // types
 
-import type Mech from '../mechs/Mech'
 import type { SlotName } from '../mechs/Mech'
+import type Mech from '../mechs/Mech';
 
 
 export interface BattlePlayerArgs {
@@ -45,6 +45,22 @@ export class BattlePlayer {
     ...this.MODULE_SLOT_NAMES
   ];
 
+  public static getDummyStats(): BattlePlayer['stats'] {
+    return {
+      eleRes: 100,
+      eneCap: 600,
+      eneReg: 300,
+      energy: 450,
+      expRes: 100,
+      heaCap: 600,
+      heaCol: 300,
+      health: 2000,
+      healthCap: 3000,
+      heat: 200,
+      phyRes: 100
+    }
+  }
+
 
   // Meta
   id: string
@@ -81,10 +97,6 @@ export class BattlePlayer {
   constructor (args: BattlePlayerArgs) {
 
     const { mech } = args
-
-    if (!mech.slots.torso || !mech.slots.legs) {
-      throw new Error(`Torso and legs are necessary to battle`)
-    }
 
 
     // Meta

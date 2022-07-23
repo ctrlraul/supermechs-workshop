@@ -2,6 +2,7 @@
 
 import SvgIcon from '../../../components/SvgIcon/SvgIcon.svelte'
 import ControlItemButton from './ItemButton.svelte'
+import { dummyItem } from '../../../items/Item';
 
 
 
@@ -15,8 +16,8 @@ import type { BattleItem } from '../../../items/ItemsManager'
 
 // Props
 
-export let battle: Battle
-export let player: BattlePlayer
+export let battle: Battle | null;
+export let player: BattlePlayer | null;
 export let setSection: (section: string) => void
 export let setFocusedItem: (item: BattleItem | null) => void
 export let callBattleAction: (action: Omit<BattleAction, 'actorID'>) => void
@@ -25,11 +26,11 @@ export let callBattleAction: (action: Omit<BattleAction, 'actorID'>) => void
 
 // State
 
-$: player = battle.attacker
-$: legs = player.slots.legs!
+$: player = battle ? battle.attacker : null;
+$: legs = player ? player.slots.legs! : dummyItem;
 $: canMove = 'walk' in legs.stats || 'jump' in legs.stats
-$: hasWeapons = player.weapons.some(item => item !== null)
-$: hasUtils = player.utils.some(item => item !== null)
+$: hasWeapons = player && player.weapons.some(item => item !== null)
+$: hasUtils = player && player.utils.some(item => item !== null)
 
 
 
@@ -83,7 +84,7 @@ function onClickCooldown (): void {
 <ControlItemButton
   {battle}
   item={legs}
-  disabled={battle.canFireWeapon(legs)}
+  disabled={battle && battle.canFireWeapon(legs)}
   {setFocusedItem}
   onUse={onClickStomp}
 />

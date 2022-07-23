@@ -8,7 +8,7 @@ import copyTextToClipboard from '../../utils/copyTextToClipboard'
 
 
 
-export let battle: Battle
+export let battle: Battle | null;
 export let playerID: String
 
 let copyingText = false
@@ -77,6 +77,10 @@ async function copyLogs () {
 
 
 function generateLogsString () {
+
+  if (!battle) {
+    return '';
+  }
   
   const prefixes = {
     info: '[i]',
@@ -110,7 +114,7 @@ function generateLogsString () {
       </div>
     </header>
     <ul bind:this={logLinesContainer}>
-      {#each battle.logs as log}
+      {#each battle ? battle.logs : [] as log}
         <li>
           <SvgIcon
             name={styleForType[log.type].icon}

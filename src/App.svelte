@@ -10,8 +10,9 @@ import Tooltip from './components/Tooltip/Tooltip.svelte'
 import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 import PatreonNotification from './components/PatreonNotification.svelte'
 import { onMount } from 'svelte'
-import { battle, itemsPackData } from './stores'
+import { itemsPackData } from './stores'
 import { loadStatImages } from './stats/StatsManager'
+import { isInProduction } from './lib/isInProduction';
 
 
 
@@ -46,22 +47,24 @@ const routes: RouteDefinition = {
 
   '/workshop': wrap({
     component: Workshop,
-    conditions: needsItemsPack,
+    conditions: itemsPackLoaded,
   }),
 
   '/mechs': wrap({
     component: Mechs,
-    conditions: needsItemsPack,
+    conditions: itemsPackLoaded,
   }),
 
   '/lobby': wrap({
     component: Lobby,
-    conditions: needsItemsPack,
+    conditions: itemsPackLoaded,
   }),
 
   '/battle': wrap({
     component: Battle,
-    conditions: () => needsItemsPack() && $battle !== null,
+    conditions: () => {
+      return itemsPackLoaded() && !isInProduction
+    }
   }),
 
   '/settings': Settings,
@@ -69,7 +72,7 @@ const routes: RouteDefinition = {
   // Redirect 404 to workshop
   '*': wrap({
     component: Workshop,
-    conditions: needsItemsPack,
+    conditions: itemsPackLoaded,
   }),
 
 }
@@ -96,7 +99,7 @@ onMount(async () => {
 
 
 
-function needsItemsPack (): boolean {
+function itemsPackLoaded (): boolean {
 
   if ($itemsPackData !== null) {
     return true
@@ -117,9 +120,7 @@ function conditionsFailed () {
 
     let redirectPath = '/'
   
-    if ($location !== '/battle') {
-      redirectPath += '?returnTo=' + $location
-    }
+    redirectPath += '?returnTo=' + $location
     
     replace(redirectPath)
 

@@ -18,7 +18,7 @@ import type { BattlePlayer } from '../../../battle/BattlePlayer'
 
 // Props
 
-export let player: BattlePlayer
+export let player: BattlePlayer | null
 export let callBattleAction: (event: Omit<BattleAction, 'actorID'>) => any
 export let blocked: boolean
 export let reverse: boolean
@@ -31,65 +31,50 @@ let section: 'main' | 'movements' | 'weapons' | 'utils' = 'main'
 let focusedItem: BattleItem | null = null
 let teleporting = false
 
-$: battle = $battleStore!
+$: battle = $battleStore
 $: spotlights = getSpotlights(teleporting, focusedItem, section, player)
-$: showControls = (
+$: showControls = shouldShowControls(battle, player)
+$: backgroundColor = getBackgroundColor(battle, player);
 
-  // Battle is not complete
-  battle.completion === null
-
-  // Has turns left
-  && battle.actionPoints > 0
-
-  // Is player's turn or (battle is offline and player can control both mechs)
-  && (
-    battle.attacker.id === player.id ||
-    (!battle.online && $userData.settings.controlOfflineOpponent)
-  )
-
-)
-$: backgroundColor = (
-  $userData.settings.controlOfflineOpponent && !battle.online
-  ? (
-    battle.attacker.id === player.id
-    ? '#13340c'
-    : '#4a0c0c'
-  )
-  : ''
-)
 
 
 // Functions
 
-function getSpotlights (isTeleporting: boolean, itemHovered: BattleItem | null, sec: typeof section, player: BattlePlayer) {
+function getSpotlights (
+  isTeleporting: boolean,
+  itemHovered: BattleItem | null,
+  sec: typeof section,
+  player: BattlePlayer | null) {
 
   let positions: number[] = []
   let color = '#ffffff'
   let onClick: (position: number) => void = () => {}
 
-  if (sec === 'movements') {
+  if (battle) {
+    if (sec === 'movements') {
 
-    positions = battle.getWalkablePositions()
-    color = '#00cc00'
-    onClick = position => callBattleAction({
-      name: 'walk',
-      position
-    })
+      positions = battle.getWalkablePositions();
+      color = '#00cc00';
+      onClick = position => callBattleAction({
+        name: 'walk',
+        position,
+      });
 
-  } else if (itemHovered && 'range' in itemHovered.stats) {
+    } else if (player && itemHovered && 'range' in itemHovered.stats) {
 
-    positions = battle.getPositionsInItemRange(player, itemHovered)
-    color = '#cc0000'
+      positions = battle.getPositionsInItemRange(player, itemHovered);
+      color = '#cc0000';
 
-  } else if (isTeleporting || (itemHovered && itemHovered.type === 'TELEPORTER')) {
+    } else if (isTeleporting || (itemHovered && itemHovered.type === 'TELEPORTER')) {
 
-    positions = battle.getTeleportablePositions()
-    color = '#3dc8c8'
-    onClick = position => callBattleAction({
-      name: 'teleport',
-      position
-    })
+      positions = battle.getTeleportablePositions();
+      color = '#3dc8c8';
+      onClick = position => callBattleAction({
+        name: 'teleport',
+        position,
+      });
 
+    }
   }
 
   return { positions, color, onClick }
@@ -186,6 +171,48 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
 
 }
 
+
+function getBackgroundColor(battle: Battle | null, player: BattlePlayer | null): string {
+  
+  if (!player || !battle || !$userData.settings.controlOfflineOpponent || battle.online) {
+    return '';
+  }
+
+  if (battle.attacker.id === player.id) {
+    return '#13340c';
+  }
+
+  return '#4a0c0c';
+
+}
+
+
+function shouldShowControls(battle: Battle | null, player: BattlePlayer | null): boolean {
+
+  if (!battle || !player) {
+    return true;
+  }
+
+  if (battle.completion) {
+    return false;
+  }
+
+  if (battle.actionPoints <= 0) {
+    return false;
+  }
+
+  if (battle.attacker.id === player.id) {
+    return true;
+  }
+
+  if (!battle.online && $userData.settings.controlOfflineOpponent) {
+    return true;
+  }
+
+  return false;
+
+}
+
 </script>
 
 
@@ -197,7 +224,7 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
 
       <MainSection
         {battle}
-        player={battle.attacker}
+        player={battle ? battle.attacker : null}
         {callBattleAction}
         {setFocusedItem}
         {setSection}
@@ -209,9 +236,11 @@ function getButtonConfigsForSection (sec: typeof section, player: BattlePlayer) 
         <SvgIcon name="arrow_back" color="var(--color-text)" />
       </button>
 
-      {#each getButtonConfigsForSection(section, battle.attacker) as { item, onUse }}
-        <ItemButton {battle} {item} {setFocusedItem} {onUse} />
-      {/each}
+      {#if battle}
+        {#each getButtonConfigsForSection(section, battle.attacker) as { item, onUse }}
+          <ItemButton {battle} {item} {setFocusedItem} {onUse} />
+        {/each}
+      {/if}
 
     {/if}
 

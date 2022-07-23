@@ -1,3 +1,5 @@
+import type { BattleItem } from './ItemsManager'
+
 export interface AttachmentPoint {
   x: number
   y: number
@@ -112,3 +114,49 @@ export default interface Item {
   attachment: null | Attachment
 
 }
+
+
+export const dummyItem: Item & BattleItem = {
+
+  id: -1,
+
+  // Meta
+  name: 'Dummy Item',
+  kind: 'Dummy Kind',
+  unlockLevel: 420,
+  goldPrice: 69,
+  tokensPrice: 1337,
+  transformRange: 'C-D',
+
+  // Stats
+  type: 'MODULE',
+  element: 'PHYSICAL',
+  stats: {
+    weight: 1001
+  },
+  tags: {
+    premium: true,
+    sword: true,
+    melee: true,
+    roller: true,
+    legacy: true,
+    require_jump: true,
+    custom: true,
+  },
+
+  // Graphic
+  width: 0,
+  height: 0,
+  image: {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  },
+  attachment: null,
+
+  // Battle Item
+  slotName: 'module1',
+  timesUsed: 1,
+
+};

@@ -15,7 +15,7 @@ import type { Battle } from '../../../battle/Battle'
 // Props
 
 export let item: BattleItem
-export let battle: Battle
+export let battle: Battle | null;
 export let setFocusedItem: (battleItem: BattleItem | null) => void
 export let onUse: () => void = () => {}
 
@@ -33,6 +33,10 @@ $: usesArray = Array(item.stats.uses).fill(null).map((_, i) => item.timesUsed > 
 // Functions
 
 function canUseItem (item: BattleItem): boolean {
+
+  if (!battle) {
+    return true;
+  }
 
   const whyCantFire = battle.whyCantFireWeapon(item)
 
@@ -53,6 +57,10 @@ function canUseItem (item: BattleItem): boolean {
 
 
 function useItem () {
+
+  if (!battle) {
+    return;
+  }
 
   if (canUse) {
     onUse()
