@@ -1,4 +1,4 @@
-import { createSyntheticItemAttachment } from './ItemsManager'
+import { createSyntheticItemAttachment, getItemKindString } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
 import { includeStatFormats } from '../stats/StatsManager'
 
@@ -25,7 +25,7 @@ interface RawItemV2 {
 
   // Stats
   type: Item['type']
-  element: Item['element']
+  element?: Item['element']
   stats: Item['stats']
   tags?: (keyof Item['tags'])[]
   
@@ -128,14 +128,14 @@ function importItem (raw: RawItemV2, spritesMap: ItemsPackV2['spritesMap']): Ite
     id: raw.id,
 
     name: raw.name,
-    kind: getKindString(raw),
+    kind: getItemKindString(raw.type, raw.element),
     unlockLevel: raw.unlock_level || 0,
     goldPrice: raw.gold_price || 0,
     tokensPrice: raw.tokens_price || 0,
     transformRange: raw.transform_range,
 
     type: raw.type,
-    element: raw.element,
+    element: raw.element || 'EXPLOSIVE',
     stats: raw.stats,
     tags: getItemTags(raw),
 
@@ -183,10 +183,4 @@ function getItemTags (raw: RawItemV2): Item['tags'] {
 
   return tags
 
-}
-
-
-function getKindString (item: RawItemV2): string {
-  const words = [item.element, ...item.type.split('_')]
-  return words.map(word => word[0].toUpperCase() + word.slice(1).toLowerCase()).join(' ')
 }

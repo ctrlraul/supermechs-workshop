@@ -1,5 +1,5 @@
 import potpack from 'potpack'
-import { createSyntheticItemAttachment, ProgressListener } from './ItemsManager'
+import { createSyntheticItemAttachment, ProgressListener, getItemKindString } from './ItemsManager'
 import { loadImage } from '../utils/loadImage'
 import { includeStatFormats } from '../stats/StatsManager'
 // import { ItemsPackV1Te } from './Typeyes/ItemsPackV1Te'
@@ -30,7 +30,7 @@ interface RawItemV1 {
 
   // Stats
   type: Item['type']
-  element: Item['element']
+  element?: Item['element']
   stats: Item['stats']
   tags?: (keyof Item['tags'])[]
   
@@ -220,14 +220,14 @@ function importItem (raw: RawItemV1, rect: Rectangle): Item {
     id: raw.id,
 
     name: raw.name,
-    kind: getKindString(raw),
+    kind: getItemKindString(raw.type, raw.element),
     unlockLevel: raw.unlock_level || 0,
     goldPrice: raw.gold_price || 0,
     tokensPrice: raw.tokens_price || 0,
     transformRange: raw.transform_range,
 
     type: raw.type,
-    element: raw.element,
+    element: raw.element || 'PHYSICAL',
     stats: raw.stats,
     tags: getItemTags(raw),
 
@@ -294,10 +294,4 @@ function getItemTags (raw: RawItemV1): Item['tags'] {
 
   return tags
 
-}
-
-
-function getKindString (item: RawItemV1): string {
-  const words = [item.element, ...item.type.split('_')]
-  return words.map(word => word[0].toUpperCase() + word.slice(1).toLowerCase()).join(' ')
 }

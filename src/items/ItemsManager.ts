@@ -323,3 +323,19 @@ export function createSyntheticItemAttachment (type: Item['type'], width: number
   }
 
 }
+
+
+export function getItemKindString (type: Item['type'], element?: Item['element']): string {
+
+  const words: string[] = [...type.split('_')];
+
+  if (element) {
+    words.unshift(element);
+  }
+
+  words.forEach((word, i) => {
+    words[i] = word[0].toUpperCase() + word.slice(1).toLowerCase();
+  });
+
+  return words.join(' ');
+}
