@@ -106,7 +106,7 @@ function importItems (rawItems: RawItemV2[], spritesMap: ItemsPackV2['spritesMap
     try {
       items.push(importItem(raw, spritesMap))
     } catch (err: any) {
-      issues.push(err.message)
+      issues.push(`${raw.name}: Failed to import item: ${err.message}`);
     }
   }
 
@@ -121,7 +121,7 @@ function importItem (raw: RawItemV2, spritesMap: ItemsPackV2['spritesMap']): Ite
   const spriteRect = spritesMap[spritesMapKey]
 
   if (spriteRect === undefined) {
-    throw new Error(`Failed to import "${raw.name}": No sprite mapped for key "${spritesMapKey}"`)
+    throw new Error(`No sprite mapped for key '${spritesMapKey}'`);
   }
 
   const item: Item = {

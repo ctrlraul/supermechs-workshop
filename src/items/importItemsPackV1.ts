@@ -165,7 +165,7 @@ function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: Pro
 
       }).catch(err => {
 
-        result.issues.push(err.message)
+        result.issues.push(`${rawItem.name}: Failed to load image: ${err.message}`);
 
       }).finally(() => {
 

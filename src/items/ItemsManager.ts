@@ -102,12 +102,12 @@ function filterInvalidItems (items: Item[]) {
     if (item.stats.range) {
 
       if (item.stats.range.length !== 2) {
-        issues.push(`Invalid range stat for "${item.name}": Expected two values [min, max]`)
+        issues.push(`${item.name}}: Invalid range stat for: Expected two values [min, max]`);
         continue
       }
 
       if (item.stats.range[0] > item.stats.range[1]) {
-        issues.push(`Invalid range stat for "${item.name}": Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`)
+        issues.push(`${item.name}: Invalid range stat: Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`);
         continue
       }
 
