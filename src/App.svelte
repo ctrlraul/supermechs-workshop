@@ -63,7 +63,7 @@ const routes: RouteDefinition = {
   '/battle': wrap({
     component: Battle,
     conditions: () => {
-      return itemsPackLoaded() && !isInProduction
+      return itemsPackLoaded() || !isInProduction
     }
   }),
 
