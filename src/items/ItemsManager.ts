@@ -10,6 +10,7 @@ import { getBuffedItemStats } from '../stats/StatsManager'
 import { itemsPackData as itemsPackDataStore, ItemsPackData } from '../stores'
 import { sha256 } from 'hash.js'
 import { get } from 'svelte/store'
+import { ItemType } from './Item'
 
 
 
@@ -91,36 +92,41 @@ async function useCorrectImportFunction (itemsPack: ItemsPack, onProgress: (prog
 
 function filterInvalidItems (items: Item[]) {
 
-  const issues: string[] = []
-  const validItems: Item[] = []
+  const issues: string[] = [];
+  const validItems: Item[] = [];
 
   // Sort items by element (btw this inverts the list order and that isn't desired)
-  items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1)
+  items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1);
 
   for (const item of items) {
+
+    if (!ItemType.hasOwnProperty(item.type)) {
+      issues.push(`${item.name}}: Invalid item type '${item.type}', expected: ${Object.entries(ItemType).join(', ')}`);
+      continue;
+    }
 
     if (item.stats.range) {
 
       if (item.stats.range.length !== 2) {
         issues.push(`${item.name}}: Invalid range stat for: Expected two values [min, max]`);
-        continue
+        continue;
       }
 
       if (item.stats.range[0] > item.stats.range[1]) {
         issues.push(`${item.name}: Invalid range stat: Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`);
-        continue
+        continue;
       }
 
     }
 
-    validItems.push(item)
+    validItems.push(item);
 
   }
 
   return {
     issues,
-    items: validItems
-  }
+    items: validItems,
+  };
 
 }
 
