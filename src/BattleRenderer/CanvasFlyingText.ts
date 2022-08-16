@@ -26,7 +26,11 @@ export class CanvasFlyingText extends CanvasObject {
       new TWEEN.Tween(this)
         .to({ y: this.y - 100 }, 1000)
         .easing(TWEEN.Easing.Quadratic.Out)
-        .onComplete(() => this.remove())
+        .onComplete(() => {
+          if (this.parent) {
+            this.remove()
+          }
+        })
         .start()
 
     }
