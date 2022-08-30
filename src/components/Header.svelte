@@ -2,7 +2,8 @@
 
 import SvgIcon from './SvgIcon/SvgIcon.svelte'
 import { pop } from 'svelte-spa-router'
-import { isInMatchMaker, matchMakerQuit } from '../stores/isInMatchMaker'
+import { matchMakerState, MatchMakerState } from '../stores/matchMakerState'
+import { lobbyExitMatchMaker } from '../managers/SocketManager'
 
 
 export let title: string
@@ -15,11 +16,11 @@ export let hideMatchMakingPopup: boolean = false
 
 <header style={$$props.style}>
 
-  {#if $isInMatchMaker && !hideMatchMakingPopup}
+  {#if $matchMakerState === MatchMakerState.In && !hideMatchMakingPopup}
     <div class="global-box searching-for-battle">
       <SvgIcon name="aim" class="spinner" />
       <span>Searching for battle...</span>
-      <button on:click={matchMakerQuit}>Cancel</button>
+      <button on:click={lobbyExitMatchMaker}>Cancel</button>
     </div>
   {/if}
 

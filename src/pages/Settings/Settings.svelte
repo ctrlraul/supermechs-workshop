@@ -4,7 +4,7 @@ import Header from '../../components/Header.svelte'
 import Toggle from './Toggle.svelte'
 import { UserData, userData } from '../../stores/userData'
 import { push } from 'svelte-spa-router'
-import { isInMatchMaker, isWaitingResponse } from '../../stores/isInMatchMaker'
+import { matchMakerState, MatchMakerState } from '../../stores/matchMakerState'
 import { addPopup } from '../../managers/PopupManager'
 
 
@@ -45,7 +45,7 @@ const togglesConfig: ToggleConfig[] = [{
 
 function onClickChangeItemsPack (): void {
 
-  if (!$isInMatchMaker && !$isWaitingResponse) {
+  if ($matchMakerState !== MatchMakerState.In) {
     push('/')
     return
   }

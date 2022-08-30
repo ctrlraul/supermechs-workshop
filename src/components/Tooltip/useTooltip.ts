@@ -16,10 +16,14 @@ let currentNode: HTMLElement
 
 export default function (node: HTMLElement, data: TooltipData) {
 
-  node.addEventListener('mouseover', () => {
+  const show = () => {
     currentNode = node
     tooltip.set(data)
-  })
+  }
+
+  node.addEventListener('mouseup', show)
+  node.addEventListener('mouseover', show)
+  node.addEventListener('mousedown', clear)
   node.addEventListener('mouseout', clear)
 
   return {

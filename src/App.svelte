@@ -1,7 +1,7 @@
 <script lang="ts">
 
 import * as SocketManager from './managers/SocketManager'
-import * as IsInMatchMaker from './stores/isInMatchMaker'
+import * as IsInMatchMaker from './stores/matchMakerState'
 import * as UserData from './stores/userData'
 import Router, { replace, location } from 'svelte-spa-router'
 import wrap from 'svelte-spa-router/wrap'
@@ -12,7 +12,6 @@ import PatreonNotification from './components/PatreonNotification.svelte'
 import { onMount } from 'svelte'
 import { itemsPackData } from './stores'
 import { loadStatImages } from './stats/StatsManager'
-import { isInProduction } from './lib/isInProduction';
 
 
 
@@ -63,7 +62,7 @@ const routes: RouteDefinition = {
   '/battle': wrap({
     component: Battle,
     conditions: () => {
-      return itemsPackLoaded() || !isInProduction
+      return itemsPackLoaded()
     }
   }),
 
@@ -89,7 +88,6 @@ onMount(async () => {
 
   UserData.init()
   SocketManager.init()
-  IsInMatchMaker.init()
 
   setTimeout(() => {
     showPatreonNotification = true

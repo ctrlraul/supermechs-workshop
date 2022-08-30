@@ -11,6 +11,15 @@ import { isInProduction } from '../lib/isInProduction';
 
 import type { BattleAction } from '../battle/Battle'
 
+interface LobbyJoinData {
+  name: string;
+  mech: {
+    name: string;
+    setup: number[];
+    hash: string;
+  };
+}
+
 
 
 // Init
@@ -35,12 +44,28 @@ export function init (): void {
 
   const extraHeaders = {
     'x-player-name': get(userData).name,
-    'x-client-version': '2' // Arbitraty value, just has to match the server
+    'x-client-version': '3' // Arbitraty value, just has to match the server
   }
 
   socket = Socket(getServerURL(), { extraHeaders })
   outdatedClient = false
   connectionErrorsStreak = 0
+
+  const emit = socket.emit;
+  const on = socket.on;
+
+  socket.emit = function (...args) {
+    logger.log('=>', ...args);
+    return emit.apply(socket, args);
+  };
+
+  socket.on = function (ev, listener) {
+    const proxy = (...listenerArgs: any[]) => {
+      logger.log('<=', ev, ...listenerArgs);
+      listener(...listenerArgs);
+    };
+    return on.apply(socket, [ev, proxy]);
+  };
 
 
   // Global event listeners
@@ -207,13 +232,28 @@ export function getSocket (): typeof socket {
 
 // Lobby
 
-export function lobbyJoin (): void {
-  socket.emit('lobby.join')
+export function lobbyJoin (data: LobbyJoinData): void {
+  socket.emit('lobby.join', data);
 }
 
 
 export function lobbyExit(): void {
   socket.emit('lobby.exit')
+}
+
+
+export function lobbyJoinMatchMaker(): void {
+  socket.emit('lobby.joinMatchMaker');
+}
+
+
+export function lobbyExitMatchMaker(): void {
+  socket.emit('lobby.exitMatchMaker');
+}
+
+
+export function lobbyVerifyOpponent(valid: boolean): void {
+  socket.emit('lobby.verifyOpponent', { valid });
 }
 
 

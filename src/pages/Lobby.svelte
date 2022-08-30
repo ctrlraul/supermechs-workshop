@@ -7,7 +7,7 @@ import MechCanvas from '../components/MechCanvas.svelte'
 import MechPicker from '../components/MechPicker.svelte'
 import Header from '../components/Header.svelte'
 import Mech from '../mechs/Mech'
-import { items2ids, getItemsHash } from '../items/ItemsManager'
+import { items2ids, getItemsHash, matchItemsHash } from '../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { battle } from '../stores'
 import { userData } from '../stores/userData'
@@ -16,27 +16,53 @@ import { getRandomStartingPositions } from '../battle/utils'
 import { addPopup } from '../managers/PopupManager'
 import { checkSetup } from '../battle/utils'
 import { currentMech, mechs } from '../stores/mechs'
-import { isInMatchMaker, isWaitingResponse, matchMakerJoin, matchMakerQuit } from '../stores/isInMatchMaker'
+import { MatchMakerState, matchMakerState } from '../stores/matchMakerState';
 
 
 
 // Types
 
-interface LobbyPlayer {
+interface LobbyUser {
   name: string
   id: string
-  isInMatchMaker: boolean
+  isMatchMaking: boolean
   admin: boolean
 }
 
 
 interface ProfileData {
+  name: string;
+  mech: {
+    name: string;
+    setup: number[];
+    hash: string;
+  }
+}
+
+
+interface BattleUserJSON {
+  id: string
   name: string
   mech: {
     name: string
     setup: number[]
   }
-  itemsHash: string
+  position: number
+  isAdmin: boolean
+}
+
+
+interface LobbyBattleStartData {
+  starterID: string
+  a: BattleUserJSON
+  b: BattleUserJSON
+}
+
+
+enum ConnectionState {
+  Connected,
+  Connecting,
+  Disconnected,
 }
 
 
@@ -45,11 +71,12 @@ interface ProfileData {
 
 let showMechPicker: boolean = false
 let pickingOpponent: boolean = false
-let playersInLobby: LobbyPlayer[] = []
-let isConnected = SocketManager.isConnected()
 let showProfile: boolean = false
 let currentProfileHash: string = ""
-$: canOfflineBattle = !$isInMatchMaker && !$isWaitingResponse
+let awaitingResponse: boolean = false;
+
+let connectionState = ConnectionState.Disconnected;
+let users: LobbyUser[] = [];
 
 
 
@@ -83,122 +110,109 @@ function getFightableMechs (mechs: Mech[]): Mech[] {
 
 async function onOnlineBattle (): Promise<void> {
 
-  // Make sure we're using a mech
-
-  if ($currentMech === null) {
-    showNoMechSelectedPopup()
-    return
+  if ($matchMakerState === MatchMakerState.Awaiting) {
+    return;
   }
 
+  switch (connectionState) {
 
-  // Make sure our mech is valid
+    case ConnectionState.Connected:
 
-  try {
-
-    checkSetup($currentMech.setup)
-
-  } catch (err: any) {
-
-    addPopup({
-      title: `Can't use invalid mech in online battles!`,
-      message: err.message,
-      mode: 'error',
-      hideOnOffclick: true,
-      options: {
-        Ok () { this.remove() }
-      }
-    })
-
-    return
-
-  }
-
-
-  // Make sure we're connected to server
-
-  if (!SocketManager.isConnected()) {
-
-    if (SocketManager.isClientOutdated()) {
-      SocketManager.addOutdatedClientPopup()
-      return
-    }
-
-    let canceled = false
-
-    const tryingToConnectPopup = addPopup({
-      title: 'Trying to connect to server',
-      message: 'Please wait up to 10 seconds...',
-      hideOnOffclick: false,
-      spinner: true,
-      options: {
-        Cancel () {
-          canceled = true
-          this.remove()
-        }
-      }
-    })
-
-    try {
-
-      await SocketManager.tryToConnectManually()
-
-      if (canceled) {
-        return
+      // No battling with an outdated client ok
+      if (SocketManager.isClientOutdated()) {
+        SocketManager.addOutdatedClientPopup();
+        return;
       }
 
-    } catch (err: any) {
-
-      if (canceled) {
-        return
+      // We are using a mech, right?
+      if (!$currentMech) {
+        showNoMechSelectedPopup();
+        return;
       }
 
-      const attempts = SocketManager.getConnectionErrorsStreak()
-
-      let message = `
-        We tried to reconnect ${attempts} time${attempts === 1 ? '' : 's'}!
-
-        Error: "${err.message}"
-      `
-
-      if (attempts > 4) {
-        message += '\nPlease try again in a few minutes.'
+      // Is our mech valid though?
+      try {
+        checkSetup($currentMech.setup);
+      } catch(err: any) {
+        addPopup({
+          title: `Can't use invalid mech in online battles!`,
+          message: err.message,
+          mode: 'error',
+        });
+        return;
       }
 
-      addPopup({
-        mode: 'error',
-        title: 'Failed to connect to server',
-        message,
+      // Resolve action
+      if ($matchMakerState === MatchMakerState.In) {
+        SocketManager.lobbyExitMatchMaker();
+      } else {
+        SocketManager.lobbyJoinMatchMaker();
+      }
+      $matchMakerState = MatchMakerState.Awaiting;
+
+      break;
+
+
+    case ConnectionState.Connecting:
+      return;
+
+
+    case ConnectionState.Disconnected: {
+
+      let canceled = false;
+
+      const tryingToConnectPopup = addPopup({
+        title: 'Trying to connect to server',
+        message: 'Please wait up to 10 seconds...',
+        hideOnOffclick: false,
+        spinner: true,
         options: {
-          Ok () { this.remove() },
-          Retry () {
-            this.remove()
-            onOnlineBattle()
-          }
+          Cancel () {
+            canceled = true;
+            this.remove();
+          },
         }
-      })
+      });
 
-      return
+      SocketManager.tryToConnectManually().catch(err => {
 
-    } finally {
+        if (canceled) {
+          return;
+        }
 
-      tryingToConnectPopup.remove()
+        const attempts = SocketManager.getConnectionErrorsStreak();
 
+        const message: string[] = [
+          `We tried to reconnect ${attempts} time${attempts > 1 ? '' : 's'}!`,
+          '',
+          `Error: "${err.message}"`,
+        ];
+
+        if (attempts > 4) {
+          message.push('If the error persists reload the page or try again later.');
+        }
+
+        addPopup({
+          mode: 'error',
+          title: 'Failed to connect to server',
+          message,
+          options: {
+            Ok () {
+              this.remove();
+            },
+            Retry () {
+              this.remove();
+              onOnlineBattle();
+            },
+          }
+        });
+
+      }).finally(() => {
+
+        tryingToConnectPopup.remove();
+  
+      });
     }
-
-  }
-
-
-  // Resolve action
-
-  if ($isInMatchMaker) {
-
-    matchMakerQuit()
-
-  } else {
-
-    const data = getProfileData()
-
-    matchMakerJoin(data.name, data.mech.name, data.mech.setup, data.itemsHash)
 
   }
 
@@ -207,20 +221,20 @@ async function onOnlineBattle (): Promise<void> {
 
 function onOfflineBattle (): void {
 
-  if (!canOfflineBattle) {
+  // if (!canOfflineBattle) {
 
-    addPopup({
-      title: 'Hold on!',
-      message: "Can't play offline battles while searching for an online battle!",
-      mode: 'error',
-      options: {
-        Ok () { this.remove() },
-      }
-    })
+  //   addPopup({
+  //     title: 'Hold on!',
+  //     message: "Can't play offline battles while searching for an online battle!",
+  //     mode: 'error',
+  //     options: {
+  //       Ok () { this.remove() },
+  //     }
+  //   })
 
-    return
+  //   return
 
-  }
+  // }
 
 
   let issue = ''
@@ -307,27 +321,28 @@ function onPickMech (mech: Mech[]): void {
 
 function toggleProfile (): void {
 
-  showProfile = !showProfile
-  pickingOpponent = false
+  showProfile = !showProfile;
+  pickingOpponent = false;
 
   if (!$userData.name) {
     $userData.name = 'Unnamed Pilot';
   }
 
-  const data = getProfileData()
-  const hash = JSON.stringify(data)
+  const data = getProfileData();
+  const hash = JSON.stringify(data);
 
   // If is about to change profile, prepare the
   // current hash to check if it changed later
   if (showProfile) {
-    currentProfileHash = hash
-    return
+    currentProfileHash = hash;
+    return;
   }
   
   // Done changing profile, time to actually
   // check if something changed before updating
   if (hash !== currentProfileHash) {
-    SocketManager.getSocket().emit('profile.update', data)
+    awaitingResponse = true;
+    SocketManager.getSocket().emit('profile.update', data);
   }
 
 }
@@ -339,17 +354,15 @@ function getProfileData (): ProfileData {
     name: $userData.name,
     mech: {
       name: '',
-      setup: []
+      setup: [],
+      hash: '',
     },
-    itemsHash: ''
   }
 
   if ($currentMech) {
-
-    data.mech.name = $currentMech.name
-    data.mech.setup = items2ids($currentMech.setup)
-    data.itemsHash = getItemsHash(data.mech.setup)
-    
+    data.mech.name = $currentMech.name;
+    data.mech.setup = items2ids($currentMech.setup);
+    data.mech.hash = getItemsHash(data.mech.setup);
   }
 
   return data
@@ -357,7 +370,7 @@ function getProfileData (): ProfileData {
 }
 
 
-function getColorForPlayer(player: LobbyPlayer): string {
+function getColorForPlayer(player: LobbyUser): string {
 
   if (player.admin) {
     return 'var(--color-error)'
@@ -377,49 +390,152 @@ function getColorForPlayer(player: LobbyPlayer): string {
 
 const socketAttachment = SocketManager.createAttachment({
 
-  // Statistics
-
-  'lobby.players' (data: { players: LobbyPlayer[] }): void {
-    playersInLobby = data.players
+  'lobby.joinSuccess'(data: { users: LobbyUser[] }): void {
+    users = data.users;
   },
 
-  'lobby.players.joined' (data: { player: LobbyPlayer }): void {
+  'lobby.joinError'(error: { message: string }): void {
+    users = [];
+    addPopup({
+      mode: 'error',
+      title: 'Failed to join lobby!',
+      message: error.message,
+      hideOnOffclick: true,
+    });
+  },
 
-    const index = playersInLobby.findIndex(player => player.id === data.player.id)
+  'lobby.userJoin'(data: { user: LobbyUser }): void {
+
+    const index = users.findIndex(user => user.id === data.user.id);
 
     if (index > -1) {
-      playersInLobby[index] = data.player
+      users[index] = data.user;
     } else {
-      playersInLobby[playersInLobby.length] = data.player
+      users.push(data.user);
+      users = users; // Trigger update
     }
-    
+
   },
 
-  'lobby.players.exited' (data: { id: string }): void {
-    playersInLobby = playersInLobby.filter(player => player.id !== data.id)
+  'lobby.userExit'(data: { id: string }): void {
+    users = users.filter(user => user.id !== data.id);
   },
 
-  'lobby.players.matchmaker' (data: { id: string, isInMatchMaker: boolean }): void {
-    const index = playersInLobby.findIndex(player => player.id === data.id)
-    playersInLobby[index].isInMatchMaker = data.isInMatchMaker
+
+  'lobby.joinMatchMakerSuccess'(): void {
+    $matchMakerState = MatchMakerState.In;
   },
 
-  'profile.update' (data: { id: string, name: string }): void {
-    const index = playersInLobby.findIndex(player => player.id === data.id)
-    playersInLobby[index].name = data.name
+  'lobby.joinMatchMakerError'(error: { message: string }): void {
+    $matchMakerState = MatchMakerState.Out;
+    addPopup({
+      mode: 'error',
+      title: 'Failed to join match maker!',
+      message: error.message,
+      hideOnOffclick: true,
+    });
+  },
+
+  'lobby.exitMatchMakerSuccess'(): void {
+    $matchMakerState = MatchMakerState.Out;
+  },
+
+  'lobby.exitMatchMakerError'(error: { message: string }): void {
+    // Set to false anyway
+    $matchMakerState = MatchMakerState.Out;
+    console.error('Failed to exit match maker: ', error);
+  },
+
+  'lobby.userJoinMatchMaker'(data: { id: string }): void {
+    const index = users.findIndex(user => user.id === data.id);
+    if (index !== -1) {
+      users[index].isMatchMaking = true;
+    }
+  },
+
+  'lobby.userExitMatchMaker'(data: { id: string }): void {
+    const index = users.findIndex(user => user.id === data.id);
+    if (index !== -1) {
+      users[index].isMatchMaking = false;
+    }
+  },
+
+
+  'lobby.verifyOpponent'(data: { setup: number[], hash: string }): void {
+    const valid = matchItemsHash(data.setup, data.hash);
+    console.log({ data, valid });
+    SocketManager.lobbyVerifyOpponent(valid);
+  },
+
+
+  'lobby.startBattle'(data: LobbyBattleStartData): void {
+      
+    $matchMakerState = MatchMakerState.Out;
+  
+    const mechA = new Mech({
+      name: data.a.mech.name,
+      setup: data.a.mech.setup
+    })
+  
+    const mechB = new Mech({
+      name: data.b.mech.name,
+      setup: data.b.mech.setup
+    })
+  
+    $battle = new Battle({
+      online: true,
+      starterID: data.starterID,
+      p1: {
+        id: data.a.id,
+        name: data.a.name,
+        position: data.a.position,
+        mech: mechA,
+        admin: data.a.isAdmin,
+        ai: false,
+      },
+      p2: {
+        id: data.b.id,
+        name: data.b.name,
+        position: data.b.position,
+        mech: mechB,
+        admin: data.b.isAdmin,
+        ai: false,
+      },
+      onUpdate: value => battle.set(value),
+      povPlayerID: SocketManager.getSocket().id,
+    })
+  
+    router.push('/battle');
+  
+  },
+
+
+  'profile.updateSuccess'(): void {
+    awaitingResponse = false;
+  },
+
+  'profile.updateError'(error: { message: string }): void {
+    awaitingResponse = false;
+    addPopup({
+      mode: 'error',
+      title: 'Failed to update profile!',
+      message: error.message,
+      hideOnOffclick: true,
+    });
   },
 
 
   // Connection
 
   'disconnect' (): void {
-    playersInLobby = []
-    isConnected = false
+    users = [];
+    connectionState = ConnectionState.Disconnected;
+    $matchMakerState = MatchMakerState.Out;
   },
 
   'connect' (): void {
-    SocketManager.lobbyJoin()
-    isConnected = true
+    SocketManager.lobbyJoin(getProfileData());
+    connectionState = ConnectionState.Connected;
   }
 
 })
@@ -427,20 +543,24 @@ const socketAttachment = SocketManager.createAttachment({
 
 onMount(() => {
 
-  socketAttachment.attach()
+  socketAttachment.attach();
 
   if (SocketManager.isConnected()) {
-    SocketManager.lobbyJoin()
+    SocketManager.lobbyJoin(getProfileData());
+    connectionState = ConnectionState.Connected;
+  } else {
+    SocketManager.tryToConnectManually();
+    connectionState = ConnectionState.Connecting;
   }
 
 })
 
 onDestroy(() => {
 
-  socketAttachment.detach()
+  socketAttachment.detach();
 
   if (SocketManager.isConnected()) {
-    SocketManager.lobbyExit()
+    SocketManager.lobbyExit();
   }
 
 })
@@ -463,23 +583,30 @@ onDestroy(() => {
 
   <div class="buttons">
 
-    <button
-      class="global-box {canOfflineBattle ? '' : 'global-disabled'}"
-      on:mousedown={onOfflineBattle}
-    >
+    <button class="global-box" on:mousedown={onOfflineBattle}>
       Battle VS Computer
     </button>
 
-    <button
-      class="global-box {$isInMatchMaker ? 'cancel' : ''} {$isWaitingResponse ? 'global-disabled' : ''}"
-      on:mousedown={onOnlineBattle}
-    >
+    <button class="global-box" on:mousedown={onOnlineBattle}>
 
-      {#if $isInMatchMaker}
-        <span>Searching for battle</span>
+      {#if connectionState === ConnectionState.Connected}
+
+        {#if $matchMakerState = MatchMakerState.In}
+          <span>Searching for battle</span>
+          <SvgIcon name="aim" class="spinner" style="margin-left: 0.5em"/>
+        {:else}
+          Online Battle
+        {/if}
+        
+      {:else if connectionState === ConnectionState.Connecting}
+
+        <span>Connecting</span>
         <SvgIcon name="aim" class="spinner" style="margin-left: 0.5em"/>
+
       {:else}
-        Online Battle
+
+        Disconnected
+      
       {/if}
 
     </button>
@@ -496,18 +623,18 @@ onDestroy(() => {
       </button>
     </header>
 
-    {#if isConnected && playersInLobby.length}
+    {#if connectionState === ConnectionState.Connected}
     
       <div class="list-container">
         <ul>
 
-          {#each playersInLobby as player}
+          {#each users as user}
 
-            <li style="color: {getColorForPlayer(player)}">
+            <li style="color: {getColorForPlayer(user)}">
 
-              <span>{player.name}</span>
+              <span>{user.name}</span>
 
-              {#if player.isInMatchMaker}
+              {#if user.isMatchMaking}
                 <SvgIcon name="aim" class="spinner" />
               {/if}
 
@@ -521,7 +648,7 @@ onDestroy(() => {
     {:else}
 
       <div class="center">
-        {#if !isConnected}
+        {#if connectionState === ConnectionState.Disconnected}
 
           <span style="opacity: 0.5">Disconnected</span>
 
@@ -584,6 +711,13 @@ onDestroy(() => {
     />
   {/if}
 
+
+  {#if awaitingResponse}
+    <div class="global-darkscreen">
+      <SvgIcon name="aim" class="spinner" style="height: 2em"/>
+    </div>
+  {/if}
+
 </main>
 
 
@@ -629,10 +763,6 @@ main {
 .buttons button {
   width: 10em;
   height: 2.5em;
-}
-
-.buttons button.cancel {
-  background-color: var(--color-error);
 }
 
 .buttons button.cancel span {

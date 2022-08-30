@@ -16,7 +16,7 @@ import { userData } from '../../stores/userData'
 import { currentMech } from '../../stores/mechs'
 import { getItemByID, items2ids } from '../../items/ItemsManager'
 import { saveMech } from '../../managers/UserDataManager'
-import { isInMatchMaker } from '../../stores/isInMatchMaker'
+import { matchMakerState, MatchMakerState } from '../../stores/matchMakerState'
 
 
 
@@ -264,7 +264,7 @@ function onClickBattle (): void {
   </div>
 
 
-  {#if $isInMatchMaker}
+  {#if $matchMakerState === MatchMakerState.In}
     <div class="match-making-popup-container">
       <MatchMakingPopup />
     </div>

@@ -48,10 +48,20 @@ $: reverse = !!(player && battle && player.id === battle.p2.id);
 
 const socketAttachment = SocketManager.createAttachment({
 
+  'battle.error': (err: any) => {
+    console.log('battle.error:', err);
+  },
+
   'battle.event.confirmation': (action: BattleAction) => {
+
+    if (!battle) {
+      return;
+    }
+
     awaitingMove = false
+
     try {
-      battle!.pushAction(action)
+      battle.pushAction(action)
     } catch (err: any) {
       addPopup({
         title: 'Error!',
@@ -62,6 +72,7 @@ const socketAttachment = SocketManager.createAttachment({
         }
       })
     }
+
   },
 
   'battle.event.error': (err: any) => {
@@ -77,7 +88,7 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
   'battle.opponent.quit': () => {
-    if (battle!.completion === null) {
+    if (battle && battle.completion === null) {
       addPopup({
         title: 'Opponent has quit',
         message: 'They were too afraid!',
@@ -92,7 +103,7 @@ const socketAttachment = SocketManager.createAttachment({
   },
 
   'disconnect': () => {
-    if (battle!.online) {
+    if (battle && battle.online) {
 
       router.pop()
 

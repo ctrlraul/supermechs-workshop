@@ -2,13 +2,13 @@
 
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
-import { push, pop, querystring } from 'svelte-spa-router'
+import { push, querystring } from 'svelte-spa-router'
 import { importItemsPack } from '../items/ItemsManager'
 import { ItemsPackData, itemsPackData } from '../stores'
 import { addPopup } from '../managers/PopupManager'
 import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
 import { userData } from '../stores/userData'
-import { isInMatchMaker } from '../stores/isInMatchMaker'
+import { matchMakerState, MatchMakerState } from '../stores/matchMakerState'
 import { onMount } from 'svelte'
 
 
@@ -209,7 +209,7 @@ onMount(() => {
 
     <div class="buttons">
 
-      {#if !$isInMatchMaker}
+      {#if $matchMakerState !== MatchMakerState.In}
 
         <WideButton
           text="Default"
@@ -237,10 +237,10 @@ onMount(() => {
         <WideButton
           text="Cancel"
           style="background-color: var(--color-error)"
-          on:click={pop}
+          on:click={() => push('/workshop')}
         />
 
-      {:else if $isInMatchMaker}
+      {:else if $matchMakerState === MatchMakerState.In}
 
         How did we get there?
 
