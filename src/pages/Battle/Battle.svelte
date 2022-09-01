@@ -242,13 +242,18 @@ function onQuit (): void {
       style="grid-area: user1"
     />
 
-    <div class="buttons">
-      <button class="classic-box" on:mousedown={() => viewLogs = !viewLogs}>
-        Logs
-      </button>
-      <button class="classic-box" on:mousedown={onQuit}>
-        <SvgIcon name="off" color="var(--color-text)" />
-      </button>
+    <div class="tools">
+      <div class="timer global-box">
+        30
+      </div>
+      <div class="buttons">
+        <button on:mousedown={() => viewLogs = !viewLogs}>
+          Logs
+        </button>
+        <button on:mousedown={onQuit}>
+          <SvgIcon name="off" color="var(--color-text)" />
+        </button>
+      </div>
     </div>
 
     <PlayerBattlePanel
@@ -322,18 +327,33 @@ header {
 }
 
 
-header > .buttons {
+.tools {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-rows: 1fr 2.5em;
   width: 6.5em;
-  justify-content: space-between;
   padding: 0.5em;
-  grid-area: buttons;
+  gap: 0.5em;
+  grid-area: tools;
 }
 
-header > .buttons > button {
-  width: 2.5em;
-  height: 2.5em;
+.tools .timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3em;
+  flex: 1;
+  background-color: #000000;
+  font-weight: 700;
+}
+
+.tools .buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5em;
+}
+
+.tools .buttons button {
   padding: 0.3em;
 }
 
@@ -419,17 +439,6 @@ header > .buttons > button {
       'user1'
       'user2';
     gap: 1em;
-  }
-
-
-  header .buttons {
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
-
-  header .buttons button:first-of-type {
-    margin-right: 0.5em;
   }
 
 }
