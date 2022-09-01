@@ -463,7 +463,6 @@ const socketAttachment = SocketManager.createAttachment({
 
   'lobby.verifyOpponent'(data: { setup: number[], hash: string }): void {
     const valid = matchItemsHash(data.setup, data.hash);
-    console.log({ data, valid });
     SocketManager.lobbyVerifyOpponent(valid);
   },
 
