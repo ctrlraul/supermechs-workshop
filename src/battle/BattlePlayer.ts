@@ -38,7 +38,7 @@ export class BattlePlayer {
     'module5', 'module6', 'module7', 'module8'
   ];
 
-  private static readonly SLOT_NAMES: SlotName[] = [
+  public static readonly SLOT_NAMES: SlotName[] = [
     'torso', 'legs',
     ...this.WEAPON_SLOT_NAMES,
     ...this.UTILS_SLOT_NAMES,

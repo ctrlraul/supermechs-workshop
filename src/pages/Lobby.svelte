@@ -7,7 +7,7 @@ import MechCanvas from '../components/MechCanvas.svelte'
 import MechPicker from '../components/MechPicker.svelte'
 import Header from '../components/Header.svelte'
 import Mech from '../mechs/Mech'
-import { items2ids, getItemsHash, matchItemsHash } from '../items/ItemsManager'
+import { getBattleItem, getItemsHash, items2ids, matchItemsHash } from '../items/ItemsManager'
 import { onDestroy, onMount } from 'svelte'
 import { battle } from '../stores'
 import { userData } from '../stores/userData'
@@ -17,6 +17,7 @@ import { addPopup } from '../managers/PopupManager'
 import { checkSetup } from '../battle/utils'
 import { currentMech, mechs } from '../stores/mechs'
 import { MatchMakerState, matchMakerState } from '../stores/matchMakerState';
+import { BattlePlayer } from '../battle/BattlePlayer';
 
 
 
@@ -27,16 +28,6 @@ interface LobbyUser {
   id: string
   isMatchMaking: boolean
   admin: boolean
-}
-
-
-interface ProfileData {
-  name: string;
-  mech: {
-    name: string;
-    setup: number[];
-    hash: string;
-  }
 }
 
 
@@ -348,21 +339,50 @@ function toggleProfile (): void {
 }
 
 
-function getProfileData (): ProfileData {
+function getProfileData (): SocketManager.ProfileData {
 
-  const data: ProfileData = {
+  const data: SocketManager.ProfileData = {
     name: $userData.name,
     mech: {
       name: '',
-      setup: [],
+      slots: {
+        torso: null,
+        legs: null,
+        sideWeapon1: null,
+        sideWeapon2: null,
+        sideWeapon3: null,
+        sideWeapon4: null,
+        topWeapon1: null,
+        topWeapon2: null,
+        drone: null,
+        chargeEngine: null,
+        teleporter: null,
+        grapplingHook: null,
+        module1: null,
+        module2: null,
+        module3: null,
+        module4: null,
+        module5: null,
+        module6: null,
+        module7: null,
+        module8: null,
+      },
       hash: '',
     },
   }
 
   if ($currentMech) {
+
+    for (const slotID of BattlePlayer.SLOT_NAMES) {
+      const item = $currentMech.slots[slotID];
+      if (item !== null) {
+        data.mech.slots[slotID] = getBattleItem(item, slotID);
+      }
+    }
+
     data.mech.name = $currentMech.name;
-    data.mech.setup = items2ids($currentMech.setup);
-    data.mech.hash = getItemsHash(data.mech.setup);
+    data.mech.hash = getItemsHash(items2ids(Object.values(data.mech.slots)));
+
   }
 
   return data

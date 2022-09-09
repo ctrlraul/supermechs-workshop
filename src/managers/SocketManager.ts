@@ -10,14 +10,15 @@ import { isInProduction } from '../lib/isInProduction';
 // Types
 
 import type { BattleAction } from '../battle/Battle'
+import type { BattlePlayer } from 'src/battle/BattlePlayer'
 
-interface LobbyJoinData {
+export interface ProfileData {
   name: string;
   mech: {
     name: string;
-    setup: number[];
+    slots: BattlePlayer['slots'];
     hash: string;
-  };
+  }
 }
 
 
@@ -232,7 +233,7 @@ export function getSocket (): typeof socket {
 
 // Lobby
 
-export function lobbyJoin (data: LobbyJoinData): void {
+export function lobbyJoin (data: ProfileData): void {
   socket.emit('lobby.join', data);
 }
 
