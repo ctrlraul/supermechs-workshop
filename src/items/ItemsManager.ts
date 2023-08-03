@@ -101,7 +101,7 @@ function filterInvalidItems (items: Item[]) {
   for (const item of items) {
 
     if (!ItemType.hasOwnProperty(item.type)) {
-      issues.push(`${item.name}}: Invalid item type '${item.type}', expected: ${Object.entries(ItemType).join(', ')}`);
+      issues.push(`${item.name}: Invalid item type '${item.type}', expected: ${Object.keys(ItemType).join(', ')}`);
       continue;
     }
 
