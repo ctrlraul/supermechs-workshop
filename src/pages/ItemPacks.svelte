@@ -14,8 +14,8 @@ import { onMount } from 'svelte'
 
 
 // Consts
-// const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/3b5669e4246bc2d7dc669d484db89062/raw'
-const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/22b71089a0dd7fef81e759dfb3dda67b/raw'
+const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/3b5669e4246bc2d7dc669d484db89062/raw'
+//const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/22b71089a0dd7fef81e759dfb3dda67b/raw'
 const discordTag = 'ctrl-raul#9419'
 const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 
