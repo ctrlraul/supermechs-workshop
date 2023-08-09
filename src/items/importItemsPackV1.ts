@@ -133,6 +133,9 @@ function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: Pro
 
   return new Promise(resolve => {
 
+    const textureMissingImage = document.createElement("img")
+    textureMissingImage.src = "assets/images/texture-missing.png"
+
     const result: LoadItemImagesResult = {
       imagesData: [],
       issues: []
@@ -165,6 +168,7 @@ function loadItemImages (baseURL: string, rawItems: RawItemV1[], onProgress: Pro
 
       }).catch(err => {
 
+        result.imagesData.push({ rawItem, image: textureMissingImage })
         result.issues.push(`${rawItem.name}: Failed to load image: ${err.message}`);
 
       }).finally(() => {
