@@ -78,6 +78,9 @@ export const ItemType = {
   TELEPORTER: 'TELEPORTER',
   GRAPPLING_HOOK: 'GRAPPLING_HOOK',
   MODULE: 'MODULE',
+  SHIELD: 'SHIELD',
+  KIT: 'KIT',
+  PERK: 'PERK',
 } as const
 
 
