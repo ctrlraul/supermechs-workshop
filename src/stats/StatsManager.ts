@@ -164,7 +164,7 @@ export function getMechSummary (setup: number[]): Item['stats'] {
   }
 
 
-  if (!ItemsManager.itemsPack?.legacy) {
+  if (ItemsManager.isLegacyPack()) {
 
     // Do health penalty due to overweight
 
@@ -192,7 +192,7 @@ export function getSmartMechSummary (setup: number[]): Item['stats'] {
 
   const mechSummary = getMechSummary(setup);
 
-  if (ItemsManager.itemsPack?.legacy || !get(userData).settings.arenaBuffs) {
+  if (ItemsManager.isLegacyPack() || !get(userData).settings.arenaBuffs) {
     return mechSummary;
   }
 
@@ -222,7 +222,7 @@ export function getBuffedItemStats (id: Item['id']): Item['stats'] {
 /** Returns the item stats with arena buffs applied when enabled */
 export function getSmartItemStats (id: Item['id']): Item['stats'] {
 
-  if (ItemsManager.itemsPack?.legacy || !get(userData).settings.arenaBuffs) {
+  if (ItemsManager.isLegacyPack() || !get(userData).settings.arenaBuffs) {
     return getItemStats(id);
   }
 

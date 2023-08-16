@@ -269,6 +269,11 @@ export function getItemsHash (setup: number[]): string {
 }
 
 
+export function isLegacyPack(): boolean {
+  return assertItemsPackLoaded().legacy;
+}
+
+
 export function matchItemsHash (setup: number[], hash: string): boolean {
 
   const newHash = getItemsHash(setup)
@@ -352,20 +357,30 @@ function importItems(rawItems: RawItem[], spritesMap: SpritesMap) {
 
     if (item.stats.range) {
 
-      if (item.stats.range.length !== 2) {
+      if (item.stats.range.length < 2) {
         issues.push(`${item.name}}: Invalid 'range' stat: Expected two values [min, max]`);
-        continue;
+        item.stats.range.push(item.stats.range[0]);
       }
 
       if (item.stats.range[0] > item.stats.range[1]) {
         issues.push(`${item.name}: Invalid 'range' stat: Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`);
-        continue;
+        item.stats.range.reverse();
       }
 
     }
 
-    item.width = spritesMap[item.id].width;
-    item.height = spritesMap[item.id].height;
+    if (item.name == "Ultra Gladiator") {
+      console.log(spritesMap[item.id])
+    }
+
+    item.width = spritesMap[item.id].naturalWidth;
+    item.height = spritesMap[item.id].naturalHeight;
+
+    // Kinda want this in importItem but the item's
+    // width and height need to be set before this runs
+    if (item.attachment === null) {
+      item.attachment = createSyntheticItemAttachment(item.type, item.width, item.height)
+    }
 
     validItems.push(item);
 
@@ -582,10 +597,6 @@ function importItem (raw: RawItem): Item {
     height: 0,
     
     attachment: raw.attachment || null,
-  }
-
-  if (item.attachment === null) {
-    item.attachment = createSyntheticItemAttachment(item.type, item.width, item.height)
   }
 
   return item
