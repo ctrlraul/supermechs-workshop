@@ -113,7 +113,6 @@ export default interface Item {
   // Graphic
   width: number
   height: number
-  image: Rectangle
   attachment: null | Attachment
 
 }
@@ -150,12 +149,6 @@ export const dummyItem: Item & BattleItem = {
   // Graphic
   width: 0,
   height: 0,
-  image: {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  },
   attachment: null,
 
   // Battle Item

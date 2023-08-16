@@ -2,7 +2,7 @@
 
 import Mech from '../mechs/Mech'
 import Logger from '../utils/Logger'
-import { ids2items, renderItem } from '../items/ItemsManager'
+import * as ItemsManager from '../items/ItemsManager'
 
 
 
@@ -153,13 +153,12 @@ function render (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, itemI
 
 
 function renderPart (ctx: CanvasRenderingContext2D, part: Part): void {
-  renderItem(
+  ItemsManager.renderSprite(
     ctx,
     part.item,
-    part.x * scale,
-    part.y * scale,
-    part.item.width * scale,
-    part.item.height * scale
+    part.x,
+    part.y,
+    scale
   )
 }
 
@@ -168,7 +167,7 @@ function renderPart (ctx: CanvasRenderingContext2D, part: Part): void {
 function createParts (itemIDs: number[]): (Part | null)[] {
 
   // Slice to keep only the items we will use
-  const items = ids2items(itemIDs).slice(0, Mech.DRONE_INDEX + 1)
+  const items = ItemsManager.ids2items(itemIDs).slice(0, Mech.DRONE_INDEX + 1)
 
   // Add second leg
   items.splice(1, 0, items[1])

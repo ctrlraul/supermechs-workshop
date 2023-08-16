@@ -1,9 +1,9 @@
 import rawStatsData from './StatFormats'
+import { get } from 'svelte/store'
 import { cloneDeep } from 'lodash'
-import { getItemByID, ids2items } from '../items/ItemsManager'
+import * as ItemsManager from '../items/ItemsManager'
 import { getBlob } from '../utils/getImageData'
 import { userData } from '../stores/userData'
-import { get } from 'svelte/store'
 
 
 
@@ -141,7 +141,7 @@ export function loadStatImages (): Promise<void> {
 /** Returns mech summary without buffs */
 export function getMechSummary (setup: number[]): Item['stats'] {
 
-  const items = ids2items(setup)
+  const items = ItemsManager.ids2items(setup)
   const summary: Item['stats'] = {
     weight: 0, health: 0, eneCap: 0,
     eneReg: 0, heaCap: 0, heaCol: 0,
@@ -164,11 +164,15 @@ export function getMechSummary (setup: number[]): Item['stats'] {
   }
 
 
-  // Do health penalty due to overweight
+  if (!ItemsManager.itemsPack?.legacy) {
 
-  if (summary.weight as number > WEIGHT_LIMIT) {
-    const overload = summary.weight as number - WEIGHT_LIMIT
-    summary.health = summary.health as number - overload * OVERLOAD_PENALTY
+    // Do health penalty due to overweight
+
+    if (summary.weight as number > WEIGHT_LIMIT) {
+      const overload = summary.weight as number - WEIGHT_LIMIT
+      summary.health = summary.health as number - overload * OVERLOAD_PENALTY
+    }
+
   }
 
 
@@ -179,17 +183,21 @@ export function getMechSummary (setup: number[]): Item['stats'] {
 
 /** Returns buffed mech summary */
 export function getBuffedMechSummary (setup: number[]): Item['stats'] {
-  return getBuffedStats(getMechSummary(setup), true)
+  return getBuffedStats(getMechSummary(setup), true);
 }
 
 
-/** Returns the item stats with arena buffs applied when enabled */
+/** Returns the item stats with arena buffs applied when enabled, if items pack is a legacy pack, it's never buffed */
 export function getSmartMechSummary (setup: number[]): Item['stats'] {
-  return (
-    get(userData).settings.arenaBuffs
-    ? getBuffedMechSummary(setup)
-    : getMechSummary(setup)
-  )
+
+  const mechSummary = getMechSummary(setup);
+
+  if (ItemsManager.itemsPack?.legacy || !get(userData).settings.arenaBuffs) {
+    return mechSummary;
+  }
+
+  return getBuffedStats(mechSummary, true);
+
 }
 
 
@@ -200,7 +208,7 @@ export function getItemStats (id: Item['id']): Item['stats'] {
     throw new Error('0 is not a valid item id')
   }
 
-  return cloneDeep(getItemByID(id)!.stats)
+  return cloneDeep(ItemsManager.getItemByID(id)!.stats)
 
 }
 
@@ -213,11 +221,13 @@ export function getBuffedItemStats (id: Item['id']): Item['stats'] {
 
 /** Returns the item stats with arena buffs applied when enabled */
 export function getSmartItemStats (id: Item['id']): Item['stats'] {
-  return (
-    get(userData).settings.arenaBuffs
-    ? getBuffedItemStats(id)
-    : getItemStats(id)
-  )
+
+  if (ItemsManager.itemsPack?.legacy || !get(userData).settings.arenaBuffs) {
+    return getItemStats(id);
+  }
+
+  return getBuffedItemStats(id);
+
 }
 
 

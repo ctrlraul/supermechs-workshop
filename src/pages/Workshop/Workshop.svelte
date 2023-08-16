@@ -14,7 +14,7 @@ import { getURLQuery } from '../../utils/getURLQuery'
 import { backgroundChanger } from '../../utils/useBackgroundChanger'
 import { userData } from '../../stores/userData'
 import { currentMech } from '../../stores/mechs'
-import { getItemByID, items2ids } from '../../items/ItemsManager'
+import { getItemByID, items2ids, itemsPackStore } from '../../items/ItemsManager'
 import { saveMech } from '../../managers/UserDataManager'
 import { isInMatchMaker } from '../../stores/isInMatchMaker'
 
@@ -29,8 +29,7 @@ import type { MechJSON } from '../../mechs/Mech'
 
 // State
 
-const PATREON_URL = 'https://www.patreon.com/ctrlraul'
-const slotAreas = 'abcdefghijklmnopqrst'
+const slotAreas = 'abcdefghijklumnopqrst'
 
 let focusedSlotConfig: SlotConfig | null = null
 let showDiscordWidget: boolean = false
@@ -145,15 +144,15 @@ function toggleArenaBuffs (): void {
 }
 
 
-function openPatreon (): void {
+// function openPatreon (): void {
 
-  const newWindow = window.open(PATREON_URL, '_blank')
+//   const newWindow = window.open(PATREON_URL, '_blank')
 
-  if (newWindow !== null) {
-    newWindow.focus()
-  }
+//   if (newWindow !== null) {
+//     newWindow.focus()
+//   }
 
-}
+// }
 
 
 function onClickBattle (): void {
@@ -229,13 +228,15 @@ function onClickBattle (): void {
 
   <div class="buttons">
 
-    <button
-      class="global-box {$userData.settings.arenaBuffs ? 'arena-buffs-on' : ''}"
-      on:click={toggleArenaBuffs}
-      use:tooltip={'Toggle arena buffs'}
-    >
-      <SvgIcon name="arena_buffs" />
-    </button>
+    {#if !$itemsPackStore?.legacy}
+      <button
+        class="global-box {$userData.settings.arenaBuffs ? 'arena-buffs-on' : ''}"
+        on:click={toggleArenaBuffs}
+        use:tooltip={'Toggle arena buffs'}
+      >
+        <SvgIcon name="arena_buffs" />
+      </button>
+    {/if}
 
     <button class="global-box" on:click={() => push('/mechs')} use:tooltip={'Mechs Manager'}>
       <SvgIcon name="mech" color="var(--color-text)" />
@@ -253,13 +254,13 @@ function onClickBattle (): void {
       <SvgIcon name="cog" color="var(--color-text)" />
     </button>
 
-    <button class="global-box" on:click={openPatreon} use:tooltip={'Help me continue working on SuperMechs Workshop!'}>
+    <!-- <button class="global-box" on:click={openPatreon} use:tooltip={'Help me continue working on SuperMechs Workshop!'}>
       <SvgIcon name="patreon_logo" color="#FF424D" />
     </button>
 
     <button class="global-box" on:click={() => showDiscordWidget = !showDiscordWidget} use:tooltip={'Give suggestions or report bugs in the Discord server!'}>
       <SvgIcon name="discord_logo" />
-    </button>
+    </button> -->
 
   </div>
 
@@ -297,7 +298,7 @@ main {
   grid-template-areas:
     'slots mech'
     'slots summary';
-  grid-template-rows: 1fr 8em;
+  grid-template-rows: 1fr 9em;
   grid-template-columns: 16em 1fr;
   max-height: var(--content-height);
   max-width: var(--content-width);
@@ -310,12 +311,12 @@ main {
   position: relative;
   display: grid;
   grid-template-rows: 3fr 3fr 3fr 2fr 2fr 2fr;
-  grid-template-columns: 25fr 8fr 13.5fr 13.5fr 8fr 25fr;
+  grid-template-columns: 25fr 6fr 15.5fr 15.5fr 6fr 25fr;
   grid-template-areas:
     'a a b b c c'
     'd d e e f f'
     'g g h h i i'
-    'j j k k l l'
+    'j k k l l u'
     'm n n o o p'
     'q r r s s t';
   gap: 0.5em;
@@ -394,13 +395,15 @@ main {
     position: absolute;
     bottom: 0;
     height: 30%;
-    grid-template-rows: 3fr 3fr 2fr;
-    grid-template-columns: 25fr 8fr 12fr 12fr 8fr 25fr 25fr 8fr 12fr 12fr 8fr 25fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-columns: 16.6fr 16.6fr 16.6fr 12.5fr 12.5fr 12.5fr 12.5fr;
     grid-template-areas:
-      'd d e e f f a a b b c c'
-      'g g h h i i j j k k l l'
-      'm n n o o p q r r s s t';
+      'a b c j k l u'
+      'd e f m n o p'
+      'g h i q r s t';
   }
+
+  
 
 
   .mech-summary-container {
@@ -419,7 +422,7 @@ main {
 
   .mech-container {
     position: absolute;
-    bottom: calc(30% + 8.25em);
+    bottom: calc(30% + 8.75em);
     height: 50%;
   }
 

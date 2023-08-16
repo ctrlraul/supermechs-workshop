@@ -1,17 +1,19 @@
 <script lang="ts">
 
 export let value: boolean
+export let disabled: boolean = false
 export let onToggle: (value: boolean) => void
 
 </script>
 
 
 
-<div class="toggle">
+<div class="toggle {disabled ? "disabled" : ""}">
 
   <input
     type="checkbox"
     checked={value}
+    disabled={disabled}
     on:change={() => onToggle(!value)}
   >
 
@@ -64,6 +66,10 @@ export let onToggle: (value: boolean) => void
 .toggle input[type="checkbox"]:checked ~ .thumb {
   left: 50%;
   background-color: var(--color-success);
+}
+
+.disabled input[type="checkbox"] {
+  cursor: not-allowed;
 }
 
 </style>

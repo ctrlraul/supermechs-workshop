@@ -1,16 +1,8 @@
 
 // Types
 
+import type { SlotName } from 'src/mechs/Mech'
 import type Item from '../../items/Item'
-
-
-export type SlotName = (
-  'torso'       | 'legs'         | 'sideWeapon1' | 'sideWeapon2'   |
-  'sideWeapon3' | 'sideWeapon4'  | 'topWeapon1'  | 'topWeapon2'    |
-  'drone'       | 'chargeEngine' | 'teleporter'  | 'grapplingHook' |
-  'module1'     | 'module2'      | 'module3'     | 'module4'       |
-  'module5'     | 'module6'      | 'module7'     | 'module8'
-)
 
 export type SlotConfig = {
   name: SlotName
@@ -34,6 +26,7 @@ export const SLOTS_CONFIG: SlotConfig[] = [
   { name: 'sideWeapon2',   type: 'SIDE_WEAPON', rtl: true },
   { name: 'chargeEngine',  type: 'CHARGE_ENGINE' },
   { name: 'teleporter',    type: 'TELEPORTER' },
+  { name: 'shield',        type: 'SHIELD' },
   { name: 'grapplingHook', type: 'GRAPPLING_HOOK' },
   { name: 'module1',       type: 'MODULE' },
   { name: 'module2',       type: 'MODULE' },

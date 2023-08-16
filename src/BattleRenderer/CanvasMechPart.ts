@@ -1,5 +1,5 @@
-import { CanvasImage, CanvasObject } from '../CanvasRenderer'
-import { itemsPackData } from '../stores'
+import { CanvasObject } from '../CanvasRenderer'
+import * as ItemsManager from '../items/ItemsManager'
 
 
 
@@ -8,20 +8,6 @@ import { itemsPackData } from '../stores'
 import type Item from '../items/Item'
 
 type PartName = 'torso' | 'leg1' | 'leg2' | 'side1' | 'side2' | 'side3' | 'side4' | 'top1' | 'top2' | 'drone'
-
-
-
-// Data
-
-let spritesSheet: CanvasImage = new CanvasImage('https://dummyimage.com/360x360/ff00ff/fff')
-
-itemsPackData.subscribe(value => {
-  if (value) {
-    spritesSheet = new CanvasImage({
-      image: value.spritesSheet
-    })
-  }
-})
 
 
 
@@ -44,7 +30,7 @@ export class CanvasMechPart extends CanvasObject {
     this.width = item.width
     this.height = item.height
 
-    this.setImage(spritesSheet, item.image)
+    // this.setImage(ItemsManager.spritesSheet, item.image)
 
   }
 

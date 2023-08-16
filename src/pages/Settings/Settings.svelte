@@ -6,6 +6,7 @@ import { UserData, userData } from '../../stores/userData'
 import { push } from 'svelte-spa-router'
 import { isInMatchMaker, isWaitingResponse } from '../../stores/isInMatchMaker'
 import { addPopup } from '../../managers/PopupManager'
+// import { itemsPackStore } from '../../items/ItemsManager';
 
 
 
@@ -15,6 +16,7 @@ interface ToggleConfig {
   label: string
   key: keyof UserData['settings']
   description: string
+  // disabled(): boolean
 }
 
 
@@ -24,19 +26,23 @@ interface ToggleConfig {
 const togglesConfig: ToggleConfig[] = [{
   label: 'Arena buffs',
   key: 'arenaBuffs' as keyof UserData['settings'],
-  description: 'Apply arena buffs to items and mechs\nNote: This is always active in battle'
+  description: 'Apply arena buffs to item and mech stats<br><br>Note: Always off for legacy item packs, otherwise always on in battles',
+  // disabled: () => !!$itemsPackStore?.legacy,
 }, {
   label: 'Advanced damage display',
   key: 'advancedDamageDisplay' as keyof UserData['settings'],
-  description: 'Show average damage and damage spread instead of raw item damage in item stats'
+  description: 'Show average damage and damage spread instead of raw item damage in item stats',
+  // disabled: () => !!$itemsPackStore?.legacy,
 }, {
   label: 'Control computer\'s mech',
   key: 'controlOfflineOpponent' as keyof UserData['settings'],
-  description: 'Control both mechs in battles versus computer'
+  description: 'Control both mechs in battles versus computer',
+  // disabled: () => false,
 }, {
   label: 'Items pack auto-load',
   key: 'automaticallyLoadLastItemsPack' as keyof UserData['settings'],
-  description: 'Automatically load the last items pack you used\nNote: Only packs loaded from links can be auto-loaded'
+  description: 'Automatically load the last items pack you used<br><br>Note: Only the default and packs loaded from links can be auto-loaded',
+  // disabled: () => false,
 }]
 
 
@@ -72,12 +78,13 @@ function onClickChangeItemsPack (): void {
   <ul>
 
     {#each togglesConfig as config}
-      <li class="global-box">
+      <li class="global-box {false ? "disabled" : ""}">
 
         <header>
           <Toggle
             value={$userData.settings[config.key]}
             onToggle={value => $userData.settings[config.key] = value}
+            disabled={false}
           />
 
           <span>{config.label}</span>
@@ -85,9 +92,13 @@ function onClickChangeItemsPack (): void {
 
         <div class="description-container">
           <div class="description">
-            {config.description}
+            {@html config.description}
           </div>
         </div>
+
+        {#if false}
+          <div class="disabled-cover"></div>
+        {/if}
 
       </li>
     {/each}
@@ -141,7 +152,7 @@ li {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 7.5em;
+  height: 10em;
   padding: 0.5em;
 }
 
@@ -178,6 +189,11 @@ li button {
   width: 100%;
   justify-content: start;
   padding: inherit;
+}
+
+
+.disabled {
+  opacity: 0.5;
 }
 
 

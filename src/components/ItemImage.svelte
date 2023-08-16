@@ -1,7 +1,7 @@
 <script lang="ts">
 
 import { onMount } from 'svelte'
-import { BattleItem, getItemByID, renderItem } from '../items/ItemsManager'
+import * as ItemsManager from '../items/ItemsManager'
 
 
 
@@ -13,11 +13,11 @@ import type Item from '../items/Item'
 
 // State
 
-export let item: Item | BattleItem
+export let item: Item | ItemsManager.BattleItem
 
 let canvas: HTMLCanvasElement
 
-$: usableItem = getItemByID(item.id)
+$: usableItem = ItemsManager.getItemByID(item.id)
 $: {
   if (usableItem) {
     updateImage(usableItem);
@@ -33,7 +33,7 @@ function updateImage (item: Item) {
     const ctx = canvas.getContext('2d')!
     canvas.width = item.width
     canvas.height = item.height
-    renderItem(ctx, item, 0, 0, item.width, item.height)
+    ItemsManager.renderSprite(ctx, item);
   }
 }
 

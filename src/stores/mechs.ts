@@ -1,8 +1,8 @@
 import { get, writable } from 'svelte/store'
 import Mech from '../mechs/Mech'
 import { UserData, userData as userDataStore } from './userData'
-import { ItemsPackData, itemsPackData as itemsPackDataStore } from '../stores'
 import { createMechForCurrentPack } from '../managers/UserDataManager'
+import * as ItemsManager from '../items/ItemsManager'
 
 
 
@@ -15,17 +15,17 @@ export const currentMech = writable<Mech | null>(null)
 
 // Functions
 
-function updateMechs (userData: UserData, itemsPackData: ItemsPackData | null): void {
+function updateMechs (userData: UserData, itemsPack: ItemsManager.ItemsPack | null): void {
 
-  if (itemsPackData === null) {
+  if (!itemsPack) {
     mechs.set([])
     return
   }
 
   // Check if has mechs saved for this pack
-  if (itemsPackData.key in userData.mechs) {
+  if (itemsPack.key in userData.mechs) {
 
-    const mechJSONsData = userData.mechs[itemsPackData.key]
+    const mechJSONsData = userData.mechs[itemsPack.key]
     const mechsList = Object.values(mechJSONsData).map(json => new Mech(json))
 
     const mech = mechsList.find(mech => mech.id === userData.currentMechID)
@@ -37,7 +37,7 @@ function updateMechs (userData: UserData, itemsPackData: ItemsPackData | null): 
 
     const mech = createMechForCurrentPack(false)
 
-    userData.mechs[itemsPackData.key] = {
+    userData.mechs[itemsPack.key] = {
       [mech.id]: mech.toJSONModel()
     }
 
@@ -49,7 +49,6 @@ function updateMechs (userData: UserData, itemsPackData: ItemsPackData | null): 
 }
 
 
-
-// Automatically update whenever userData or itemsPackData changes
-userDataStore.subscribe(value => updateMechs(value, get(itemsPackDataStore)))
-itemsPackDataStore.subscribe(value => updateMechs(get(userDataStore), value))
+// Automatically update whenever user data or items pack changes
+userDataStore.subscribe(value => updateMechs(value, get(ItemsManager.itemsPackStore)));
+ItemsManager.itemsPackStore.subscribe(value => updateMechs(get(userDataStore), value));

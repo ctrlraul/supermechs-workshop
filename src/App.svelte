@@ -10,7 +10,7 @@ import Tooltip from './components/Tooltip/Tooltip.svelte'
 import SvgIcon from './components/SvgIcon/SvgIcon.svelte'
 import PatreonNotification from './components/PatreonNotification.svelte'
 import { onMount } from 'svelte'
-import { itemsPackData } from './stores'
+import { itemsPackStore } from './items/ItemsManager';
 import { loadStatImages } from './stats/StatsManager'
 import { isInProduction } from './lib/isInProduction';
 
@@ -35,10 +35,7 @@ import type { RouteDefinition } from 'svelte-spa-router'
 
 // Data
 
-const MINUTES_BEFORE_PATREON_NOTIFICATION = 60
-
 let didLoadStats = false
-let showPatreonNotification = false
 
 
 const routes: RouteDefinition = {
@@ -91,17 +88,13 @@ onMount(async () => {
   SocketManager.init()
   IsInMatchMaker.init()
 
-  setTimeout(() => {
-    showPatreonNotification = true
-  }, MINUTES_BEFORE_PATREON_NOTIFICATION * 60000)
-
 })
 
 
 
 function itemsPackLoaded (): boolean {
 
-  if ($itemsPackData !== null) {
+  if ($itemsPackStore !== null) {
     return true
   }
 
@@ -112,7 +105,7 @@ function itemsPackLoaded (): boolean {
 
 function conditionsFailed () {
 
-  if ($itemsPackData) {
+  if ($itemsPackStore) {
 
     replace('/workshop')
 
@@ -141,10 +134,6 @@ function conditionsFailed () {
   <div class="pages">
     <Router routes={routes} on:conditionsFailed={conditionsFailed}/>
   </div>
-
-  {#if showPatreonNotification && Math.random() === 0}
-    <PatreonNotification onHide={() => showPatreonNotification = false} />
-  {/if}
 
 {:else}
   <div class="loading">

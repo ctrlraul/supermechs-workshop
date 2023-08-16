@@ -67,6 +67,8 @@ function onRename (e: Event): void {
   justify-content: center;
   flex-direction: column;
   padding: 0.5em;
+  margin-bottom: 0.5em;
+  align-self: end;
 }
 
 

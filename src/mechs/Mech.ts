@@ -18,6 +18,7 @@ export type SlotName = (
   'torso'       | 'legs'         | 'sideWeapon1' | 'sideWeapon2'   |
   'sideWeapon3' | 'sideWeapon4'  | 'topWeapon1'  | 'topWeapon2'    |
   'drone'       | 'chargeEngine' | 'teleporter'  | 'grapplingHook' |
+  'shield'      |
   'module1'     | 'module2'      | 'module3'     | 'module4'       |
   'module5'     | 'module6'      | 'module7'     | 'module8'
 )
@@ -50,6 +51,7 @@ export default class Mech {
   static readonly MODULE_6_INDEX = 17
   static readonly MODULE_7_INDEX = 18
   static readonly MODULE_8_INDEX = 19
+  static readonly SHIELD_INDEX = 20
 
 
   static from (mech: Mech): Mech {
@@ -76,7 +78,7 @@ export default class Mech {
     drone: null,
     chargeEngine: null,
     teleporter: null,
-    grapplingHook:null,
+    grapplingHook: null,
     module1: null,
     module2: null,
     module3: null,
@@ -85,6 +87,7 @@ export default class Mech {
     module6: null,
     module7: null,
     module8: null,
+    shield: null,
   }
 
 
@@ -107,6 +110,7 @@ export default class Mech {
     this.slots.drone = items[Mech.DRONE_INDEX]
     this.slots.chargeEngine = items[Mech.CHARGE_INDEX]
     this.slots.teleporter = items[Mech.TELEPORTER_INDEX]
+    this.slots.shield = items[Mech.SHIELD_INDEX]
     this.slots.grapplingHook = items[Mech.HOOK_INDEX]
     this.slots.module1 = items[Mech.MODULE_1_INDEX]
     this.slots.module2 = items[Mech.MODULE_2_INDEX]

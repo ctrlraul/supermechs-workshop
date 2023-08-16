@@ -9,9 +9,8 @@ import SvgIcon from '../components/SvgIcon/SvgIcon.svelte'
 import MechCanvas from '../components/MechCanvas.svelte'
 import MechSummary from '../components/MechSummary.svelte'
 import MechPicker from '../components/MechPicker.svelte'
-import { itemsPackData } from '../stores'
 import { currentMech, mechs } from '../stores/mechs'
-import { items2ids } from '../items/ItemsManager'
+import { items2ids, itemsPackStore } from '../items/ItemsManager'
 
 
 
@@ -164,7 +163,7 @@ function onSetActive (mech: Mech): void {
   </div>
 
   <div class="pack-info">
-    <div>Pack: {$itemsPackData !== null ? $itemsPackData.name : '[No Items Pack loaded!]'}</div>
+    <div>Pack: {$itemsPackStore !== null ? $itemsPackStore.name : '[No Items Pack loaded!]'}</div>
     <div>Mechs: {$mechs.length}</div>
   </div>
 

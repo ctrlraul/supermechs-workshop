@@ -1,9 +1,8 @@
 import Mech from '../mechs/Mech'
 import downloadJSON from '../utils/downloadJSON'
-import { itemsPackData as itemsPackDataStore } from '../stores'
 import { userData as userDataStore} from '../stores/userData'
 import { get } from 'svelte/store'
-import { items2ids } from '../items/ItemsManager'
+import * as ItemsManager from '../items/ItemsManager'
 
 
 
@@ -33,21 +32,21 @@ export function setCurrentMechID (id: string): void {
 
 export function deleteMechInCurrentPackByID (mechID: string): void {
 
-  const itemsPackData = get(itemsPackDataStore)
-
-  if (itemsPackData === null) {
-    throw new Error('No items pack loaded')
-  }
-
   userDataStore.update(userData => {
 
-    if (mechID in userData.mechs[itemsPackData.key]) {
+    const itemsPack = get(ItemsManager.itemsPackStore);
 
-      delete userData.mechs[itemsPackData.key][mechID]
+    if (itemsPack === null) {
+      throw new Error('No items pack loaded')
+    }
+
+    if (mechID in userData.mechs[itemsPack.key]) {
+
+      delete userData.mechs[itemsPack.key][mechID]
 
       // If there are no more mechs with this pack key, delete the pack data
-      if (Object.keys(userData.mechs[itemsPackData.key]).length === 0) {
-        delete userData.mechs[itemsPackData.key]
+      if (Object.keys(userData.mechs[itemsPack.key]).length === 0) {
+        delete userData.mechs[itemsPack.key]
       }
 
     } else {
@@ -67,14 +66,14 @@ export function deleteMechInCurrentPackByID (mechID: string): void {
 
 export function createMechForCurrentPack (save = true): Mech {
 
-  const itemsPackData = get(itemsPackDataStore)
+  const itemsPack = get(ItemsManager.itemsPackStore);
 
-  if (itemsPackData === null) {
+  if (itemsPack === null) {
     throw new Error('No items pack loaded')
   }
 
   const mech = new Mech({
-    pack_key: itemsPackData.key,
+    pack_key: itemsPack.key,
     name: 'Unnamed Mech',
   })
 
@@ -116,7 +115,7 @@ export function exportMechs (mechs: Mech[]): void {
 
     const mechExportData: MechsExportJSON['mechs'][string][0] = {
       name: mech.name,
-      setup: items2ids(mech.getItems())
+      setup: ItemsManager.items2ids(mech.getItems())
     }
 
     if (!(mech.packKey in mechsExportJson.mechs)) {
@@ -201,7 +200,7 @@ export function hasMech (mech: Mech): boolean {
     return false
   }
 
-  const setup = items2ids(mech.getItems())
+  const setup = ItemsManager.items2ids(mech.getItems())
 
   return Object.values(data[mech.packKey]).some(json => {
     return json.setup.every((itemID, i) => itemID === setup[i])

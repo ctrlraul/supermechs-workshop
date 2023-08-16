@@ -1,15 +1,10 @@
-// TODO: filterInvalidItems should have more in-depht checks
-
-
-
+import potpack from 'potpack'
 import Logger from '../utils/Logger'
-import { importItemsPackV1 } from './importItemsPackV1'
-import { importItemsPackV2 } from './importItemsPackV2'
+import { loadImage } from '../utils/loadImage'
 import { cloneDeep } from 'lodash'
-import { getBuffedItemStats } from '../stats/StatsManager'
-import { itemsPackData as itemsPackDataStore, ItemsPackData } from '../stores'
+import { getBuffedItemStats, getItemStats } from '../stats/StatsManager'
 import { sha256 } from 'hash.js'
-import { get } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import { ItemType } from './Item'
 
 
@@ -17,13 +12,10 @@ import { ItemType } from './Item'
 // Types
 
 import type Item from './Item'
-import type { ItemsPackV1 } from './importItemsPackV1'
-import type { ItemsPackV2 } from './importItemsPackV2'
 import type { AttachmentPoint, TorsoAttachment } from './Item'
 import type { SlotName } from '../mechs/Mech'
 
 
-export type ItemsPack = ItemsPackV1 | ItemsPackV2
 export type ProgressListener = (progress: number) => void
 
 
@@ -39,100 +31,122 @@ export interface BattleItem {
   timesUsed: number
 }
 
+export interface ItemsPackImportResult {
+  itemsPack: ItemsPack;
+  renderSprite: typeof renderSprite;
+}
 
+export interface ItemsPack {
+  name: string;
+  description: string;
+  key: string;
+  items: Item[];
+  legacy: boolean;
+  issues: string[];
+}
 
 type MechSetup = (Item | null)[];
 
+export interface RawItem {
 
+  id: Item['id']
 
-// Stuff
+  // Meta
+  name: Item['name']
+  transform_range: Item['transformRange']
+  unlock_level?: Item['unlockLevel']
+  gold_price?: Item['goldPrice']
+  tokens_price?: Item['tokensPrice']
 
-const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED']
-const logger = new Logger()
+  // Stats
+  type: Item['type']
+  element?: Item['element']
+  stats: Item['stats']
+  tags?: (keyof Item['tags'])[]
+  
+  // Graphic
+  width?: number
+  height?: number
 
-
-
-// Methods
-
-export async function importItemsPack (url: string, onProgress: (progress: number) => void): Promise<ItemsPackData> {
-
-  const response = await fetch(url)
-  const itemsPack = await response.json()
-  const itemsPackData = await useCorrectImportFunction(itemsPack as unknown as ItemsPack, onProgress)
-  const filterResult = filterInvalidItems(itemsPackData.items)
-
-  itemsPackData.items = filterResult.items
-  itemsPackData.issues.push(...filterResult.issues)
-
-  return itemsPackData
+  /** URL */
+  image: string
+  attachment?: Item['attachment']
 
 }
 
+export type SpriteHandlingMethod = "spritessheet" | "individual"
 
-async function useCorrectImportFunction (itemsPack: ItemsPack, onProgress: (progress: number) => void) {
+export interface RawItemsPack {
+  name: string
+  description: string
+  key: string
+  base_url: string
+  legacy: boolean
+  sprite_handling_method: SpriteHandlingMethod
+  items: RawItem[]
+}
 
-  switch (itemsPack.version) {
+type SpritesMap = { [id: Item['id']]: HTMLImageElement };
 
-    case '1':
-      logger.log('Importing items pack version 1')
-      return await importItemsPackV1(itemsPack, onProgress)
-    
-    case '2':
-      logger.log('Importing items pack version 2')
-      return await importItemsPackV2(itemsPack, onProgress)
-    
-    default:
-      logger.warn(`Items pack version missing or unknown (${itemsPack.version}). Importing as version 1`)
-      return await importItemsPackV1(itemsPack, onProgress)
-    
+interface LoadItemImagesResult {
+  spritesMap: SpritesMap;
+  issues: string[]
+}
+
+
+
+const DEFAULT_SPRITE_HANDLING_METHOD: SpriteHandlingMethod = 'spritessheet'
+export const itemsPackStore = writable<ItemsPack | null>(null);
+export const rawItemsPackStore = writable<RawItemsPack | null>(null);
+const logger = new Logger("Items Manager");
+
+let _renderSprite: (ctx: CanvasRenderingContext2D, item: Item, x?: number, y?: number, scale?: number) => void;
+
+
+
+export async function importItemsPack (url: string, onProgress: (progress: number) => void) {
+
+  const response = await fetch(url);
+  const data = await response.json();
+  const rawItemsPack = parseRawItemsPack(data);
+
+  rawItemsPackStore.set(rawItemsPack);
+
+  const loadItemImagesResult = await loadItemImages(
+    rawItemsPack.base_url,
+    rawItemsPack.items,
+    progress => onProgress(progress / 1.01)
+  );
+
+  const importItemsResult = importItems(
+    rawItemsPack.items,
+    loadItemImagesResult.spritesMap
+  );
+
+  const itemsPack: ItemsPack = {
+    name: rawItemsPack.name,
+    description: rawItemsPack.description,
+    key: rawItemsPack.key,
+    legacy: rawItemsPack.legacy,
+    items: importItemsResult.items,
+    issues: [
+      ...loadItemImagesResult.issues,
+      ...importItemsResult.issues
+    ],
   }
 
-}
+  logger.log("Items Pack:", itemsPack);
 
+  _renderSprite = getRenderSpriteMethod(
+    rawItemsPack.sprite_handling_method,
+    loadItemImagesResult.spritesMap,
+  );
 
-function filterInvalidItems (items: Item[]) {
+  onProgress(1);
 
-  const issues: string[] = [];
-  const validItems: Item[] = [];
+  itemsPackStore.set(itemsPack);
+  rawItemsPackStore.set(null);
 
-  // Sort items by element (btw this inverts the list order and that isn't desired)
-  items.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1);
-
-  for (const item of items) {
-
-    if (!ItemType.hasOwnProperty(item.type)) {
-      issues.push(`${item.name}: Invalid item type '${item.type}', expected: ${Object.keys(ItemType).join(', ')}`);
-      continue;
-    }
-
-    if (item.stats.range) {
-
-      if (item.stats.range.length !== 2) {
-        issues.push(`${item.name}}: Invalid 'range' stat: Expected two values [min, max]`);
-        continue;
-      }
-
-      if (item.stats.range[0] > item.stats.range[1]) {
-        issues.push(`${item.name}: Invalid 'range' stat: Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`);
-        continue;
-      }
-
-    }
-
-    validItems.push(item);
-
-  }
-
-  return {
-    issues,
-    items: validItems,
-  };
-
-}
-
-
-export function getItemsPackData () {
-  return get(itemsPackDataStore)
 }
 
 
@@ -141,28 +155,15 @@ export function items2ids (items: (Item | BattleItem | null)[]): number[] {
 }
 
 
-function assertItemsPackDataLoaded (): ItemsPackData {
-
-  const itemsPackData = getItemsPackData()!
-
-  if (getItemsPackData() === null) {
-    throw new Error(`No items pack data loaded`)
-  }
-
-  return itemsPackData
-
-}
-
-
 export function ids2items (ids: Item['id'][]): MechSetup {
-  const itemsPackData = assertItemsPackDataLoaded()
-  return ids.map(id => itemsPackData.items.find(item => item.id === id) || null)
+  const itemsPack = assertItemsPackLoaded()
+  return ids.map(id => itemsPack.items.find(item => item.id === id) || null)
 }
 
 
 export function getItemsByType (type: Item['type']): Item[] {
-  const itemsPackData = assertItemsPackDataLoaded()
-  return itemsPackData.items.filter(item => item.type === type)
+  const itemsPack = assertItemsPackLoaded()
+  return itemsPack.items.filter(item => item.type === type)
 }
 
 
@@ -172,8 +173,8 @@ export function getItemByID (id: Item['id']): Item | null {
     return null
   }
 
-  const itemsPackData = assertItemsPackDataLoaded()
-  const item = itemsPackData.items.find(item => item.id === id)
+  const itemsPack = assertItemsPackLoaded()
+  const item = itemsPack.items.find(item => item.id === id)
 
   if (item === undefined) {
     return null
@@ -223,6 +224,11 @@ export function getBattleItems (setup: number[], throwIfInvalid = true): (Battle
 }
 
 
+export function renderSprite(ctx: CanvasRenderingContext2D, item: Item, x?: number, y?: number, scale?: number): void {
+  assertItemsPackLoaded();
+  _renderSprite(ctx, item, x, y, scale);
+}
+
 
 export function getBattleItem (item: Item, slotName: SlotName, throwIfInvalid?: boolean): BattleItem;
 export function getBattleItem (itemdID: Item['id'], slotName: SlotName, throwIfInvalid?: boolean): BattleItem | null;
@@ -235,37 +241,20 @@ export function getBattleItem (value: Item | Item['id'] | null, slotName: SlotNa
     return null
   }
 
+  const buffStats = assertItemsPackLoaded().legacy;
+
   const battleItem: BattleItem = {
     slotName,
     element: item.element,
     id: item.id,
     name: item.name,
-    stats: getBuffedItemStats(item.id), // Battle items always buffed
+    stats: buffStats ? getBuffedItemStats(item.id) : getItemStats(item.id), // Battle items always buffed
     tags: cloneDeep(item.tags),
     timesUsed: 0,
     type: item.type,
   }
 
   return battleItem
-
-}
-
-
-export function renderItem (ctx: CanvasRenderingContext2D, item: Item, x: number, y: number, width: number, height: number): void {
-
-  const { spritesSheet } = assertItemsPackDataLoaded()
-
-  ctx.drawImage(
-    spritesSheet,
-    item.image.x,
-    item.image.y,
-    item.image.width,
-    item.image.height,
-    x,
-    y,
-    width, 
-    height
-  )
 
 }
 
@@ -289,7 +278,7 @@ export function matchItemsHash (setup: number[], hash: string): boolean {
 }
 
 
-export function createSyntheticItemAttachment (type: Item['type'], width: number, height: number): TorsoAttachment | AttachmentPoint | null {
+function createSyntheticItemAttachment (type: Item['type'], width: number, height: number): TorsoAttachment | AttachmentPoint | null {
 
   switch (type) {
 
@@ -331,7 +320,7 @@ export function createSyntheticItemAttachment (type: Item['type'], width: number
 }
 
 
-export function getItemKindString (type: Item['type'], element?: Item['element']): string {
+function getItemKindString (type: Item['type'], element?: Item['element']): string {
 
   const words: string[] = [...type.split('_')];
 
@@ -344,4 +333,293 @@ export function getItemKindString (type: Item['type'], element?: Item['element']
   });
 
   return words.join(' ');
+}
+
+
+function importItems(rawItems: RawItem[], spritesMap: SpritesMap) {
+
+  const allItems = rawItems.map(importItem);
+  const itemElements = ['PHYSICAL', 'EXPLOSIVE', 'ELECTRIC', 'COMBINED'];
+  const issues: string[] = [];
+  const validItems: Item[] = [];
+
+  for (const item of allItems) {
+
+    if (!ItemType.hasOwnProperty(item.type)) {
+      issues.push(`${item.name}: Invalid item type '${item.type}', expected: ${Object.keys(ItemType).join(', ')}`);
+      continue;
+    }
+
+    if (item.stats.range) {
+
+      if (item.stats.range.length !== 2) {
+        issues.push(`${item.name}}: Invalid 'range' stat: Expected two values [min, max]`);
+        continue;
+      }
+
+      if (item.stats.range[0] > item.stats.range[1]) {
+        issues.push(`${item.name}: Invalid 'range' stat: Min range (${item.stats.range[0]}) is greater than max range (${item.stats.range[1]})`);
+        continue;
+      }
+
+    }
+
+    item.width = spritesMap[item.id].width;
+    item.height = spritesMap[item.id].height;
+
+    validItems.push(item);
+
+  }
+
+  // Sort items by element (btw this inverts the list order and that isn't desired)
+  validItems.sort((a, b) => itemElements.indexOf(a.element) > itemElements.indexOf(b.element) ? 1 : -1);
+
+  return {
+    issues,
+    items: validItems,
+  };
+
+}
+
+
+function assertItemsPackLoaded(): ItemsPack {
+
+  const itemsPack = get(itemsPackStore);
+
+  if (itemsPack === null) {
+    throw new Error(`No items pack loaded`);
+  }
+
+  return itemsPack;
+
+}
+
+
+function parseRawItemsPack(source: any): RawItemsPack {
+
+  const checked = source;//ItemsPackTy.assert(source);
+  const oldBaseURL = 'https://raw.githubusercontent.com/ctrl-raul/workshop-unlimited/master/items/'
+  const newBaseURL = 'https://raw.githubusercontent.com/ctrlraul/supermechs-item-images/master/png/'
+
+  let pack: RawItemsPack;
+
+  if ('config' in checked) {
+    pack = {
+      items: checked.items,
+      legacy: !!checked.legacy,
+      sprite_handling_method: checked.sprite_handling_method || DEFAULT_SPRITE_HANDLING_METHOD,
+
+      ...checked.config,
+    }
+  } else {
+    pack = {
+      items: checked.items,
+      legacy: !!checked.legacy,
+      sprite_handling_method: checked.sprite_handling_method || DEFAULT_SPRITE_HANDLING_METHOD,
+      
+      // Config
+      key: checked.key,
+      base_url: checked.base_url,
+      description: checked.description,
+      name: checked.name,
+    }
+  }
+
+  if (pack.base_url == oldBaseURL) {
+    pack.base_url = newBaseURL;
+  }
+
+  return pack;
+
+}
+
+
+function getRenderSpriteMethod(handlingMethod: SpriteHandlingMethod, spritesMap: SpritesMap): ItemsPackImportResult['renderSprite'] {
+
+  switch(handlingMethod) {
+
+    case 'spritessheet': {
+      const { spritesSheet, boxesMap } = createSpritesSheet(spritesMap);
+      return (ctx, item, x = 0, y = 0, scale = 1) => {
+        const box = boxesMap[item.id];
+        ctx.drawImage(spritesSheet, box.x, box.y, box.w, box.h, x, y, item.width * scale, item.height * scale);
+      };
+    }
+    
+    case 'individual': {
+      return (ctx, item, x = 0, y = 0, scale = 1) => {
+        ctx.drawImage(spritesMap[item.id], x, y, item.width * scale, item.height * scale);
+      };
+    }
+
+  }
+
+}
+
+
+function createSpritesSheet(spritesMap: LoadItemImagesResult['spritesMap']) {
+
+  interface Rectangle {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+
+  const spriteEntries = Object.entries(spritesMap);
+  const boxesMap: { [key: string]: Rectangle } = {};
+  const boxes: Rectangle[] = [];
+
+  // NOTE: potpack will rearrange the order of the items in the array,
+  // so while technically possible, combining this loop with the other
+  // below won't work as indexes won't match after calling potpack
+  for (let i = 0; i < spriteEntries.length; i++) {
+    const [id, sprite] = spriteEntries[i];
+    const box = {
+      x: 0,
+      y: 0,
+      w: sprite.naturalWidth,
+      h: sprite.naturalHeight,
+    };
+    boxesMap[id] = box;
+    boxes.push(box);
+  }
+
+  const potpackStats = potpack(boxes);
+  const spritesSheet = document.createElement('canvas');
+  const ctx = spritesSheet.getContext('2d')!;
+
+  spritesSheet.width = potpackStats.w;
+  spritesSheet.height = potpackStats.h;
+
+  for (let i = 0; i < spriteEntries.length; i++) {
+    const [id, sprite] = spriteEntries[i];
+    const box = boxesMap[id];
+    ctx.drawImage(sprite, box.x, box.y, box.w, box.h);
+  }
+
+  return {
+    spritesSheet,
+    boxesMap
+  };
+
+}
+
+
+function loadItemImages (baseURL: string, rawItems: RawItem[], onProgress: ProgressListener): Promise<LoadItemImagesResult> {
+
+  return new Promise(resolve => {
+
+    const textureMissingImage = document.createElement("img")
+    textureMissingImage.src = "assets/images/texture-missing.png"
+
+    const result: LoadItemImagesResult = {
+      spritesMap: {},
+      issues: []
+    }
+
+    let completedItems = 0
+
+
+    const awaiter = setInterval(() => {
+
+      const progress = completedItems / rawItems.length
+
+      onProgress(progress)
+
+      if (progress === 1) {
+        clearInterval(awaiter)
+        resolve(result)
+      }
+
+    }, 100)
+
+
+    for (const rawItem of rawItems) {
+
+      const url = rawItem.image.replace('%url%', baseURL)
+
+      loadImage(url).then(image => {
+
+        result.spritesMap[rawItem.id] = image;
+
+      }).catch(err => {
+
+        result.spritesMap[rawItem.id] = textureMissingImage;
+        result.issues.push(`${rawItem.name}: Failed to load image: ${err.message}`);
+        
+      }).finally(() => {
+
+        completedItems++
+
+      })
+
+    }
+
+  })
+
+}
+
+
+function importItem (raw: RawItem): Item {
+
+  const item: Item = {
+    id: raw.id,
+
+    name: raw.name,
+    kind: getItemKindString(raw.type, raw.element),
+    unlockLevel: raw.unlock_level || 0,
+    goldPrice: raw.gold_price || 0,
+    tokensPrice: raw.tokens_price || 0,
+    transformRange: raw.transform_range,
+
+    type: raw.type,
+    element: raw.element || 'PHYSICAL',
+    stats: raw.stats,
+    tags: getItemTags(raw),
+
+    width: 0,
+    height: 0,
+    
+    attachment: raw.attachment || null,
+  }
+
+  if (item.attachment === null) {
+    item.attachment = createSyntheticItemAttachment(item.type, item.width, item.height)
+  }
+
+  return item
+
+}
+
+
+function getItemTags (raw: RawItem): Item['tags'] {
+
+  const tags: Item['tags'] = {
+    legacy: false,
+    melee: false,
+    premium: false,
+    require_jump: false,
+    roller: false,
+    sword: false,
+    custom: false
+  }
+
+  if (raw.tags !== undefined) {
+    tags.legacy = raw.tags.includes('legacy')
+    tags.melee = raw.tags.includes('melee')
+    tags.roller = raw.tags.includes('roller')
+    tags.sword = raw.tags.includes('sword')
+  }
+
+  tags.premium = (
+    tags.legacy
+    ? raw.transform_range[0] === 'M' // Legacy premium
+    : 'LM'.includes(raw.transform_range[0]) // Reloaded premium
+  )
+
+  tags.require_jump = 'advance' in raw.stats || 'retreat' in raw.stats
+
+  return tags
+
 }

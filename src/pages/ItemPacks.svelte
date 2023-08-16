@@ -1,11 +1,12 @@
 <script lang="ts">
 
+import * as ItemsManager from '../items/ItemsManager'
+import { itemsPackStore, rawItemsPackStore } from '../items/ItemsManager'
 import WideButton from '../components/WideButton.svelte'
 import ProgressBar from '../components/ProgressBar.svelte'
+import Logger from '../utils/Logger';
 import { push, pop, querystring } from 'svelte-spa-router'
-import { importItemsPack } from '../items/ItemsManager'
-import { ItemsPackData, itemsPackData } from '../stores'
-import { addPopup } from '../managers/PopupManager'
+import { PopupData, addPopup } from '../managers/PopupManager'
 import { getUsefulErrorMessage } from '../utils/getUsefulErrorMessage'
 import { userData } from '../stores/userData'
 import { isInMatchMaker } from '../stores/isInMatchMaker'
@@ -13,11 +14,8 @@ import { onMount } from 'svelte'
 
 
 
-// Consts
+const logger = new Logger("Item Packs Screen");
 const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/3b5669e4246bc2d7dc669d484db89062/raw'
-//const defaultPackURL = 'https://gist.githubusercontent.com/ctrlraul/22b71089a0dd7fef81e759dfb3dda67b/raw'
-const discordTag = 'ctrl-raul#9419'
-const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 
 
 
@@ -26,6 +24,54 @@ const forumProfile = 'https://community.supermechs.com/profile/20-raul/'
 let loadingProgress = 0
 let currentURL = ''
 let saveURL = true
+let alreadyLoaded = true
+
+
+ItemsManager.itemsPackStore.subscribe(itemsPack => {
+
+  if (!itemsPack) {
+    alreadyLoaded = false;
+    return;
+  }
+
+  // Means we're returning to this page to change
+  // the pack, so don't instantly go to workshop
+  if (alreadyLoaded) {
+    return;
+  }
+
+  if (saveURL) {
+    $userData.lastItemsPackURL = currentURL
+  }
+
+  saveURL = true;
+
+  if (itemsPack.issues.length === 0) {
+
+    gotoNextRoute()
+
+  } else {
+
+    addPopup({
+      title: `${itemsPack.issues.length} issues found!`,
+      message: itemsPack.issues,
+      hideOnOffclick: true,
+      options: {
+        Ok () {
+          gotoNextRoute();
+          this.remove();
+        },
+        Retry () {
+          loadingProgress = 0;
+          loadFromURL(currentURL);
+          this.remove();
+        }
+      }
+    })
+
+  }
+
+});
 
 
 
@@ -42,21 +88,25 @@ async function loadFromURL (url: string): Promise<void> {
     return
   }
 
-
   currentURL = url
 
-
-  const popup = addPopup({
-    title: 'Awaiting Response...',
+  let awaitingResponsePopup: PopupData | null = addPopup({
+    title: url == $userData.lastItemsPackURL ? 'Importing last pack...' : 'Awaiting Response...',
     spinner: true
-  })
+  });
+
+  const setProgress = (progress: number) => {
+    if (awaitingResponsePopup) {
+      awaitingResponsePopup.remove();
+      awaitingResponsePopup = null;
+    }
+    loadingProgress = progress;
+  }
 
 
   try {
   
-    const itemsPack = await importItemsPack(url, progress => loadingProgress = progress)
-
-    onPackImported(itemsPack)
+    await ItemsManager.importItemsPack(url, setProgress);
 
   } catch (err: any) {
 
@@ -74,23 +124,11 @@ async function loadFromURL (url: string): Promise<void> {
       message: `
         Error:
         ${errMessage.join('\n')}
-
-        If you\'re having trouble contact me:
-        Discord: ${discordTag}
-        Forum: ${forumProfile}
-
-        (Make sure to screenshot or copy this error message)
-
-        Raul
       `,
       options: {
         Ok () { this.remove() }
       }
     })
-
-  } finally {
-
-    popup.remove()
 
   }
 
@@ -118,44 +156,6 @@ function loadFromFile (e: Event): void {
 }
 
 
-function onPackImported (itemsPack: ItemsPackData): void {
-
-  if (saveURL) {
-    $userData.lastItemsPackURL = currentURL
-  }
-
-  loadingProgress = 0
-  saveURL = true
-
-  if (itemsPack.issues.length === 0) {
-
-    itemsPackData.set(itemsPack)
-    gotoNextRoute()
-
-  } else {
-
-    addPopup({
-      title: `${itemsPack.issues.length} item(s) were not successfuly imported!`,
-      message: itemsPack.issues,
-      hideOnOffclick: true,
-      options: {
-        Ok () {
-          itemsPackData.set(itemsPack)
-          gotoNextRoute()
-          this.remove()
-        },
-        Retry () {
-          loadFromURL(currentURL)
-          this.remove()
-        }
-      }
-    })
-
-  }
-
-}
-
-
 function gotoNextRoute () {
 
   const urlParams = new URLSearchParams($querystring)
@@ -174,8 +174,9 @@ function gotoNextRoute () {
 
 onMount(() => {
   // Try to load last items pack if there is no pack already loaded
-  if (!$itemsPackData && $userData.settings.automaticallyLoadLastItemsPack && $userData.lastItemsPackURL) {
-    loadFromURL($userData.lastItemsPackURL)
+  if (!$itemsPackStore && $userData.settings.automaticallyLoadLastItemsPack && $userData.lastItemsPackURL) {
+    logger.log("Importing last pack...");
+    loadFromURL($userData.lastItemsPackURL);
   }
 })
 
@@ -184,20 +185,20 @@ onMount(() => {
 
 <main>
 
-  {#if loadingProgress > 0 && $itemsPackData}
+  {#if $rawItemsPackStore}
 
-    <div class="classic-box items-pack-info">
+    <div class="global-box items-pack-info">
 
-      <h3 class="name">
-        {$itemsPackData.name}
-        <span>({$itemsPackData.items.length} items)</span>
-      </h3>
+      <header style="display: flex">
+        <span class="name">{$rawItemsPackStore.name}</span>
+        <span class="items-count">{$rawItemsPackStore.items.length} items</span>
+      </header>
 
-      <div class="separator"></div>
-
-      <div class="description">
-        {$itemsPackData.description}
-      </div>
+      {#if $rawItemsPackStore.description != ""}
+        <div class="description">
+          {$rawItemsPackStore.description}
+        </div>
+      {/if}
 
       <ProgressBar progress={loadingProgress} />
 
@@ -232,7 +233,7 @@ onMount(() => {
 
       {/if}
 
-      {#if $itemsPackData !== null}
+      {#if $itemsPackStore !== null}
 
         <WideButton
           text="Cancel"
@@ -283,22 +284,28 @@ main {
 }
 
 .items-pack-info {
+  display: flex;
+  flex-direction: column;
   width: 24rem;
   padding: 1em;
 }
 
-.items-pack-info > .name {
-  width: 100%;
-  text-align: center;
+.items-pack-info header .name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 125%;
 }
 
-.items-pack-info > .name > span {
+.items-pack-info header .items-count {
   color: var(--color-success);
-  margin-left: 1rem;
+  text-align: right;
 }
 
 .items-pack-info > .description {
-  padding: 1rem;
+  padding: 0.5rem;
+  margin: 1rem 0;
+  background-color: #00000040;
+  border-radius: inherit;
 }
 
 </style>

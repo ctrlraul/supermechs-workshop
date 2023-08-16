@@ -4,6 +4,7 @@ import separateDecimals from '../utils/separateDecimals'
 import tooltip from './Tooltip/useTooltip'
 import * as StatsManager from '../stats/StatsManager'
 import { userData } from '../stores/userData'
+import { itemsPackStore } from '../items/ItemsManager'
 
 
 
@@ -23,7 +24,7 @@ export let source: Item['id'] | Item['id'][] | Item['stats']
 type StatEntry <K extends StatKey = StatKey> = [K, ItemStats[K]]
 
 
-$: stats = getStats(source, $userData.settings.arenaBuffs)
+$: stats = getStats(source);
 $: entries = Object.entries(stats) as StatEntry[]
 $: instructions = entries.map(([key]) => StatsManager.getStatInstruction(key))
 $: useAdvancedDamage = $userData.settings.advancedDamageDisplay
@@ -36,11 +37,13 @@ function getTooltipText <K extends StatKey> (key: K, value: ItemStats[K]): strin
 
   if (key === 'weight') {
 
-    if (value > StatsManager.OVERLOAD_LIMIT) {
-      return 'Too heavy for battle!'
+    const weight = value as number;
+
+    if (weight > StatsManager.OVERLOAD_LIMIT) {
+      return `Too heavy for battle!`;
     }
 
-    if (value > StatsManager.WEIGHT_LIMIT) {
+    if (weight > StatsManager.WEIGHT_LIMIT) {
       return 'Over-weighted!\nYou can still battle but your health is nerfed.'
     }
 
@@ -74,22 +77,14 @@ function getStyleForWeight (value: number): string | null {
 }
 
 
-function getStats (statsSource: typeof source, arenaBuffs: boolean): Item['stats'] {
+function getStats (statsSource: typeof source): Item['stats'] {
 
   if (typeof statsSource === 'number') {
-    return (
-      arenaBuffs
-      ? StatsManager.getBuffedItemStats(statsSource)
-      : StatsManager.getItemStats(statsSource)
-    )
+    return StatsManager.getSmartItemStats(statsSource);
   }
 
   if (Array.isArray(statsSource)) {
-    return (
-      arenaBuffs
-      ? StatsManager.getBuffedMechSummary(statsSource)
-      : StatsManager.getMechSummary(statsSource)
-    )
+    return StatsManager.getSmartMechSummary(statsSource);
   }
 
   return statsSource
@@ -134,7 +129,7 @@ function isDamageType (key: StatKey): boolean {
 
       {#if Array.isArray(value)}
 
-        {#if useAdvancedDamage && isDamageType(key)}
+        {#if useAdvancedDamage && isDamageType(key) && !$itemsPackStore?.legacy}
 
           <output>
             {separateDecimals(Math.round(getAverage(...value)))}~
@@ -147,7 +142,7 @@ function isDamageType (key: StatKey): boolean {
         {:else}
 
           <output>
-            {value.map(separateDecimals).join('-')}
+            {value[0] == value[1] ? value[0] : value.map(separateDecimals).join('-')}
           </output>
 
         {/if}

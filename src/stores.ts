@@ -11,18 +11,10 @@ import { addPopup } from './managers/PopupManager'
 import type { Battle } from './battle/Battle'
 import type { TooltipData } from './components/Tooltip/useTooltip'
 import type Item from './items/Item'
+import { itemsPackStore, type ItemsPack } from './items/ItemsManager'
 
 export type Orientations = 'landscape' | 'portrait'
 
-export interface ItemsPackData {
-  version: string
-  name: string
-  description: string
-  key: string
-  items: Item[]
-  spritesSheet: HTMLCanvasElement
-  issues: string[]
-}
 
 
 
@@ -36,20 +28,15 @@ const logger = new Logger()
 
 export const orientation = writable<Orientations>(getOrientation())
 export const battle = writable<Battle | null>(null)
-export const itemsPackData = writable<ItemsPackData | null>(null)
 export const tooltip = writable<TooltipData | null>(null)
 
 
 
-// Some independent shit
-
-itemsPackData.subscribe(value => {
+itemsPackStore.subscribe(value => {
 
   if (value === null) {
     return
   }
-  
-  logger.log('Items Pack Data:', value)
 
 
   try {
@@ -92,7 +79,6 @@ itemsPackData.subscribe(value => {
   }
 
 })
-
 
 window.addEventListener('resize', () => {
   orientation.set(getOrientation())
