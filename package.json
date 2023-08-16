@@ -1,6 +1,9 @@
 {
   "name": "supermechs-workshop",
   "private": true,
+  "engines": {
+    "node": "^18.17.1"
+  },
   "version": "0.0.0",
   "type": "module",
   "scripts": {
