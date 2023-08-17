@@ -91,10 +91,7 @@ function getFilteredItemsList (filter: Filter): Item[] {
   const items = getItemsByType(type)
 
   if (filter.query) {
-    return items.filter(item => {
-      const words = item.name.toLowerCase().split(' ')
-      return words.some(word => word.startsWith(filter.query))
-    })
+    return items.filter(item => item.name.toLowerCase().includes(filter.query));
   }
 
   if (filter.element) {
