@@ -106,16 +106,20 @@ let _renderSprite: (ctx: CanvasRenderingContext2D, item: Item, x?: number, y?: n
 
 export async function importItemsPack (url: string, onProgress: (progress: number) => void) {
 
+  logger.log("Pack URL:", url);
+
   const response = await fetch(url);
   const data = await response.json();
   const rawItemsPack = parseRawItemsPack(data);
+
+  logger.log("Raw items pack:", rawItemsPack);
 
   rawItemsPackStore.set(rawItemsPack);
 
   const loadItemImagesResult = await loadItemImages(
     rawItemsPack.base_url,
     rawItemsPack.items,
-    progress => onProgress(progress / 1.01)
+    onProgress
   );
 
   const importItemsResult = importItems(
@@ -135,14 +139,12 @@ export async function importItemsPack (url: string, onProgress: (progress: numbe
     ],
   }
 
-  logger.log("Items Pack:", itemsPack);
-
   _renderSprite = getRenderSpriteMethod(
     rawItemsPack.sprite_handling_method,
     loadItemImagesResult.spritesMap,
   );
 
-  onProgress(1);
+  logger.log("Items Pack:", itemsPack);
 
   itemsPackStore.set(itemsPack);
   rawItemsPackStore.set(null);
@@ -551,6 +553,12 @@ function loadItemImages (baseURL: string, rawItems: RawItem[], onProgress: Progr
 
 
     for (const rawItem of rawItems) {
+
+      if (!rawItem.image) {
+        result.issues.push(`${rawItem.name}: Lacks an image`);
+        logger.log(`${rawItem.name}: Lacks an image`);
+        continue;
+      }
 
       const url = rawItem.image.replace('%url%', baseURL)
 
