@@ -175,8 +175,12 @@ function gotoNextRoute () {
 onMount(() => {
   // Try to load last items pack if there is no pack already loaded
   if (!$itemsPackStore && $userData.settings.automaticallyLoadLastItemsPack && $userData.lastItemsPackURL) {
-    logger.log("Importing last pack...");
-    loadFromURL($userData.lastItemsPackURL);
+
+    if ($userData.lastItemsPackURL != "https://gist.githubusercontent.com/ctrlraul/22b71089a0dd7fef81e759dfb3dda67b/raw") {
+      logger.log("Importing last pack...");
+      loadFromURL($userData.lastItemsPackURL);
+    }
+
   }
 })
 

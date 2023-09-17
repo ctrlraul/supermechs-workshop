@@ -106,13 +106,11 @@ let _renderSprite: (ctx: CanvasRenderingContext2D, item: Item, x?: number, y?: n
 
 export async function importItemsPack (url: string, onProgress: (progress: number) => void) {
 
-  logger.log("Pack URL:", url);
+  logger.log(`Pack URL: ${url}`);
 
   const response = await fetch(url);
   const data = await response.json();
   const rawItemsPack = parseRawItemsPack(data);
-
-  logger.log("Raw items pack:", rawItemsPack);
 
   rawItemsPackStore.set(rawItemsPack);
 
@@ -556,10 +554,10 @@ function loadItemImages (baseURL: string, rawItems: RawItem[], onProgress: Progr
 
       if (!rawItem.image) {
         result.issues.push(`${rawItem.name}: Lacks an image`);
-        logger.log(`${rawItem.name}: Lacks an image`);
+        result.spritesMap[rawItem.id] = textureMissingImage;
         continue;
       }
-
+      
       const url = rawItem.image.replace('%url%', baseURL)
 
       loadImage(url).then(image => {
